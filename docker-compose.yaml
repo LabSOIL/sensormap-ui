@@ -26,6 +26,8 @@ services:
       - DB_PASSWORD=psql
       - DB_NAME=postgres
       - DB_PREFIX=postgresql+asyncpg
+    ports:
+      - 8005:8000
     depends_on:
         - sensormap-db
     volumes:

@@ -23,6 +23,7 @@ import Layout from './Layout';
 import users from './users';
 import sensors from './sensors';
 import areas from "./areas";
+import soil from './soil';
 import axios from 'axios';
 import addUploadCapabilities from './addUploadFeature'
 import SensorDataShow from './sensors/SensorDataShow';
@@ -93,6 +94,8 @@ const App = () => {
                     <Resource name="areas" {...areas} />
                     <Resource name="sensors" {...sensors.sensor} />
                     <Resource name="sensordata" {...sensors.sensordata} />
+                    <Resource name="soil_profiles" {...soil.profile} />
+                    <Resource name="soil_types" {...soil.type} />
                     {permissions ? (
                         <>
                             {permissions === 'admin' ? (

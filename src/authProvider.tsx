@@ -85,7 +85,7 @@ export const keycloakAuthProvider = (
         console.log("Token expired, refreshing...")
         // Implement logic to refresh the token, typically using Keycloak's refresh token
         // Update the Keycloak client with the new token
-        await client.updateToken();
+        await client.updateToken(360);
     },
     async getPermissions() {
         if (!client.token) {
