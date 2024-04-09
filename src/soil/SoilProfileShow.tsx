@@ -10,6 +10,8 @@ import {
     usePermissions,
     DateField,
     ReferenceField,
+    NumberField,
+    FunctionField,
 } from "react-admin";
 import { LocationFieldPoints } from '../maps/Points';
 
@@ -36,7 +38,6 @@ const SoilProfileShowActions = () => {
 export const SoilProfileShow = () => (
     <Show title={<SoilProfileTitle />} actions={<SoilProfileShowActions />}>
         <SimpleShowLayout>
-            <TextField source="name" />
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                 <div style={{ textAlign: 'center', margin: '0 10px' }}>
                     <h2>Soil diagram</h2>
@@ -49,14 +50,23 @@ export const SoilProfileShow = () => (
                 </div>
             </div>
 
-            <TextField source="description" label="Horizon description" component="pre" />
+            <TextField source="name" />
             <ReferenceField source="soil_type_id" reference="soil_types" link="show">
                 <TextField source="name" />
             </ReferenceField>
-            <TextField source="location" />
+            <TextField source="description_horizon" label="Horizon description" component="pre" />
+            <FunctionField
+                label="Coordinates"
+                render={record => `${record.coord_x}, ${record.coord_y} (SRID: ${record.coord_srid})`}
+            />
+            <TextField source="coord_z" label="Elevation (m)" />
+            <DateField source="date_created" label="Description Date" />
+            <TextField source="vegetation_type" label="Vegetation Type" />
+            <TextField source="topography" label="Topography" />
+            <TextField source="aspect" label="Aspect (°)" />
+            <TextField source="slope" label="Slope (°)" />
             <TextField source="weather" />
-            <TextField source="topography" />
-            <DateField source="date_created" />
+            <TextField source="lythology_surficial_deposit" label="Lythology/Surficial deposit" />
         </SimpleShowLayout>
     </Show>
 );
