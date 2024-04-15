@@ -16,6 +16,10 @@ import { BaseLayers } from './Layers';
 
 export const LocationFieldAreas = ({ areas }) => {
     const redirect = useRedirect();
+    console.log(areas);
+    if (areas.length === 0) {
+        return null;
+    }
 
     return (
         <MapContainer
