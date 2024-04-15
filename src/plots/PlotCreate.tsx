@@ -1,20 +1,22 @@
 /* eslint react/jsx-key: off */
 import {
+    Create,
     DateInput,
-    Edit,
     NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
+    TextField,
     TextInput,
-    required
+    required,
 } from 'react-admin';
 
-const SoilProfileEdit = () => {
+
+const PlotCreate = () => {
     return (
-        <Edit redirect="show">
-            <SimpleForm>
-                <TextInput source="id" disabled />
+        <Create redirect="show">
+            <SimpleForm >
+                <TextField source="id" />
                 <TextInput source="name" validate={[required()]} />
                 <ReferenceInput source="soil_type_id" reference="soil_types">
                     <SelectInput optionText="name" />
@@ -31,8 +33,9 @@ const SoilProfileEdit = () => {
                 <TextInput source="weather" />
                 <TextInput source="lythology_surficial_deposit" label="Lythology/Surficial deposit" />
             </SimpleForm>
-        </Edit>
+        </Create >
+
     )
 };
 
-export default SoilProfileEdit;
+export default PlotCreate;

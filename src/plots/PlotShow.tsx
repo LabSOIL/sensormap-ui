@@ -16,14 +16,14 @@ import {
 import { LocationFieldPoints } from '../maps/Points';
 
 
-const SoilProfileTitle = () => {
+const PlotShowTitle = () => {
     const record = useRecordContext();
     // the record can be empty while loading
     if (!record) return null;
     return <span>{record.place} SoilProfile</span>;
 };
 
-const SoilProfileShowActions = () => {
+const PlotShowActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
@@ -35,8 +35,8 @@ const SoilProfileShowActions = () => {
     );
 }
 
-export const SoilProfileShow = () => (
-    <Show title={<SoilProfileTitle />} actions={<SoilProfileShowActions />}>
+export const PlotShow = () => (
+    <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
         <SimpleShowLayout >
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                 <div style={{ textAlign: 'center', margin: '0 10px' }}>
@@ -71,4 +71,4 @@ export const SoilProfileShow = () => (
     </Show>
 );
 
-export default SoilProfileShow;
+export default PlotShow;

@@ -10,7 +10,7 @@ import {
     required
 } from 'react-admin';
 
-const SoilProfileEdit = () => {
+const PlotEdit = () => {
     return (
         <Edit redirect="show">
             <SimpleForm>
@@ -35,4 +35,4 @@ const SoilProfileEdit = () => {
     )
 };
 
-export default SoilProfileEdit;
+export default PlotEdit;
