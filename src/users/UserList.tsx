@@ -49,7 +49,7 @@ const UserList = () => {
     };
     return (
         <InfiniteList
-            disableSyncWithLocation
+            storeKey={false}
             filterDefaultValues={{ admin: true }}
             aside={<Aside />}
         >

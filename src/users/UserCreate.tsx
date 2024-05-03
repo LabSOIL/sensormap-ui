@@ -58,7 +58,7 @@ const UserCreate = () => {
                 filters={postFilters}
                 actions={null}
                 pagination={null}
-                disableSyncWithLocation
+                storeKey={false}
             >
                 <Datagrid bulkActionButtons={false} rowClick={handleRowClick}>
                     <TextField source="username" />

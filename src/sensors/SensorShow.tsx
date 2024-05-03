@@ -76,7 +76,7 @@ const SensorShow = () => (
                     <SensorPlot source="temperature_plot" />
                 </TabbedShowLayout.Tab>
                 {/* <TabbedShowLayout.Tab label="summary">
-                    <List disableSyncWithLocation>
+                    <List storeKey={false}>
                         <ArrayField source="data">
                             <Datagrid isRowSelectable={false}>
                                 <TextField source="time" />

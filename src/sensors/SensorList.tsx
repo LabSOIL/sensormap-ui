@@ -34,7 +34,7 @@ const SensorList = () => {
     const { permissions } = usePermissions();
 
     return (
-        <List disableSyncWithLocation
+        <List storeKey={false}
             actions={<SensorListActions />}
             perPage={25}
         >

@@ -25,6 +25,7 @@ import sensors from './sensors';
 import areas from "./areas";
 import plots from './plots';
 import soil from './soil';
+import projects from './projects';
 import axios from 'axios';
 import addUploadCapabilities from './addUploadFeature'
 import SensorDataShow from './sensors/SensorDataShow';
@@ -92,6 +93,7 @@ const App = () => {
         >
             {permissions => (
                 <>
+                    <Resource name="projects" {...projects} />
                     <Resource name="areas" {...areas} />
                     <Resource name="sensors" {...sensors.sensor} />
                     <Resource name="sensordata" {...sensors.sensordata} />

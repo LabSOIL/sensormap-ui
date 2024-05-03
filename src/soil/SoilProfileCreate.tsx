@@ -7,9 +7,14 @@ import {
     SelectInput,
     SimpleForm,
     TextField,
+    Labeled,
     TextInput,
     required,
+    DateField,
+    FunctionField
 } from 'react-admin';
+import { Grid } from '@mui/material';
+
 
 
 const SoilProfileCreate = () => {
@@ -21,7 +26,6 @@ const SoilProfileCreate = () => {
                 <ReferenceInput source="soil_type_id" reference="soil_types">
                     <SelectInput optionText="name" />
                 </ReferenceInput>
-                <TextInput source="description_horizon" label="Horizon description" multiline />
                 <NumberInput source="coord_x" label="X Coordinate (m; SRID 2056)" validate={[required()]} />
                 <NumberInput source="coord_y" label="Y Coordinate (m; SRID 2056)" validate={[required()]} />
                 <NumberInput source="coord_z" label="Elevation (m)" validate={[required()]} />
@@ -32,6 +36,10 @@ const SoilProfileCreate = () => {
                 <NumberInput source="slope" label="Slope (°)" />
                 <TextInput source="weather" />
                 <TextInput source="lythology_surficial_deposit" label="Lythology/Surficial deposit" />
+                <TextInput source="description_horizon" label="Horizon description" multiline />
+
+
+
             </SimpleForm>
         </Create >
 

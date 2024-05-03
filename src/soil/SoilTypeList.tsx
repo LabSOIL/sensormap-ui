@@ -31,7 +31,7 @@ export const SoilTypeList = () => {
     if (isLoading) return <p>Loading areas...</p>;
 
     return (
-        <List actions={<SoilTypeListActions />} disableSyncWithLocation>
+        <List actions={<SoilTypeListActions />} storeKey={false}>
 
             <Datagrid rowClick="show">
                 <TextField source="name" />

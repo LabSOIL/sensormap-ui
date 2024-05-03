@@ -33,7 +33,7 @@ export const SoilProfileList = () => {
     if (isLoading) return <p>Loading areas...</p>;
 
     return (
-        <List actions={<SoilProfileListActions />} disableSyncWithLocation>
+        <List actions={<SoilProfileListActions />} storeKey={false}>
             <Datagrid rowClick="show">
                 <TextField source="name" />
                 <ReferenceField source="soil_type_id" reference="soil_types" link="show">

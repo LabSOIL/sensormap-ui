@@ -33,7 +33,7 @@ export const PlotList = () => {
     if (isLoading) return <p>Loading ...</p>;
 
     return (
-        <List actions={<PlotListActions />} disableSyncWithLocation>
+        <List actions={<PlotListActions />} storeKey={false}>
             <Datagrid rowClick="show">
                 <TextField source="name" />
                 <ReferenceField source="soil_type_id" reference="soil_types" link="show">

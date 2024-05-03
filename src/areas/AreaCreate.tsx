@@ -9,6 +9,8 @@ import {
     Toolbar,
     SaveButton,
     useRedirect,
+    ReferenceInput,
+    SelectInput,
 } from 'react-admin';
 import { useState } from 'react';
 import { LocationFieldAreasCreate } from '../maps/Areas';
@@ -53,6 +55,19 @@ const AreaCreate = () => {
                 <TextField source="id" />
                 <TextInput source="name" validate={[required()]} />
                 <TextInput source="description" validate={[required()]} />
+                <ReferenceInput
+                    source="project_id"
+                    reference="projects"
+                    sort={{ field: 'name', order: 'ASC' }}
+                >
+                    <SelectInput
+                        label="Associated project"
+                        source="projects_id"
+                        optionText={(record) => `${record.name}`}
+                        validate={required()}
+                    />
+                </ReferenceInput>
+
                 <LocationFieldAreasCreate onCreated={onCreated} onDeleted={onDeleted} />
             </SimpleForm>
         </Create >

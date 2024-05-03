@@ -20,7 +20,7 @@ export const LocationFieldAreas = ({ areas }) => {
     if (areas.length === 0) {
         return null;
     }
-
+    console.log("AREA", areas);
     return (
         <MapContainer
             style={{ width: '100%', height: '700px' }}
@@ -34,6 +34,8 @@ export const LocationFieldAreas = ({ areas }) => {
                     (area, index) => (
                         < Polygon
                             key={index}
+                            pathOptions={{ fillOpacity: 0.25, color: area.project.color }}
+
                             eventHandlers={{
                                 click: () => {
                                     redirect('show', 'areas', area['id']);
@@ -42,7 +44,6 @@ export const LocationFieldAreas = ({ areas }) => {
                             positions={area["geom"]['coordinates']}
                         >
                             <Tooltip permanent>{area.name}</Tooltip>
-
 
                         </Polygon>
                     )
