@@ -41,10 +41,8 @@ export const PlotList = () => {
                 </ReferenceField>
                 <TextField source="coord_x" label="X (m)" />
                 <TextField source="coord_y" label="Y (m)" />
-                <TextField source="coord_z" label="Elevation (m)" />
-                <TextField source="aspect" label="Aspect (°)" />
                 <TextField source="slope" label="Slope (°)" />
-                <DateField source="date_created" />
+                <DateField source="created_on" />
             </Datagrid>
         </List>
     );

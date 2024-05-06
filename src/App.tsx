@@ -95,11 +95,11 @@ const App = () => {
                 <>
                     <Resource name="projects" {...projects} />
                     <Resource name="areas" {...areas} />
+                    <Resource name="plots" {...plots} />
                     <Resource name="sensors" {...sensors.sensor} />
                     <Resource name="sensordata" {...sensors.sensordata} />
                     <Resource name="soil_profiles" {...soil.profile} />
                     <Resource name="soil_types" {...soil.type} />
-                    <Resource name="plots" {...plots} />
                     {permissions ? (
                         <>
                             {permissions === 'admin' ? (

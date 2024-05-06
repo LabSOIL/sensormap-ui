@@ -54,7 +54,7 @@ const AreaCreate = () => {
             <SimpleForm onSubmit={handleOnSubmit} toolbar={<AreaCreateToolbar />} >
                 <TextField source="id" />
                 <TextInput source="name" validate={[required()]} />
-                <TextInput source="description" validate={[required()]} />
+                <TextInput source="description" />
                 <ReferenceInput
                     source="project_id"
                     reference="projects"
@@ -67,7 +67,6 @@ const AreaCreate = () => {
                         validate={required()}
                     />
                 </ReferenceInput>
-
                 <LocationFieldAreasCreate onCreated={onCreated} onDeleted={onDeleted} />
             </SimpleForm>
         </Create >

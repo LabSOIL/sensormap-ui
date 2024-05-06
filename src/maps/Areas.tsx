@@ -35,7 +35,6 @@ export const LocationFieldAreas = ({ areas }) => {
                         < Polygon
                             key={index}
                             pathOptions={{ fillOpacity: 0.25, color: area.project.color }}
-
                             eventHandlers={{
                                 click: () => {
                                     redirect('show', 'areas', area['id']);
