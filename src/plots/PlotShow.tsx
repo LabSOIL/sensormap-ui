@@ -13,6 +13,9 @@ import {
     Labeled,
     NumberField,
     FunctionField,
+    ReferenceArrayField,
+    Datagrid,
+    ReferenceManyField,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 
@@ -104,6 +107,14 @@ export const PlotShow = () => (
             <Grid container>
                 <Grid item xs={6}>
                     <Typography variant="h6" textAlign="center" gutterBottom>Samples</Typography>
+                    <ReferenceManyField reference="plot_samples" target="plot_id" label="Samples">
+                        <Datagrid rowClick="show">
+                            <TextField source="name" />
+                            <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
+                            <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
+                            <DateField source="sampled_on" />
+                        </Datagrid>
+                    </ReferenceManyField>
 
                 </Grid>
                 <Grid item xs={6}>
