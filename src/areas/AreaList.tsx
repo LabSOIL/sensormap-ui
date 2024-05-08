@@ -54,7 +54,7 @@ export const AreaList = () => {
     if (isLoading) return <p>Loading areas...</p>;
 
     return (
-        <List actions={<AreaListActions />}>
+        <List actions={<AreaListActions />} storeKey={false}>
             <LocationFieldAreas
                 areas={data} />
             <Datagrid rowClick="show">
@@ -63,6 +63,18 @@ export const AreaList = () => {
                 <ReferenceManyCount
                     label="Sensors"
                     reference="sensors"
+                    target="area_id"
+                    link
+                />
+                <ReferenceManyCount
+                    label="Plots"
+                    reference="plots"
+                    target="area_id"
+                    link
+                />
+                <ReferenceManyCount
+                    label="Soil Profiles"
+                    reference="soil_profiles"
                     target="area_id"
                     link
                 />

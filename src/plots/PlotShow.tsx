@@ -46,12 +46,21 @@ const ColoredLine = ({ color, height }) => (
     />
 );
 
+const PlotTitle = ({ record }) => {
+
+    return <span>{record ? `${record.name}` : ''}</span>;
+}
+
 export const PlotShow = () => (
     <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
         <SimpleShowLayout >
             <Grid container>
                 <Grid item xs={4} textAlign="left">
-                    <FunctionField render={record => `${record.name}: ${record.area.name} ${record.gradient} ${record.plot_iterator}`} variant="h5" gutterBottom label={null} />
+                    <FunctionField render={record => `${record.name}: `} variant="h5" gutterBottom label={null} />
+                    <ReferenceField source="area_id" reference="areas" link="show">
+                        <TextField source="name" variant="h5" />
+                    </ReferenceField>{" "}
+                    <TextField source="gradient" variant="h5" />
                 </Grid>
                 <Grid item xs={4} textAlign="center">
                     <ReferenceField source="soil_type_id" reference="soil_types" link="show">

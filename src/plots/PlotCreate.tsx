@@ -2,6 +2,8 @@
 import {
     Create,
     DateInput,
+    NumberField,
+    minValue,
     NumberInput,
     ReferenceInput,
     SelectInput,
@@ -17,11 +19,11 @@ const PlotCreate = () => {
         <Create redirect="show">
             <SimpleForm >
                 <TextField source="id" />
-                <TextInput
+                <NumberInput
                     source="plot_iterator"
                     label="ID"
-                    validate={[required()]}
-                    helperText={<>The ID given to the plot that is unique within the area. <br />Example: 1 will become BF01 in Binntal Flat</>}
+                    validate={[required(), minValue(0)]}
+                    helperText={<>A numeric ID given to the plot<br />that is unique within the area. <br />Example: 1 will become BF01 in Binntal Flat</>}
                 />
                 <ReferenceInput source="area_id" reference="areas" >
                     <SelectInput optionText="name" validate={[required()]} />
@@ -37,12 +39,10 @@ const PlotCreate = () => {
                 <ReferenceInput source="soil_type_id" reference="soil_types">
                     <SelectInput optionText="name" />
                 </ReferenceInput>
-                <TextInput source="description_horizon" label="Horizon description" multiline />
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
                 <NumberInput source="slope" label="Slope (°)" />
-
             </SimpleForm>
         </Create >
 

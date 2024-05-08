@@ -45,6 +45,11 @@ const ProjectList = () => {
                 <TextField source="name" />
                 <TextField source="description" />
                 <ColorField source="color" />
+                <ReferenceManyCount
+                    label="Assigned Areas"
+                    reference="areas"
+                    target="project_id"
+                />
             </Datagrid>
         </List >
 
