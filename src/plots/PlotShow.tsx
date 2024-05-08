@@ -14,7 +14,6 @@ import {
     NumberField,
     FunctionField,
 } from "react-admin";
-import { LocationFieldPoints } from '../maps/Points';
 import { Grid, Typography } from '@mui/material';
 
 
@@ -104,7 +103,7 @@ export const PlotShow = () => (
             <ColoredLine color="grey" height={2} />
             <Grid container>
                 <Grid item xs={6}>
-                    <Typography variant="h6" textAlign="center" gutterBottom>Horizon description</Typography>
+                    <Typography variant="h6" textAlign="center" gutterBottom>Samples</Typography>
 
                 </Grid>
                 <Grid item xs={6}>

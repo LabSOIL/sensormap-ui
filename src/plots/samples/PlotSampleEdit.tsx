@@ -1,0 +1,78 @@
+/* eslint react/jsx-key: off */
+import {
+    DateInput,
+    Edit,
+    NumberInput,
+    ReferenceInput,
+    SelectInput,
+    SimpleForm,
+    TextInput,
+    required,
+    NumberField,
+    minValue,
+} from 'react-admin';
+
+const PlotSampleEdit = () => {
+    return (
+        <Edit redirect="show">
+            <SimpleForm>
+                <TextInput source="id" disabled />
+                <SelectInput source="name" choices={[
+                    { id: 'A', name: 'A' },
+                    { id: 'B', name: 'B' },
+                    { id: 'C', name: 'C' }
+                ]} defaultValue={'A'} helperText="Sample Name" validate={[required()]} />
+                <ReferenceInput
+                    source="plot_id"
+                    reference="plots"
+                    sort={{ field: 'name', order: 'ASC' }}
+                >
+                    <SelectInput
+                        label="Plot"
+                        source="plot_id"
+                        optionText={(record) => `${record.name}`}
+                        validate={required()}
+                    />
+                </ReferenceInput>
+
+                <NumberInput
+                    source="upper_depth_cm"
+                    label="Upper Depth (cm)"
+                    validate={[required(), minValue(0)]}
+                    helperText={<>Upper depth in centimeters from the surface where the sample was taken</>}
+                />
+                <NumberInput
+                    source="lower_depth_cm"
+                    label="Lower Depth (cm)"
+                    validate={[required(), minValue(0)]}
+                    helperText={<>Lower depth in centimeters from the surface where the sample was taken</>}
+                />
+                <NumberInput source="sample_weight" label="Sample Weight (g)" validate={[required()]} />
+                <TextInput source="subsample_weight" label="Subsample Weight" />
+                <NumberInput source="ph" label="pH" />
+                <NumberInput source="rh" label="Residual Humidity (RH)" />
+                <NumberInput source="loi" label="Loss on Ignition (LOI)" />
+                <NumberInput source="mfc" label="Moisture Factor Correction (MFC)" />
+                <NumberInput source="c" label="Carbon (C) %" />
+                <NumberInput source="n" label="Nitrogen (N) %" />
+                <NumberInput source="cn" label="Carbon:Nitrogen Ratio" />
+                <NumberInput source="clay_percent" label="Clay (%)" />
+                <NumberInput source="silt_percent" label="Silt (%)" />
+                <NumberInput source="sand_percent" label="Sand (%)" />
+                <NumberInput source="fe_ug_per_g" label="Iron (Fe) in ug/g" />
+                <NumberInput source="al_ug_per_g" label="Aluminum (Al) in ug/g" />
+                <NumberInput source="k_ug_per_g" label="Potassium (K) in ug/g" />
+                <NumberInput source="ca_ug_per_g" label="Calcium (Ca) in ug/g" />
+                <NumberInput source="mg_ug_per_g" label="Magnesium (Mg) in ug/g" />
+                <NumberInput source="mn_ug_per_g" label="Manganese (Mn) in ug/g" />
+                <NumberInput source="s_ug_per_g" label="Sulfur (S) in ug/g" />
+                <NumberInput source="cl_ug_per_g" label="Chlorine (Cl) in ug/g" />
+                <NumberInput source="p_ug_per_g" label="Phosphorus (P) in ug/g" />
+                <NumberInput source="si_ug_per_g" label="Silicon (Si) in ug/g" />
+
+            </SimpleForm>
+        </Edit>
+    )
+};
+
+export default PlotSampleEdit;

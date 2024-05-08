@@ -42,7 +42,7 @@ export const LocationFieldPoints = () => {
         'soil_profiles', { target: 'area_id', id: record.id }
     );
 
-    if (!record || plotLoading || sensorLoading) return <Loading />;
+    if (!record || plotLoading || sensorLoading || soilProfileLoading) return <Loading />;
 
     console.log("Plot data:", plotData);
     console.log("Sensor data:", sensorData);
@@ -70,6 +70,7 @@ export const LocationFieldPoints = () => {
             style={{ width: '100%', height: '700px' }}
             bounds={record["geom"]["coordinates"]}
             scrollWheelZoom={true}
+            maxZoom={18}
         >
             <BaseLayers />
             {sensorData.map((sensor, index) => (
