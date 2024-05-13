@@ -2,7 +2,8 @@ import {
     Show,
     SimpleShowLayout,
     TextField,
-    ReferenceManyCount,
+    useRedirect,
+    Button,
     useRecordContext,
     TopToolbar,
     EditButton,
@@ -13,11 +14,12 @@ import {
     Labeled,
     NumberField,
     FunctionField,
-    ReferenceArrayField,
+    CreateButton,
     Datagrid,
     ReferenceManyField,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 
 
 const PlotShowTitle = () => {
@@ -48,28 +50,63 @@ const ColoredLine = ({ color, height }) => (
     />
 );
 
-const PlotTitle = ({ record }) => {
 
-    return <span>{record ? `${record.name}` : ''}</span>;
+const CreateManyButton = () => {
+    const redirect = useRedirect();
+    const record = useRecordContext();
+
+    return (
+        <Button
+            label="Add Many"
+            onClick={(event) => {
+                redirect(
+                    '/plot_samples/createMany',
+                    undefined,
+                    undefined,
+                    undefined,
+                    { record: { plot_id: record.id } }
+                );
+            }}
+            startIcon={< LibraryAddIcon fontSize='inherit' />}
+        />
+
+    )
+}
+
+const CreateSampleButton = () => {
+    const record = useRecordContext();
+
+    return (
+        <CreateButton
+            label="Add"
+            resource="plot_samples"
+            state={{
+                record: {
+                    plot_id: record.id,
+                }
+            }}
+        />
+    );
+
 }
 
 export const PlotShow = () => (
     <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
         <SimpleShowLayout >
             <Grid container>
-                <Grid item xs={4} textAlign="left">
-                    <FunctionField render={record => `${record.name}: `} variant="h5" gutterBottom label={null} />
+                <Grid item xs={8} textAlign="left">
+                    <FunctionField
+                        render={record => `${record.name}: `}
+                        variant="h5"
+                        gutterBottom
+                        label={null}
+                    />
                     <ReferenceField source="area_id" reference="areas" link="show">
                         <TextField source="name" variant="h5" />
                     </ReferenceField>{" "}
                     <TextField source="gradient" variant="h5" />
                 </Grid>
-                <Grid item xs={4} textAlign="center">
-                    <ReferenceField source="soil_type_id" reference="soil_types" link="show">
-                        <TextField source="name" variant="h5"
-                        />
-                    </ReferenceField>
-                </Grid>
+
                 <Grid item xs={4} textAlign="right">
                     <DateField
                         source="created_on"
@@ -78,13 +115,15 @@ export const PlotShow = () => (
                     />
                 </Grid>
                 <Grid item xs={4}>
-                    <Labeled><TextField source="coord_x" /></Labeled >
+                    <Labeled>
+                        <TextField source="coord_x" label="X (m)" />
+                    </Labeled >
                 </Grid>
                 <Grid item xs={4}>
-                    <Labeled><TextField source="coord_y" /></Labeled >
+                    <Labeled><TextField source="coord_y" label="Y (m)" /></Labeled >
                 </Grid>
                 <Grid item xs={4}>
-                    <Labeled><TextField source="coord_x" /></Labeled >
+                    <Labeled><TextField source="coord_z" label="Elevation (m)" /></Labeled >
                 </Grid>
                 <Grid item xs={4}>
                     <Labeled><TextField source="aspect" /></Labeled >
@@ -99,7 +138,6 @@ export const PlotShow = () => (
                     <Labeled><TextField source="vegetation_type" /></Labeled >
                 </Grid>
                 <Grid item xs={4}>
-
                 </Grid>
             </Grid>
 
@@ -107,11 +145,13 @@ export const PlotShow = () => (
             <Grid container>
                 <Grid item xs={6}>
                     <Typography variant="h6" textAlign="center" gutterBottom>Samples</Typography>
+                    <TopToolbar><CreateSampleButton /><CreateManyButton /></TopToolbar>
                     <ReferenceManyField reference="plot_samples" target="plot_id" label="Samples">
-                        <Datagrid rowClick="show">
+                        <Datagrid rowClick="show" bulkActionButtons={false}>
                             <TextField source="name" />
                             <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                             <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
+                            <NumberField source="sample_weight" label="Weight (g)" />
                             <DateField source="sampled_on" />
                         </Datagrid>
                     </ReferenceManyField>

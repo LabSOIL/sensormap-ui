@@ -10,7 +10,7 @@ import {
     TitlePortal,
 } from 'react-admin';
 import { Route } from 'react-router-dom';
-import simpleRestProvider from 'ra-data-simple-rest';
+import simpleRestProvider from './dataProvider/index'
 import Keycloak, {
     KeycloakConfig,
     KeycloakTokenParsed,
@@ -42,7 +42,8 @@ const getPermissions = (decoded: KeycloakTokenParsed) => {
 };
 
 
-const apiUrl = '/api/config/keycloak';
+const apiKeycloakConfigUrl = '/api/config/keycloak';
+export const apiUrl = '/api';
 
 const App = () => {
     const [keycloak, setKeycloak] = useState();
@@ -53,7 +54,7 @@ const App = () => {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get(apiUrl);
+                const response = await axios.get(apiKeycloakConfigUrl);
                 const keycloakConfig = response.data;
 
                 // Initialize Keycloak here, once you have the configuration
@@ -62,11 +63,9 @@ const App = () => {
                 authProvider.current = keycloakAuthProvider(keycloakClient, {
                     onPermissions: getPermissions,
                 });
-                dataProvider.current = addUploadCapabilities(
-                    simpleRestProvider(
-                        '/api',
-                        httpClient(keycloakClient)
-                    )
+                dataProvider.current = simpleRestProvider(
+                    apiUrl,
+                    httpClient(keycloakClient)
                 );
                 setKeycloak(keycloakClient);
                 setLoading(false);
@@ -96,7 +95,12 @@ const App = () => {
                     <Resource name="projects" {...projects} />
                     <Resource name="areas" {...areas} />
                     <Resource name="plots" {...plots.plot} />
-                    <Resource name="plot_samples" {...plots.sample} />
+                    <Resource name="plot_samples" {...plots.sample} >
+                        <Route
+                            path="/createMany"
+                            element={<plots.sample.createMany />}
+                        />
+                    </Resource>
                     <Resource name="sensors" {...sensors.sensor} />
                     <Resource name="sensordata" {...sensors.sensordata} />
                     <Resource name="soil_profiles" {...soil.profile} />

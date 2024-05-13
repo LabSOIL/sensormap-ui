@@ -22,9 +22,6 @@ const ElevationInput = () => {
     const formContext = useFormContext();
     const [errorMessage, setErrorMessage] = useState(null);
     const [successResponse, setSuccessResponse] = useState(false);
-    if (formContext.getValues('coord_x') && formContext.getValues('coord_y')) {
-        console.log('Coordinates are set');
-    }
 
     const updateElevation = () => {
         console.log('Update elevation');
@@ -68,7 +65,6 @@ const ElevationInput = () => {
 
 
 const PlotCreate = () => {
-
     return (
         <Create redirect="show">
             <SimpleForm >
@@ -87,12 +83,9 @@ const PlotCreate = () => {
                     { id: 'slope', name: 'Slope' },
                 ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
                 <DateInput source="created_on" label="Description Date" />
-                <NumberInput source="coord_x" label="X Coordinate (m; SRID 2056)" validate={[required()]} />
-                <NumberInput source="coord_y" label="Y Coordinate (m; SRID 2056)" validate={[required()]} />
+                <NumberInput source="coord_x" label="X Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
+                <NumberInput source="coord_y" label="Y Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
                 <ElevationInput />
-                <ReferenceInput source="soil_type_id" reference="soil_types">
-                    <SelectInput optionText="name" />
-                </ReferenceInput>
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
