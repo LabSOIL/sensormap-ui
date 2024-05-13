@@ -7,18 +7,61 @@ import {
     SelectInput,
     SimpleForm,
     TextField,
-    Labeled,
+    Button,
     minValue,
     TextInput,
     required,
-    DateField,
-    FunctionField,
     ArrayInput,
     SimpleFormIterator
 } from 'react-admin';
-import { Grid } from '@mui/material';
+import { useFormContext } from 'react-hook-form';
+import { useState } from 'react';
+import { Typography } from '@mui/material';
 
+const ElevationInput = () => {
+    const formContext = useFormContext();
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [successResponse, setSuccessResponse] = useState(false);
 
+    const updateElevation = () => {
+        console.log('Update elevation');
+        const x = formContext.getValues('coord_x');
+        const y = formContext.getValues('coord_y');
+        const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;
+        fetch(url)
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if (data.success === false) {
+                    setErrorMessage(`Error fetching elevation: ${data.error.message}`);
+                } else {
+                    setErrorMessage(null);
+                    setSuccessResponse(true);
+                    formContext.setValue('coord_z', data.height);
+                }
+            })
+    }
+
+    return (<>
+        <Button
+            label="Get from Digital Elevation Model"
+            variant="outlined"
+            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
+            onClick={(event) => {
+                updateElevation();
+            }}
+        />
+        <Typography
+            variant="caption"
+            color={'error'}
+        >
+            {errorMessage ? errorMessage : null}
+        </Typography>
+        <NumberInput source="coord_z" label="Elevation (m)" />
+    </>
+    )
+}
 
 const SoilProfileCreate = () => {
     return (
@@ -39,9 +82,9 @@ const SoilProfileCreate = () => {
                     { id: 'slope', name: 'Slope' },
                 ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
                 <DateInput source="created_on" label="Description Date" />
-                <NumberInput source="coord_z" label="Elevation (m)" />
                 <NumberInput source="coord_x" label="X Coordinate (m; SRID 2056)" validate={[required()]} />
                 <NumberInput source="coord_y" label="Y Coordinate (m; SRID 2056)" validate={[required()]} />
+                <ElevationInput />
                 <ReferenceInput source="soil_type_id" reference="soil_types">
                     <SelectInput optionText="name" />
                 </ReferenceInput>
