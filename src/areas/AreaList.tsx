@@ -52,8 +52,7 @@ export const AreaList = () => {
 
     return (
         <List actions={<AreaListActions />} storeKey={false}>
-            <LocationFieldAreas
-                areas={data} />
+
             <Datagrid rowClick="show">
                 <TextField source="name" />
                 <TextField source="description" />
@@ -86,7 +85,10 @@ export const AreaList = () => {
                     <ColorBox />
                 </ReferenceField>
 
+
             </Datagrid>
+            <LocationFieldAreas
+                areas={data} />
         </List>
     );
 };

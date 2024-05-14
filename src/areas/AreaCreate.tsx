@@ -18,7 +18,7 @@ import { LocationFieldAreasCreate } from '../maps/Areas';
 const AreaCreate = () => {
 
     return (
-        <Create >
+        <Create redirect="show">
             <SimpleForm  >
                 <TextField source="id" />
                 <TextInput source="name" validate={[required()]} />
