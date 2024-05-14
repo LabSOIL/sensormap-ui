@@ -3,28 +3,13 @@ import {
     SimpleShowLayout,
     TextField,
     ReferenceManyCount,
-    useRecordContext,
     TopToolbar,
     EditButton,
     DeleteButton,
     usePermissions,
     ReferenceField,
-    ReferenceArrayField,
-    SingleFieldList,
-    ChipField,
-    ReferenceManyField,
-    useGetManyReference,
-    Loading,
 } from "react-admin";
 import { LocationFieldPoints } from '../maps/Points';
-import { ColorField } from 'react-admin-color-picker';
-
-// const AreaTitle = () => {
-//     const record = useRecordContext();
-//     // the record can be empty while loading
-//     if (!record) return null;
-//     return <span>{record.place} Area</span>;
-// };
 
 const AreaShowActions = () => {
     const { permissions } = usePermissions();
@@ -39,13 +24,8 @@ const AreaShowActions = () => {
 }
 
 export const AreaShow = () => {
-
     return (
-
-        <Show
-            // title={<AreaTitle />}
-            actions={<AreaShowActions />}
-        >
+        <Show actions={<AreaShowActions />} >
             <SimpleShowLayout>
                 <TextField source="name" />
                 <TextField source="description" />
@@ -77,7 +57,6 @@ export const AreaShow = () => {
                     target="area_id"
                     link
                 />
-
                 <LocationFieldPoints />
             </SimpleShowLayout>
         </Show>

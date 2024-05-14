@@ -8,14 +8,11 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
-    ArrayField,
-    Count,
     ReferenceField,
-    FunctionField,
     useRecordContext,
+    Loading,
 } from "react-admin";
 import { LocationFieldAreas } from '../maps/Areas';
-import { ColorField } from 'react-admin-color-picker';
 
 const AreaListActions = () => {
     const { permissions } = usePermissions();
@@ -51,7 +48,7 @@ export const AreaList = () => {
         'areas', {}
     );
 
-    if (isLoading) return <p>Loading areas...</p>;
+    if (isLoading) return <Loading />;
 
     return (
         <List actions={<AreaListActions />} storeKey={false}>

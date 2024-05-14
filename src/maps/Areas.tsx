@@ -1,6 +1,9 @@
 import {
     useRedirect,
     useGetList,
+    Button,
+    Link,
+    useCreatePath,
 } from 'react-admin';
 import {
     MapContainer,
@@ -16,23 +19,30 @@ import { BaseLayers } from './Layers';
 
 export const LocationFieldAreas = ({ areas }) => {
     const redirect = useRedirect();
-    console.log(areas);
+    const createPath = useCreatePath();
     if (areas.length === 0) {
         return null;
     }
-    console.log("AREA", areas);
+    const flipCoordinates = (coords) => {
+        return coords.map(coord => [coord[1], coord[0]]);
+    };
+
+    const flipPolygonCoordinates = (polygon) => {
+        return polygon.map(ring => flipCoordinates(ring));
+    };
+    const validAreas = areas.filter(area => area["geom"] && area["geom"]["coordinates"]);
+
     return (
         <MapContainer
             style={{ width: '100%', height: '700px' }}
-            // Use the bounds of all areas to set the bounds of the map
-            bounds={areas.map((area) => area["geom"]["coordinates"])}
+            bounds={validAreas.map((area) => flipPolygonCoordinates(area["geom"]["coordinates"])[0])}
             scrollWheelZoom={true}
         >
             <BaseLayers />
             {
-                areas.map(
+                validAreas.map(
                     (area, index) => (
-                        < Polygon
+                        <Polygon
                             key={index}
                             pathOptions={{ fillOpacity: 0.25, color: area.project.color }}
                             eventHandlers={{
@@ -40,49 +50,19 @@ export const LocationFieldAreas = ({ areas }) => {
                                     redirect('show', 'areas', area['id']);
                                 }
                             }}
-                            positions={area["geom"]['coordinates']}
+                            positions={flipPolygonCoordinates(area["geom"]['coordinates'])}
                         >
-                            <Tooltip permanent>{area.name}</Tooltip>
-
-                        </Polygon>
-                    )
-
-                )
-            }
-        </MapContainer >
-    );
-};
-export const LocationFieldAreasCreate = ({ areas, onCreated, onDeleted }) => {
-    const redirect = useRedirect();
-    const { data, total, isLoading, error } = useGetList(
-        'areas', {}
-    );
-    return (
-        <MapContainer style={{ width: '80%', height: '500px' }}
-            center={[46.8, 8.13]}
-            zoom={8}
-            scrollWheelZoom={true}>
-            <BaseLayers />
-            <FeatureGroup>
-                <EditControl
-                    position='topright'
-                    onCreated={onCreated}
-                    onDeleted={onDeleted}
-
-                />
-            </FeatureGroup>
-            {isLoading ? null : (
-                data.map(
-                    (area, index) => (
-                        < Polygon
-                            key={index}
-                            positions={area["geom"]['coordinates']}
-                        >
-                            <Tooltip permanent>{area.name}</Tooltip>
+                            <Tooltip
+                                permanent
+                                interactive={true}
+                            >
+                                <Link to={createPath({ type: 'show', resource: 'areas', id: area['id'] })}>
+                                    {area.name}
+                                </Link>
+                            </Tooltip>
                         </Polygon>
                     )
                 )
-            )
             }
         </MapContainer>
     );

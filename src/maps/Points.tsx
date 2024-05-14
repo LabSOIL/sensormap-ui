@@ -16,9 +16,12 @@ import { Link } from 'react-router-dom';
 import { BaseLayers } from './Layers';
 import * as L from 'leaflet';
 import ParkIcon from '@mui/icons-material/Park';
+import { Typography } from '@mui/material';
 
 export const LocationFieldPoints = () => {
     const record = useRecordContext();
+    if (!record) return <Loading />;
+
     const createPath = useCreatePath();
     const {
         data: plotData,
@@ -44,10 +47,6 @@ export const LocationFieldPoints = () => {
 
     if (!record || plotLoading || sensorLoading || soilProfileLoading) return <Loading />;
 
-    console.log("Plot data:", plotData);
-    console.log("Sensor data:", sensorData);
-    console.log("Soil Profile data:", soilProfileData);
-
     const fontAwesomeIcon = L.divIcon({
         URL: <ParkIcon />,
         iconSize: [40, 40],
@@ -64,12 +63,22 @@ export const LocationFieldPoints = () => {
         shadowSize: [22, 22],
         shadowAnchor: [1, 1]
     });
+    const flipCoordinates = (coords) => {
+        return coords.map(coord => [coord[1], coord[0]]);
+    };
 
+    const flipPolygonCoordinates = (polygon) => {
+        return polygon.map(ring => flipCoordinates(ring));
+    };
+
+    if (record && !record.geom) {
+        return (<><Typography variant="h6">No location data available</Typography><br />
+            <Typography variant="caption">Map of points will show when data is assigned to Area</Typography></>)
+    }
     return (
         <MapContainer
             style={{ width: '100%', height: '700px' }}
-            bounds={record["geom"]["coordinates"]}
-            scrollWheelZoom={true}
+            bounds={flipPolygonCoordinates(record["geom"]["coordinates"])} scrollWheelZoom={true}
             maxZoom={18}
         >
             <BaseLayers />

@@ -1,6 +1,3 @@
-import { Typography } from '@mui/material';
-import { useMutation } from 'react-query';
-/* eslint react/jsx-key: off */
 import {
     Create,
     SimpleForm,
@@ -10,6 +7,7 @@ import {
     FileField,
     useRedirect,
 } from 'react-admin';
+import { Typography } from '@mui/material';
 import { useState } from 'react';
 
 const PlotCreateMany = () => {
