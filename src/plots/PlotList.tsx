@@ -8,19 +8,33 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
-    ArrayField,
-    Count,
+    useRedirect,
     ReferenceField,
     DateField,
     FunctionField,
+    Button,
 } from "react-admin";
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 
 
+const CreateManyButton = () => {
+    const redirect = useRedirect();
+    return (
+        <Button
+            label="Create Many"
+            onClick={(event) => {
+                redirect('/plots/createMany');
+            }}
+            startIcon={<LibraryAddIcon fontSize='inherit' />}
+        />
+
+    )
+}
 const PlotListActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
-            {permissions === 'admin' && <><CreateButton /></>}
+            {permissions === 'admin' && <><CreateButton /><CreateManyButton /></>}
             <ExportButton />
         </TopToolbar>
     );

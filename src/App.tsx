@@ -94,7 +94,12 @@ const App = () => {
                 <>
                     <Resource name="projects" {...projects} />
                     <Resource name="areas" {...areas} />
-                    <Resource name="plots" {...plots.plot} />
+                    <Resource name="plots" {...plots.plot} >
+                        <Route
+                            path="/createMany"
+                            element={<plots.plot.createMany />}
+                        />
+                    </Resource>
                     <Resource name="plot_samples" {...plots.sample} >
                         <Route
                             path="/createMany"

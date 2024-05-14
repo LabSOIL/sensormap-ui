@@ -22,34 +22,8 @@ import {
     SaveContextProvider,
 } from 'react-admin';
 
-// const SensorSaveButton = () => {
-//     const record = useRecordContext();
-//     const dataProvider = useDataProvider();
-//     // const { mutate, isLoading } = useMutation(
-//     //     () => dataProvider.createMany()
-//     // );
-//     const [approve, { loading }] = useMutation({
-//         type: 'update',
-//         resource: 'comments',
-//         payload: { id: record.id, data: { isApproved: true } }
-//     });
-//     return (
-//         <SaveButton type="button" onClick={() => mutate()} />
-//     );
-// };
-// const SensorEditToolbar = () => (
-//     <Toolbar>
-//         <SensorSaveButton />
-//         {/* <DeleteButton /> */}
-//     </Toolbar>
-// );
 
 const SensorCreate = () => {
-    // const {
-    //     // save, // the create or update callback, which receives the form data and calls the dataProvider
-    //     // saving, //  boolean that becomes true when the dataProvider is called
-    //     mutationMode, // the current mutation mode, either 'undoable', 'optimistic', or 'pessimistic'
-    // } = useSaveContext();
     const dataProvider = useDataProvider();
     const save = data => {
         console.log(data);

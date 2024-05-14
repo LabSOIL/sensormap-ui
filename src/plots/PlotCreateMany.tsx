@@ -12,14 +12,14 @@ import {
 } from 'react-admin';
 import { useState } from 'react';
 
-const PlotSampleCreateMany = () => {
+const PlotCreateMany = () => {
     const dataProvider = useDataProvider();
     const [errors, setErrors] = useState([]);
     const redirect = useRedirect();
     const save = async (data) => {
         try {
             const response = await dataProvider.createMany(
-                'plot_samples', { data }
+                'plots', { data }
             );
             if (onSuccess) {
                 onSuccess(response);
@@ -35,13 +35,13 @@ const PlotSampleCreateMany = () => {
         setErrors(error.body.detail.errors);
     }
     const onSuccess = () => {
-        redirect('list', 'plot_samples');
+        redirect('list', 'plots');
     }
     return (
         <><Create redirect="list" >
             <SaveContextProvider value={{ save: save }} >
                 <SimpleForm >
-                    Upload a CSV containing the plot sample data:
+                    Upload a CSV containing the plot data:
                     <FileInput
                         label="Plot sample data (.csv)"
                         accept=".csv"
@@ -69,4 +69,4 @@ const PlotSampleCreateMany = () => {
     )
 };
 
-export default PlotSampleCreateMany;
+export default PlotCreateMany;

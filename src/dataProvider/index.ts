@@ -1,6 +1,13 @@
 import { stringify } from 'query-string';
 import { fetchUtils, DataProvider } from 'ra-core';
 
+const convertFileToBase64 = file =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file.rawFile);
+    });
 
 const dataProvider = (
     apiUrl: string,
@@ -153,12 +160,16 @@ const dataProvider = (
         ).then(responses => ({
             data: responses.map(({ json }) => json.id),
         })),
-    createMany: (resource, params) => {
-        return httpClient(`${apiUrl}/${resource}/createMany`, {
-            method: 'POST',
-            body: JSON.stringify(params.data),
-        }).then(({ json }) => ({ data: json }))
-    }
+    createMany: (resource, params) =>
+        convertFileToBase64(params.data.attachment).then(base64Data => {
+            return httpClient(`${apiUrl}/${resource}/batch`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    attachment: base64Data,
+                }),
+            }).then(({ json }) => ({ data: json }));
+        }),
 });
+
 
 export default dataProvider;

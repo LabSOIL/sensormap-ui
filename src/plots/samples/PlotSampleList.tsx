@@ -56,6 +56,7 @@ export const PlotSampleList = () => {
                     source="plot_id"
                     reference="plots"
                     sort={{ field: 'name', order: 'ASC' }}
+                    link="show"
                 >
                     <TextField source="name" />
                 </ReferenceField>

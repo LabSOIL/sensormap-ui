@@ -1,4 +1,5 @@
 import PlotCreate from './PlotCreate';
+import PlotCreateMany from './PlotCreateMany';
 import PlotEdit from './PlotEdit';
 import PlotList from './PlotList';
 import PlotShow from './PlotShow';
@@ -10,6 +11,7 @@ import PlotSampleShow from './samples/PlotSampleShow';
 
 const Plot = {
     create: PlotCreate,
+    createMany: PlotCreateMany,
     edit: PlotEdit,
     list: PlotList,
     show: PlotShow,

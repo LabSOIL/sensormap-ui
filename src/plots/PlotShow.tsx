@@ -146,7 +146,12 @@ export const PlotShow = () => (
                 <Grid item xs={6}>
                     <Typography variant="h6" textAlign="center" gutterBottom>Samples</Typography>
                     <TopToolbar><CreateSampleButton /><CreateManyButton /></TopToolbar>
-                    <ReferenceManyField reference="plot_samples" target="plot_id" label="Samples">
+                    <ReferenceManyField
+                        reference="plot_samples"
+                        target="plot_id"
+                        label="Samples"
+                        sort={{ field: 'name', order: 'ASC' }}
+                    >
                         <Datagrid rowClick="show" bulkActionButtons={false}>
                             <TextField source="name" />
                             <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />

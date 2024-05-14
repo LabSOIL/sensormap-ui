@@ -77,6 +77,7 @@ export const PlotSampleShow = () => (
             <NumberField source="silt_percent" label="Silt (%)" />
             <NumberField source="sand_percent" label="Sand (%)" />
             <NumberField source="fe_ug_per_g" label="Iron (Fe) in ug/g" />
+            <NumberField source="na_ug_per_g" label="Sodium (Na) in ug/g" />
             <NumberField source="al_ug_per_g" label="Aluminum (Al) in ug/g" />
             <NumberField source="k_ug_per_g" label="Potassium (K) in ug/g" />
             <NumberField source="ca_ug_per_g" label="Calcium (Ca) in ug/g" />

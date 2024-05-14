@@ -65,6 +65,7 @@ const PlotSampleCreate = () => {
                 <NumberInput source="silt_percent" label="Silt (%)" />
                 <NumberInput source="sand_percent" label="Sand (%)" />
                 <NumberInput source="fe_ug_per_g" label="Iron (Fe) in ug/g" />
+                <NumberInput source="na_ug_per_g" label="Sodium (Na) in ug/g" />
                 <NumberInput source="al_ug_per_g" label="Aluminum (Al) in ug/g" />
                 <NumberInput source="k_ug_per_g" label="Potassium (K) in ug/g" />
                 <NumberInput source="ca_ug_per_g" label="Calcium (Ca) in ug/g" />
