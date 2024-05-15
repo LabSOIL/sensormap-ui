@@ -2,18 +2,13 @@ import {
     List,
     Datagrid,
     TextField,
-    ReferenceManyCount,
     useGetList,
     usePermissions,
     TopToolbar,
     CreateButton,
     ExportButton,
-    ArrayField,
-    Count,
     ReferenceField,
     Button,
-    NumberInput,
-    Typography,
     NumberField,
     useRedirect,
 } from "react-admin";
@@ -50,7 +45,12 @@ export const PlotSampleList = () => {
     if (isLoading) return <p>Loading ...</p>;
 
     return (
-        <List actions={<PlotSampleListActions />} storeKey={false}>
+        <List 
+        actions={<PlotSampleListActions />} 
+        storeKey={false} 
+        empty={false}
+        perPage={25}
+        >
             <Datagrid rowClick="show">
                 <ReferenceField
                     source="plot_id"
@@ -64,7 +64,8 @@ export const PlotSampleList = () => {
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
                 <NumberField source="sample_weight" label="Sample Weight (g)" />
-                <TextField source="subsample_weight" label="Subsample Weight" />
+                <NumberField source="subsample_weight" label="Subsample Weight" />
+                <NumberField source="subsample_replica_weight" label="Subsample Replica Weight" />
             </Datagrid>
         </List>
     );

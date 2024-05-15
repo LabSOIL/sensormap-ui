@@ -8,6 +8,7 @@ import {
     DeleteButton,
     usePermissions,
     ReferenceField,
+    DateField,
 } from "react-admin";
 import { LocationFieldPoints } from '../maps/Points';
 
@@ -29,6 +30,7 @@ export const AreaShow = () => {
             <SimpleShowLayout>
                 <TextField source="name" />
                 <TextField source="description" />
+                <DateField source="last_updated" showTime/>
                 <ReferenceField
                     label="Project"
                     source="project_id"
@@ -57,6 +59,7 @@ export const AreaShow = () => {
                     target="area_id"
                     link
                 />
+                
                 <LocationFieldPoints />
             </SimpleShowLayout>
         </Show>

@@ -53,19 +53,22 @@ const PlotSampleTitle = ({ record }) => {
 export const PlotSampleShow = () => (
     <Show title={<PlotSampleShowTitle />} actions={<PlotSampleShowActions />}>
         <SimpleShowLayout >
-            {/* <TextField source="id" /> */}
             <ReferenceField
                 source="plot_id"
                 reference="plots"
                 sort={{ field: 'name', order: 'ASC' }}
+                link="show"
             >
                 <TextField source="name" />
             </ReferenceField>
             <TextField source="name" />
+            <DateField source="created_on" />
+            <DateField source="last_updated" showTime/>
             <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
             <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
             <NumberField source="sample_weight" label="Sample Weight (g)" />
             <TextField source="subsample_weight" label="Subsample Weight" />
+            <TextField source="subsample_replica_weight" label="Subsample Replica Weight" />
             <NumberField source="ph" label="pH" />
             <NumberField source="rh" label="Residual Humidity (RH)" />
             <NumberField source="loi" label="Loss on Ignition (LOI)" />

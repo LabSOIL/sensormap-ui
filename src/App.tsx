@@ -1,18 +1,14 @@
 /* eslint react/jsx-key: off */
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     Admin,
     Resource,
-    CustomRoutes,
     AuthProvider,
     DataProvider,
-    AppBar,
-    TitlePortal,
 } from 'react-admin';
 import { Route } from 'react-router-dom';
 import simpleRestProvider from './dataProvider/index'
 import Keycloak, {
-    KeycloakConfig,
     KeycloakTokenParsed,
     KeycloakInitOptions,
 } from 'keycloak-js';
@@ -27,8 +23,7 @@ import plots from './plots';
 import soil from './soil';
 import projects from './projects';
 import axios from 'axios';
-import addUploadCapabilities from './addUploadFeature'
-import SensorDataShow from './sensors/SensorDataShow';
+
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required' };
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {

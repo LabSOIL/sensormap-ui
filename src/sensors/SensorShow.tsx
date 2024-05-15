@@ -41,6 +41,7 @@ const SensorShow = () => (
         <SimpleShowLayout>
             <TextField source="id" />
             <TextField source="name" />
+            <DateField source="last_updated" showTime/>
             <TextField source="description" />
             <TextField source="comment" />
             <TextField source="elevation" />

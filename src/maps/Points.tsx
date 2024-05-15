@@ -17,6 +17,31 @@ import { BaseLayers } from './Layers';
 import * as L from 'leaflet';
 import ParkIcon from '@mui/icons-material/Park';
 import { Typography } from '@mui/material';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
+import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
+import Legend from './Legend'; // Import the Legend component
+
+const sensorIcon = L.AwesomeMarkers.icon({
+    icon: 'temperature-low',
+    iconColor: 'yellow',
+    prefix: 'fa',
+    markerColor: 'blue'
+  });
+
+const plotIcon = L.AwesomeMarkers.icon({
+    icon: 'trowel',
+    iconColor: 'black',
+    prefix: 'fa',
+    markerColor: 'green'
+  });
+
+const soilProfileIcon = L.AwesomeMarkers.icon({
+    icon: 'clipboard',
+    iconColor: 'yellow',
+    prefix: 'fa',
+    markerColor: 'red'
+  });
 
 export const LocationFieldPoints = () => {
     const record = useRecordContext();
@@ -47,22 +72,6 @@ export const LocationFieldPoints = () => {
 
     if (!record || plotLoading || sensorLoading || soilProfileLoading) return <Loading />;
 
-    const fontAwesomeIcon = L.divIcon({
-        URL: <ParkIcon />,
-        iconSize: [40, 40],
-        iconAnchor: [0, 36],
-        popupAnchor: [0, -38],
-        className: ''
-    });
-    const fontAwesomeIcon2 = L.icon({
-        iconUrl: 'twitter_icon2.png',
-        iconSize: [25, 25],
-        iconAnchor: [0, 0],
-        popupAnchor: [0, 0],
-        shadowUrl: 'twitter_shadow.png',
-        shadowSize: [22, 22],
-        shadowAnchor: [1, 1]
-    });
     const flipCoordinates = (coords) => {
         return coords.map(coord => [coord[1], coord[0]]);
     };
@@ -75,19 +84,29 @@ export const LocationFieldPoints = () => {
         return (<><Typography variant="h6">No location data available</Typography><br />
             <Typography variant="caption">Map of points will show when data is assigned to Area</Typography></>)
     }
+
+    const polygonCoordinates = flipPolygonCoordinates(record["geom"]["coordinates"]);
+
     return (
         <MapContainer
             style={{ width: '100%', height: '700px' }}
-            bounds={flipPolygonCoordinates(record["geom"]["coordinates"])} scrollWheelZoom={true}
+            bounds={polygonCoordinates}
+            scrollWheelZoom={true}
             maxZoom={18}
         >
             <BaseLayers />
+            <Polygon
+                positions={polygonCoordinates}
+                pathOptions={{ color: record.project.color, opacity: 1, fillOpacity: 0.2 }}
+                interactive={false}
+            />
             {sensorData.map((sensor, index) => (
-                < Marker
+                <Marker
                     key={index}
                     position={sensor["geom"]["coordinates"]}
-
-                ><Tooltip permanent>{sensor["name"]}</Tooltip>
+                    icon={sensorIcon}
+                >
+                    <Tooltip permanent>{sensor["name"]}</Tooltip>
                     <Popup>
                         <b>{sensor["name"]}</b>
                         <br />
@@ -103,8 +122,9 @@ export const LocationFieldPoints = () => {
                 < Marker
                     key={index}
                     position={[plot["latitude"], plot["longitude"]]}
-
-                ><Tooltip permanent>{plot["name"]}</Tooltip>
+                    icon={plotIcon}
+                >
+                    <Tooltip permanent>{plot["name"]}</Tooltip>
                     <Popup>
                         <b>{plot["name"]}</b>
                         <br />
@@ -115,14 +135,14 @@ export const LocationFieldPoints = () => {
                         </Link>
                     </Popup>
                 </Marker>
-            ))
-            }
+            ))}
             {soilProfileData.map((soilProfile, index) => (
                 < Marker
                     key={index}
                     position={[soilProfile["latitude"], soilProfile["longitude"]]}
-                // icon={fontAwesomeIcon}
-                ><Tooltip permanent>{soilProfile["name"]}</Tooltip>
+                    icon={soilProfileIcon}
+                >
+                    <Tooltip permanent>{soilProfile["name"]}</Tooltip>
                     <Popup>
                         <b>{soilProfile["name"]}</b>
                         <br />
@@ -133,41 +153,8 @@ export const LocationFieldPoints = () => {
                         </Link>
                     </Popup>
                 </Marker>
-            ))
-            }
-        </MapContainer >
-    );
-};
-
-export const LocationFieldAreas = ({ rowClick, areas }) => {
-    const redirect = useRedirect();
-    return (
-        <MapContainer
-            style={{ width: '100%', height: '700px' }}
-            // Use the bounds of all areas to set the bounds of the map
-            bounds={areas.map((area) => area["geom"]["coordinates"])}
-            scrollWheelZoom={true} >
-            <BaseLayers />
-            {
-                areas.map(
-                    (area, index) => (
-                        < Polygon
-                            key={index}
-                            eventHandlers={{
-                                click: () => {
-                                    redirect('show', 'areas', area['id']);
-                                }
-                            }}
-                            positions={area["geom"]['coordinates']}
-                        >
-                            <Tooltip permanent>{area.name}</Tooltip>
-
-
-                        </Polygon>
-                    )
-
-                )
-            }
-        </MapContainer >
+            ))}
+            <Legend /> {/* Add the Legend component */}
+        </MapContainer>
     );
 };

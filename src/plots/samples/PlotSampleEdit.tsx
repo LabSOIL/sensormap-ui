@@ -48,7 +48,8 @@ const PlotSampleEdit = () => {
                     helperText={<>Lower depth in centimeters from the surface where the sample was taken</>}
                 />
                 <NumberInput source="sample_weight" label="Sample Weight (g)" validate={[required()]} />
-                <TextInput source="subsample_weight" label="Subsample Weight" />
+                <NumberInput source="subsample_weight" label="Subsample Weight" />
+                <NumberInput source="subsample_replica_weight" label="Subsample Replica Weight" />
                 <NumberInput source="ph" label="pH" />
                 <NumberInput source="rh" label="Residual Humidity (RH)" />
                 <NumberInput source="loi" label="Loss on Ignition (LOI)" />

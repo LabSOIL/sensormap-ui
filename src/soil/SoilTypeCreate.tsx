@@ -14,8 +14,7 @@ const SoilTypeCreate = () => {
             <SimpleForm>
                 <TextField source="id" />
                 <TextInput source="name" validate={[required()]} />
-                <TextInput source="description" />
-
+                <TextInput source="description" validate={[required()]}  />
             </SimpleForm>
         </Create >
 

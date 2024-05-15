@@ -52,7 +52,7 @@ export const PlotList = () => {
     if (isLoading) return <p>Loading ...</p>;
 
     return (
-        <List actions={<PlotListActions />} storeKey={false}>
+        <List actions={<PlotListActions />} storeKey={false} empty={false} perPage={25}>
             <Datagrid rowClick="show">
                 <TextField source="name" />
                 <ReferenceField source="area_id" reference="areas" link="show">

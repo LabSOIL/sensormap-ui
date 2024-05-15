@@ -8,6 +8,7 @@ import {
     EditButton,
     DeleteButton,
     usePermissions,
+    DateField,
 } from "react-admin";
 
 
@@ -35,6 +36,7 @@ export const SoilTypeShow = () => (
         <SimpleShowLayout>
             <TextField source="name" />
             <TextField source="description" />
+            <DateField source="last_updated" showTime/>
             <ReferenceManyCount
                 label="Soil Profiles"
                 reference="soil_profiles"

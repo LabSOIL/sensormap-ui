@@ -86,7 +86,7 @@ const SoilProfileCreate = () => {
                 <NumberInput source="coord_y" label="Y Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
                 <ElevationInput />
                 <ReferenceInput source="soil_type_id" reference="soil_types">
-                    <SelectInput optionText="name" />
+                    <SelectInput optionText="name"  validate={[required()]}/>
                 </ReferenceInput>
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />

@@ -138,6 +138,7 @@ export const PlotShow = () => (
                     <Labeled><TextField source="vegetation_type" /></Labeled >
                 </Grid>
                 <Grid item xs={4}>
+                <Labeled><DateField source="last_updated" showTime/></Labeled>
                 </Grid>
             </Grid>
 
