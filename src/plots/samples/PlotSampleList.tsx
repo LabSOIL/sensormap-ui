@@ -52,14 +52,7 @@ export const PlotSampleList = () => {
         perPage={25}
         >
             <Datagrid rowClick="show">
-                <ReferenceField
-                    source="plot_id"
-                    reference="plots"
-                    sort={{ field: 'name', order: 'ASC' }}
-                    link="show"
-                >
-                    <TextField source="name" />
-                </ReferenceField>
+                <TextField source="plot.name" label="Plot Name" sortable={false}/>
                 <TextField source="name" />
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />

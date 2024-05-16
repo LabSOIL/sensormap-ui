@@ -73,6 +73,7 @@ export const LocationFieldPoints = () => {
     if (!record || plotLoading || sensorLoading || soilProfileLoading) return <Loading />;
 
     const flipCoordinates = (coords) => {
+        console.log("Flipping coordinates", coords);
         return coords.map(coord => [coord[1], coord[0]]);
     };
 
@@ -103,7 +104,7 @@ export const LocationFieldPoints = () => {
             {sensorData.map((sensor, index) => (
                 <Marker
                     key={index}
-                    position={sensor["geom"]["coordinates"]}
+                    position={[sensor["latitude"], sensor["longitude"]]}
                     icon={sensorIcon}
                 >
                     <Tooltip permanent>{sensor["name"]}</Tooltip>

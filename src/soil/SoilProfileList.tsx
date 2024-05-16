@@ -36,12 +36,8 @@ export const SoilProfileList = () => {
         <List actions={<SoilProfileListActions />} storeKey={false}>
             <Datagrid rowClick="show">
                 <TextField source="name" />
-                <ReferenceField source="area_id" reference="areas" link="show">
-                    <TextField source="name" />
-                </ReferenceField>
-                <ReferenceField source="soil_type_id" reference="soil_types" link="show">
-                    <TextField source="name" />
-                </ReferenceField>
+                <TextField source="area.name" label="Area"/>
+                <TextField source="soil_type.name"  label="Soil Type"/>
                 <TextField source="coord_x" label="X (m)" />
                 <TextField source="coord_y" label="Y (m)" />
                 <TextField source="coord_z" label="Elevation (m)" />

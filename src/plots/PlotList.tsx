@@ -13,6 +13,9 @@ import {
     DateField,
     FunctionField,
     Button,
+    Count,
+    Link,
+    useRecordContext,
 } from "react-admin";
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 
@@ -55,16 +58,14 @@ export const PlotList = () => {
         <List actions={<PlotListActions />} storeKey={false} empty={false} perPage={25}>
             <Datagrid rowClick="show">
                 <TextField source="name" />
-                <ReferenceField source="area_id" reference="areas" link="show">
-                    <TextField source="name" />
-                </ReferenceField>
+                <TextField source="area.name" label="Area"/>
                 <FunctionField render={record => `${toTitleCase(record.gradient)}`} label="Gradient" />
                 <TextField source="coord_x" label="X (m)" />
                 <TextField source="coord_y" label="Y (m)" />
                 <TextField source="coord_z" label="Elevation (m)" />
                 <TextField source="slope" label="Slope (°)" />
                 <DateField source="created_on" />
-                <ReferenceManyCount reference="plot_samples" target="plot_id" label="Samples" link />
+                <FunctionField render={record => `${record.samples.length}`} label="Samples" />
             </Datagrid>
         </List>
     );

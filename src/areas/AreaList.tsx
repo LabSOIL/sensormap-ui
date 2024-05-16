@@ -11,6 +11,7 @@ import {
     ReferenceField,
     useRecordContext,
     Loading,
+    FunctionField,
 } from "react-admin";
 import { LocationFieldAreas } from '../maps/Areas';
 
@@ -33,12 +34,12 @@ export const ColorBox = () => {
                 style={{
                     width: '20px', // Size of the box
                     height: '20px', // Size of the box
-                    backgroundColor: record.color, // Use the record color
+                    backgroundColor: record.project.color, // Use the record color
                     border: '1px solid #ccc', // Optional border for visibility
                     marginRight: '10px', // Space between box and text
                 }}
             />
-            <TextField source="name" />
+            <TextField source="project.name" label="Project"/>
         </div>
     );
 };
@@ -56,34 +57,13 @@ export const AreaList = () => {
             <Datagrid rowClick="show">
                 <TextField source="name" />
                 <TextField source="description" />
-                <ReferenceManyCount
-                    label="Sensors"
-                    reference="sensors"
-                    target="area_id"
-                    link
-                />
-                <ReferenceManyCount
-                    label="Plots"
-                    reference="plots"
-                    target="area_id"
-                    link
-                />
-                <ReferenceManyCount
-                    label="Soil Profiles"
-                    reference="soil_profiles"
-                    target="area_id"
-                    link
-                />
-                <ReferenceField
-                    label="Project"
-                    source="project_id"
-                    reference="projects"
-                    link="show"
-                    emptyText="N/A"
-                    sortable={false}
-                >
-                    <ColorBox />
-                </ReferenceField>
+                <FunctionField render={record => `${record.sensors.length}`} label="Sensors" />
+                <FunctionField render={record => `${record.plots.length}`} label="Plots" />
+                <FunctionField render={record => `${record.soil_profiles.length}`} label="Soil Profiles" />
+                {/* <FunctionField render={} */}
+              
+                <ColorBox />
+              
 
 
             </Datagrid>
