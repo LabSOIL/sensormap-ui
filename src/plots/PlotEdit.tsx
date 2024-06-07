@@ -11,10 +11,14 @@ import {
     Button,
     Toolbar,
     SaveButton,
+    ImageInput,
+    ImageField,
+    useRecordContext,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { Typography } from '@mui/material';
+import { apiUrl } from '../App';
 
 const MyToolbar = () => (
     <Toolbar>
@@ -66,12 +70,77 @@ const ElevationInput = () => {
     </>
     )
 }
+const SlopeInput = () => {
+    const formContext = useFormContext();
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [successResponse, setSuccessResponse] = useState(false);
 
+    const updateSlope = () => {
+        const x = formContext.getValues('coord_x');
+        const y = formContext.getValues('coord_y');
+        const url = `${apiUrl}/utils/slope?x=${x}&y=${y}`;
+
+        fetch(url)
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if (data.success === false) {
+                    setErrorMessage(`Error fetching slope: ${data.error.message}`);
+                } else {
+                    setErrorMessage(null);
+                    setSuccessResponse(true);
+                    formContext.setValue('slope', data.slope_class);
+                }
+            })
+    }
+
+    return (<>
+        <Button
+            label="Get from Swiss Hillside map"
+            variant="outlined"
+            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
+            onClick={(event) => {
+                updateSlope();
+            }}
+        />
+        <Typography
+            variant="caption"
+            color={'error'}
+        >
+            {errorMessage ? errorMessage : null}
+        </Typography>
+        <TextInput source="slope" label="Slope" />
+    </>
+    )
+}
+const ImageFieldPreview = ({ source }) => {
+    const record = useRecordContext();
+    if (!record || !record[source]) {
+        return null;
+    }
+    const base64Image = record[source];
+    return (
+        <div style={{ textAlign: 'left', margin: '0 10px' }}>
+            <img src={`${base64Image}`} style={{ maxWidth: '30%', height: 'auto' }} />
+        </div>
+    );
+
+};
 const PlotEdit = () => {
     return (
         <Edit redirect="show">
             <SimpleForm toolbar={<MyToolbar />}>
                 <TextInput source="id" disabled />
+                <ImageFieldPreview source="image" />
+                <ImageInput
+                    source="image"
+                    label="Related image"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
                 <TextInput
                     source="plot_iterator"
                     label="ID"
@@ -93,7 +162,7 @@ const PlotEdit = () => {
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
-                <NumberInput source="slope" label="Slope (°)" />
+                <SlopeInput />
             </SimpleForm>
         </Edit>
     )

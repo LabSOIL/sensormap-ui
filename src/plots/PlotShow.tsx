@@ -17,6 +17,7 @@ import {
     CreateButton,
     Datagrid,
     ReferenceManyField,
+    Loading,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
@@ -69,7 +70,6 @@ const CreateManyButton = () => {
             }}
             startIcon={< LibraryAddIcon fontSize='inherit' />}
         />
-
     )
 }
 
@@ -89,6 +89,28 @@ const CreateSampleButton = () => {
     );
 
 }
+
+const ImageField = ({ source }) => {
+    const record = useRecordContext();
+    if (!record) {
+        return <Loading />;
+    }
+
+    if (!record[source]) {
+
+        return <>
+            <br />
+            <Typography align="center">No image available</Typography>
+        </>;
+    }
+    const base64Image = record[source];
+    console.log("BASE64", base64Image);
+    return (
+        <div style={{ textAlign: 'center', margin: '0 10px' }}>
+            <img src={`${base64Image}`} style={{ maxWidth: '80%', height: 'auto' }} />
+        </div>
+    );
+};
 
 export const PlotShow = () => (
     <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
@@ -138,7 +160,7 @@ export const PlotShow = () => (
                     <Labeled><TextField source="vegetation_type" /></Labeled >
                 </Grid>
                 <Grid item xs={4}>
-                <Labeled><DateField source="last_updated" showTime/></Labeled>
+                    <Labeled><DateField source="last_updated" showTime /></Labeled>
                 </Grid>
             </Grid>
 
@@ -164,19 +186,8 @@ export const PlotShow = () => (
 
                 </Grid>
                 <Grid item xs={6}>
-                    <Typography variant="h6" textAlign="center" gutterBottom>Illustrations</Typography>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-                        <div style={{ textAlign: 'center', margin: '0 10px' }}>
-                            <h2>Soil diagram</h2>
-                            <img src="https://picsum.photos/300/450" alt="placeholder" />
-                        </div>
-                        <div style={{ width: '20%' }}></div>
-                        <div style={{ textAlign: 'center', margin: '0 10px' }}>
-                            <h2>Photo</h2>
-                            <img src="https://picsum.photos/300/450" alt="placeholder" />
-                        </div>
-                    </div>
-
+                    <Typography variant="h6" textAlign="center" gutterBottom>Plot illustration</Typography>
+                    <ImageField source="image" />
                 </Grid>
 
             </Grid>

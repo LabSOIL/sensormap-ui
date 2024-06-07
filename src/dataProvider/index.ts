@@ -9,6 +9,38 @@ const convertFileToBase64 = file =>
         reader.readAsDataURL(file.rawFile);
     });
 
+const handleImageUpload = async (resource, params) => {
+    const { data } = params;
+
+    if (resource === 'plots' && data.image && data.image.rawFile instanceof File) {
+        data.image = await convertFileToBase64(data.image);
+    }
+
+    if (resource === 'soil_profiles') {
+        const imagePromises = [];
+
+        if (data.photo && data.photo.rawFile instanceof File) {
+            imagePromises.push(
+                convertFileToBase64(data.photo).then(base64 => {
+                    data.photo = base64;
+                })
+            );
+        }
+
+        if (data.soil_diagram && data.soil_diagram.rawFile instanceof File) {
+            imagePromises.push(
+                convertFileToBase64(data.soil_diagram).then(base64 => {
+                    data.soil_diagram = base64;
+                })
+            );
+        }
+
+        await Promise.all(imagePromises);
+    }
+
+    return params;
+};
+
 const dataProvider = (
     apiUrl: string,
     httpClient = fetchUtils.fetchJson,
@@ -114,11 +146,13 @@ const dataProvider = (
         });
     },
 
-    update: (resource, params) =>
-        httpClient(`${apiUrl}/${resource}/${params.id}`, {
+    update: async (resource, params) => {
+        params = await handleImageUpload(resource, params);
+        return httpClient(`${apiUrl}/${resource}/${params.id}`, {
             method: 'PUT',
             body: JSON.stringify(params.data),
-        }).then(({ json }) => ({ data: json })),
+        }).then(({ json }) => ({ data: json }));
+    },
 
     // simple-rest doesn't handle provide an updateMany route, so we fallback to calling update n times instead
     updateMany: (resource, params) =>
@@ -131,11 +165,12 @@ const dataProvider = (
             )
         ).then(responses => ({ data: responses.map(({ json }) => json.id) })),
 
-    create: (resource, params) => {
+    create: async (resource, params) => {
+        params = await handleImageUpload(resource, params);
         return httpClient(`${apiUrl}/${resource}`, {
             method: 'POST',
             body: JSON.stringify(params.data),
-        }).then(({ json }) => ({ data: json }))
+        }).then(({ json }) => ({ data: json }));
     },
 
     delete: (resource, params) =>
@@ -170,6 +205,5 @@ const dataProvider = (
             }).then(({ json }) => ({ data: json }));
         }),
 });
-
 
 export default dataProvider;

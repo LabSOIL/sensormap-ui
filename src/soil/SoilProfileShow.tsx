@@ -48,6 +48,26 @@ const ColoredLine = ({ color, height }) => (
     />
 );
 
+const ImageField = ({ source }) => {
+    const record = useRecordContext();
+    if (!record) {
+        return <Loading />;
+    }
+
+    if (!record[source]) {
+
+        return <>
+            <br />
+            <Typography align="center">No image available</Typography>
+        </>;
+    }
+    const base64Image = record[source];
+    return (
+        <div style={{ textAlign: 'center', margin: '0 10px' }}>
+            <img src={`${base64Image}`} style={{ maxWidth: '80%', height: 'auto' }} />
+        </div>
+    );
+};
 export const SoilProfileShow = () => {
     const postRowSx = (record, index) => ({
         whiteSpace: "pre-wrap"
@@ -98,7 +118,7 @@ export const SoilProfileShow = () => {
                         <Labeled><TextField source="vegetation_type" /></Labeled >
                     </Grid>
                     <Grid item xs={4}>
-                    <Labeled><DateField source="last_updated" showTime/></Labeled>
+                        <Labeled><DateField source="last_updated" showTime /></Labeled>
                     </Grid>
                 </Grid>
 
@@ -122,12 +142,12 @@ export const SoilProfileShow = () => {
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                             <div style={{ textAlign: 'center', margin: '0 10px' }}>
                                 <h2>Soil diagram</h2>
-                                <img src="https://picsum.photos/300/450" alt="placeholder" />
+                                <ImageField source="soil_diagram" />
                             </div>
                             <div style={{ width: '20%' }}></div>
                             <div style={{ textAlign: 'center', margin: '0 10px' }}>
                                 <h2>Photo</h2>
-                                <img src="https://picsum.photos/300/450" alt="placeholder" />
+                                <ImageField source="photo" />
                             </div>
                         </div>
 

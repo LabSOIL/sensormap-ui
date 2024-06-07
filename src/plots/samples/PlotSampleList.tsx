@@ -11,8 +11,12 @@ import {
     Button,
     NumberField,
     useRedirect,
+    useRecordContext,
+    useCreatePath,
+    Link,
 } from "react-admin";
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
+import { stopPropagation } from "ol/events/Event";
 
 const CreateManyButton = () => {
     const redirect = useRedirect();
@@ -36,8 +40,24 @@ const PlotSampleListActions = () => {
         </TopToolbar>
     );
 }
+const PlotNameField = () => {
+    const record = useRecordContext();
+    const createPath = useCreatePath();
+    const path = createPath({
+        resource: 'plots',
+        type: 'show',
+        id: record.plot.id,
+    });
 
+    return (
+        <Link to={path} onClick={stopPropagation}>
+            <TextField source="plot.name" label="Area" />
+        </Link>
+    );
+}
 export const PlotSampleList = () => {
+    const FieldWrapper = ({ children, label }) => children;
+
     const { data, total, isLoading, error } = useGetList(
         'areas', {}
     );
@@ -45,14 +65,16 @@ export const PlotSampleList = () => {
     if (isLoading) return <p>Loading ...</p>;
 
     return (
-        <List 
-        actions={<PlotSampleListActions />} 
-        storeKey={false} 
-        empty={false}
-        perPage={25}
+        <List
+            actions={<PlotSampleListActions />}
+            storeKey={false}
+            empty={false}
+            perPage={25}
         >
             <Datagrid rowClick="show">
-                <TextField source="plot.name" label="Plot Name" sortable={false}/>
+                <FieldWrapper label="Plot"><PlotNameField /></FieldWrapper>
+
+
                 <TextField source="name" />
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />

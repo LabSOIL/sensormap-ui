@@ -39,11 +39,16 @@ export const LocationFieldAreas = ({ areas }) => {
         return polygon.map(ring => flipCoordinates(ring));
     };
     const validAreas = areas.filter(area => area["geom"] && area["geom"]["coordinates"]);
+    const allCoordinates = validAreas.flatMap(area => flipPolygonCoordinates(area["geom"]["coordinates"])[0]);
+    const bounds = L.latLngBounds(allCoordinates).pad(0.6); // Padding the bounds to zoom out further
+
 
     return (
         <MapContainer
-            style={{ width: '100%', height: '700px' }}
-            bounds={validAreas.map((area) => flipPolygonCoordinates(area["geom"]["coordinates"])[0])}
+            style={{ width: '100%', height: '500px' }}
+            // Set bounds to a wider area than the calculated bounds to allow for
+            // the user to zoom out and see the whole area
+            bounds={bounds}
             scrollWheelZoom={true}
         >
             <BaseLayers />

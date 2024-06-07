@@ -12,7 +12,9 @@ import {
     TextInput,
     required,
     ArrayInput,
-    SimpleFormIterator
+    SimpleFormIterator,
+    ImageField,
+    ImageInput,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
@@ -67,6 +69,22 @@ const SoilProfileCreate = () => {
     return (
         <Create redirect="show">
             <SimpleForm >
+                <ImageInput
+                    source="soil_diagram"
+                    label="Soil diagram"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
+                <ImageInput
+                    source="photo"
+                    label="Photo"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
                 <TextField source="id" />
                 <NumberInput
                     source="profile_iterator"
@@ -86,7 +104,7 @@ const SoilProfileCreate = () => {
                 <NumberInput source="coord_y" label="Y Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
                 <ElevationInput />
                 <ReferenceInput source="soil_type_id" reference="soil_types">
-                    <SelectInput optionText="name"  validate={[required()]}/>
+                    <SelectInput optionText="name" validate={[required()]} />
                 </ReferenceInput>
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />

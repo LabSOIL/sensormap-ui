@@ -14,6 +14,9 @@ import {
     required,
     Button,
     minValue,
+    ImageInput,
+    ImageField,
+    useRecordContext,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
@@ -69,12 +72,42 @@ const ElevationInput = () => {
     </>
     )
 }
+const ImageFieldPreview = ({ source }) => {
+    const record = useRecordContext();
+    if (!record || !record[source]) {
+        return null;
+    }
+    const base64Image = record[source];
+    return (
+        <div style={{ textAlign: 'left', margin: '0 10px' }}>
+            <img src={`${base64Image}`} style={{ maxWidth: '30%', height: 'auto' }} />
+        </div>
+    );
 
+};
 const SoilProfileEdit = () => {
     return (
         <Edit redirect="show" >
             <SimpleForm toolbar={<MyToolbar />}>
                 <TextInput source="id" disabled />
+                <ImageFieldPreview source="soil_diagram" />
+                <ImageInput
+                    source="soil_diagram"
+                    label="Soil diagram"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
+                <ImageFieldPreview source="photo" />
+                <ImageInput
+                    source="photo"
+                    label="Photo"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
                 <NumberInput
                     source="profile_iterator"
                     label="ID"
