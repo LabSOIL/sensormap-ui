@@ -14,7 +14,6 @@ import Keycloak, {
 } from 'keycloak-js';
 import { httpClient } from 'ra-keycloak';
 import { keycloakAuthProvider } from './authProvider';
-import i18nProvider from './i18nProvider';
 import Layout from './Layout';
 import users from './users';
 import sensors from './sensors';
@@ -81,7 +80,6 @@ const App = () => {
         <Admin
             authProvider={authProvider.current}
             dataProvider={dataProvider.current}
-            i18nProvider={i18nProvider}
             title="SOIL Sensor Map"
             layout={Layout}
         >

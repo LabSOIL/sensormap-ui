@@ -1,6 +1,6 @@
 import { AuthProvider } from 'react-admin';
 import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
-import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 export type PermissionsFunction = (decoded: KeycloakTokenParsed) => any;
 
@@ -63,7 +63,7 @@ export const keycloakAuthProvider = (
     },
     async isTokenValid(token) {
         try {
-            const decodedToken = jwt_decode(token);
+            const decodedToken = jwtDecode(token);
 
             // Check if the token has an expiration time
             if (!decodedToken.exp) {
@@ -91,14 +91,14 @@ export const keycloakAuthProvider = (
         if (!client.token) {
             return Promise.resolve(false);
         }
-        const decoded = jwt_decode<KeycloakTokenParsed>(client.token);
+        const decoded = jwtDecode<KeycloakTokenParsed>(client.token);
         return Promise.resolve(
             options.onPermissions ? options.onPermissions(decoded) : decoded
         );
     },
     async getIdentity() {
         if (client.token) {
-            const decoded = jwt_decode<KeycloakTokenParsed>(client.token);
+            const decoded = jwtDecode<KeycloakTokenParsed>(client.token);
             const id = decoded.sub || '';
             const fullName = decoded.preferred_username;
             return Promise.resolve({ id, fullName });
