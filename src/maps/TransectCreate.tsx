@@ -1,9 +1,5 @@
 import {
-    useRecordContext,
-    useRedirect,
     useGetOne,
-    useGetManyReference,
-    useCreatePath,
     Loading,
 } from 'react-admin';
 import {
@@ -25,6 +21,8 @@ import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 import Legend from './Legend'; // Import the Legend component
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { Layout } from 'react-admin';
 
 const sensorIcon = L.AwesomeMarkers.icon({
     icon: 'temperature-low',
@@ -54,6 +52,8 @@ export const TransectCreateMap = ({ area_id }) => {
     );
 
     if (isLoading) return <Loading />;
+    const formContext = useFormContext();
+
 
     if (record && !record.plots) {
         return (<><Typography variant="h6">No location data available</Typography><br />
@@ -68,10 +68,19 @@ export const TransectCreateMap = ({ area_id }) => {
         useEffect(() => {
             // Fly to that coordinates and set new zoom level
             map.flyTo([lat, lng], zoomLevel);
-        }, [lat, lng]);
+        }, [area_id]);
         return null;
-
     };
+
+
+    const addNode = (plot) => {
+        const transectNodes = formContext.getValues('nodes') || [];
+        const newNodes = [...transectNodes, plot];
+        formContext.setValue('nodes', newNodes);
+
+        console.log('New Nodes:', newNodes);
+
+    }
     return (
         <MapContainer
             style={{ width: '100%', height: '500px' }}
@@ -93,6 +102,11 @@ export const TransectCreateMap = ({ area_id }) => {
                             key={index}
                             position={[plot["latitude"], plot["longitude"]]}
                             icon={plotIcon}
+                            eventHandlers={{
+                                click: (e) => {
+                                    addNode(plot);
+                                },
+                            }}
                         >
                             <Tooltip permanent>{plot["name"]}</Tooltip>
                             <Popup>

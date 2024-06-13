@@ -9,6 +9,12 @@ import {
     SimpleForm,
     TextField,
     required,
+    ArrayInput,
+    SimpleFormIterator,
+    TextInput,
+    ChipField,
+    FunctionField,
+    useRecordContext,
 } from 'react-admin';
 import TransectCreateMap from '../maps/TransectCreate';
 import { useState, useEffect } from 'react';
@@ -16,7 +22,7 @@ import { Typography } from '@mui/material';
 
 const TransectCreate = () => {
     const [selectedArea, setSelectedArea] = useState(null);
-
+    const record = useRecordContext();
     return (
         <Create redirect="show">
             <SimpleForm >
@@ -31,7 +37,15 @@ const TransectCreate = () => {
                     <SelectInput optionText="name" validate={[required()]} onChange={(record) => { setSelectedArea(record.target.value) }} />
                 </ReferenceInput>
                 {selectedArea ? <TransectCreateMap area_id={selectedArea} /> : null}
+                <ArrayInput source="nodes" >
+                    <SimpleFormIterator getItemLabel={index => `#${index + 1}`} inline >
+                        <fieldset disabled>
+                            {console.log(record)}
+                            <TextInput source="name" />
+                        </fieldset>
 
+                    </SimpleFormIterator>
+                </ArrayInput>
             </SimpleForm>
         </Create >
     )
