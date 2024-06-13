@@ -26,7 +26,7 @@ const ElevationInput = () => {
     const [successResponse, setSuccessResponse] = useState(false);
 
     const updateElevation = () => {
-        
+
         const x = formContext.getValues('coord_x');
         const y = formContext.getValues('coord_y');
         const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;
@@ -91,7 +91,7 @@ const SlopeInput = () => {
     }
 
     return (<>
-        <Button
+        {/* <Button
             label="Get from Swiss Hillside map"
             variant="outlined"
             color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
@@ -104,7 +104,7 @@ const SlopeInput = () => {
             color={'error'}
         >
             {errorMessage ? errorMessage : null}
-        </Typography>
+        </Typography> */}
         <TextInput source="slope" label="Slope" />
     </>
     )

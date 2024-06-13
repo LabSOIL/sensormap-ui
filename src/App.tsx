@@ -21,6 +21,7 @@ import areas from "./areas";
 import plots from './plots';
 import soil from './soil';
 import projects from './projects';
+import transects from './transects';
 import axios from 'axios';
 
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required' };
@@ -103,6 +104,7 @@ const App = () => {
                     <Resource name="sensordata" {...sensors.sensordata} />
                     <Resource name="soil_profiles" {...soil.profile} />
                     <Resource name="soil_types" {...soil.type} />
+                    <Resource name="transects" {...transects} />
                     {permissions ? (
                         <>
                             {permissions === 'admin' ? (
