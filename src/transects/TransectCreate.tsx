@@ -39,11 +39,7 @@ const TransectCreate = () => {
                 {selectedArea ? <TransectCreateMap area_id={selectedArea} /> : null}
                 <ArrayInput source="nodes" >
                     <SimpleFormIterator getItemLabel={index => `#${index + 1}`} inline >
-                        <fieldset disabled>
-                            {console.log(record)}
-                            <TextInput source="name" />
-                        </fieldset>
-
+                        <TextInput source="name" readOnly />
                     </SimpleFormIterator>
                 </ArrayInput>
             </SimpleForm>
