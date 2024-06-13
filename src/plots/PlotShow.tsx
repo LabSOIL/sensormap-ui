@@ -104,7 +104,6 @@ const ImageField = ({ source }) => {
         </>;
     }
     const base64Image = record[source];
-    console.log("BASE64", base64Image);
     return (
         <div style={{ textAlign: 'center', margin: '0 10px' }}>
             <img src={`${base64Image}`} style={{ maxWidth: '80%', height: 'auto' }} />

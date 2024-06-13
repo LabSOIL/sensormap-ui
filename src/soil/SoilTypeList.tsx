@@ -8,10 +8,11 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
-    ArrayField,
-    Count,
+    TextInput,
 } from "react-admin";
-
+const postFilters = [
+    <TextInput label="Search" source="q" alwaysOn />,
+];
 
 const SoilTypeListActions = () => {
     const { permissions } = usePermissions();
@@ -31,7 +32,11 @@ export const SoilTypeList = () => {
     if (isLoading) return <p>Loading areas...</p>;
 
     return (
-        <List actions={<SoilTypeListActions />} storeKey={false}>
+        <List
+            filters={postFilters}
+            actions={<SoilTypeListActions />}
+            storeKey={false}
+        >
 
             <Datagrid rowClick="show">
                 <TextField source="name" />

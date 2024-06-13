@@ -22,7 +22,7 @@ const Sample = {
     create: PlotSampleCreate,
     createMany: PlotSampleCreateMany,
     edit: PlotSampleEdit,
-    list: PlotSampleList,
+    // list: PlotSampleList,
     show: PlotSampleShow,
     recordRepresentation: 'name.en',
 };

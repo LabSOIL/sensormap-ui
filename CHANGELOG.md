@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Fulltext query on any string fields in Plots and Soil profiles.
+- Pie chart in plot samples.
+
+### Removed
+
+- The list of Plot Samples as this data is found within the plots.
+
 
 ## [1.1.2] - 2024-06-10
 

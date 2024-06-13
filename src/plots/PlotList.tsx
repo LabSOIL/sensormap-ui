@@ -2,7 +2,7 @@ import {
     List,
     Datagrid,
     TextField,
-    ReferenceManyCount,
+    TextInput,
     useGetList,
     usePermissions,
     TopToolbar,
@@ -13,7 +13,6 @@ import {
     DateField,
     FunctionField,
     Button,
-    Count,
     Link,
     useRecordContext,
     Loading,
@@ -24,6 +23,9 @@ import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import { stopPropagation } from "ol/events/Event";
 import { Fragment } from "react/jsx-runtime";
 
+const postFilters = [
+    <TextInput label="Search" source="q" alwaysOn />,
+];
 
 const CreateManyButton = () => {
     const redirect = useRedirect();
@@ -85,6 +87,7 @@ export const PlotList = () => {
 
     return (
         <List
+            filters={postFilters}
             actions={<PlotListActions />}
             storeKey={false}
             empty={false}
@@ -97,13 +100,14 @@ export const PlotList = () => {
                 <TextField source="name" />
                 <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
                 <FunctionField render={record => `${toTitleCase(record.gradient)}`} label="Gradient" />
-                <TextField source="coord_x" label="X (m)" />
-                <TextField source="coord_y" label="Y (m)" />
-                <TextField source="coord_z" label="Elevation (m)" />
+                <TextField source="coord_x" label="X (m)" sortable={false} />
+                <TextField source="coord_y" label="Y (m)" sortable={false} />
+                <TextField source="coord_z" label="Elevation (m)" sortable={false} />
                 <TextField source="slope" label="Slope (°)" />
                 <DateField source="created_on" />
+                <DateField source="last_updated" />
                 <FunctionField render={record => `${record.samples.length}`} label="Samples" />
-                <ReferenceField label="Soil Type" source="soil_type_id" reference="soil_types">
+                <ReferenceField label="Soil Type" source="soil_type_id" reference="soil_types" sortable={false} >
                     <TextField source="name" />
                 </ReferenceField>
             </Datagrid>

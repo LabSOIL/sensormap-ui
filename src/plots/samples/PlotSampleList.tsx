@@ -7,7 +7,7 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
-    ReferenceField,
+    TextInput,
     Button,
     NumberField,
     useRedirect,
@@ -17,6 +17,10 @@ import {
 } from "react-admin";
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import { stopPropagation } from "ol/events/Event";
+
+const postFilters = [
+    <TextInput label="Search" source="q" alwaysOn />,
+];
 
 const CreateManyButton = () => {
     const redirect = useRedirect();
@@ -66,6 +70,7 @@ export const PlotSampleList = () => {
 
     return (
         <List
+            filters={postFilters}
             actions={<PlotSampleListActions />}
             storeKey={false}
             empty={false}
