@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fulltext query on any string fields in Plots and Soil profiles.
 - Pie chart in plot samples.
+- Delete many functionality for all tables.
+- Get elevation on `plot` table if elevation (`coord_z`) is set to 0.
+
+### Changed
+
+- Set create many on `plot` table with list of records instead of CSV using
+the `react-admin-import-csv`.
 
 ### Removed
 

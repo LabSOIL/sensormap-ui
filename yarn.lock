@@ -3973,6 +3973,11 @@ pako@^2.0.4:
   resolved "https://registry.yarnpkg.com/pako/-/pako-2.1.0.tgz#266cc37f98c7d883545d11335c00fbd4062c9a86"
   integrity sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==
 
+papaparse@5.x:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/papaparse/-/papaparse-5.4.1.tgz#f45c0f871853578bd3a30f92d96fdcfb6ebea127"
+  integrity sha512-HipMsgJkZu8br23pW15uvo6sib6wne/4woLZPlFf3rpDyMe9ywEXUsuD7+6K9PRkJlVT51j/sCOYDKGGS3ZJrw==
+
 parent-module@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/parent-module/-/parent-module-1.0.1.tgz#691d2709e78c79fae3a156622452d00762caaaa2"
@@ -4308,6 +4313,11 @@ raf@^3.4.1:
   dependencies:
     performance-now "^2.1.0"
 
+ramda@0.28.0:
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.28.0.tgz#acd785690100337e8b063cab3470019be427cc97"
+  integrity sha512-9QnLuG/kPVgWvMQ4aODhsBUFKOUmnbUnsSXACv+NCQZcHbeb+v8Lodp8OVxtRULN1/xOyYLLaL6npE6dMq5QTA==
+
 rbush@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/rbush/-/rbush-3.0.1.tgz#5fafa8a79b3b9afdfe5008403a720cc1de882ecf"
@@ -4322,6 +4332,14 @@ react-admin-color-picker@^1.0.3:
   dependencies:
     lodash.get "^4.4.2"
     react-color "^2.19.3"
+
+react-admin-import-csv@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/react-admin-import-csv/-/react-admin-import-csv-4.0.2.tgz#eb03d8ecd5cec4107a29828962f526d8936e8105"
+  integrity sha512-bRKgVpJRJCjV8kUhduUMl8mSkp6KlAdqYEoo0kPIb98yn/fDEcpgU2iX43peAqpklMcNJO01eAgcpe+nMutM/w==
+  dependencies:
+    papaparse "5.x"
+    ramda "0.28.0"
 
 react-admin@^4.16.18, react-admin@^4.4.0:
   version "4.16.18"

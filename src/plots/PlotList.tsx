@@ -6,49 +6,87 @@ import {
     useGetList,
     usePermissions,
     TopToolbar,
-    CreateButton,
-    ExportButton,
+    // CreateButton,
+    // ExportButton,
     useRedirect,
     ReferenceField,
     DateField,
     FunctionField,
-    Button,
+    downloadCSV,
     Link,
     useRecordContext,
     Loading,
     useCreatePath,
     BulkDeleteButton,
 } from "react-admin";
-import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import { stopPropagation } from "ol/events/Event";
 import { Fragment } from "react/jsx-runtime";
+import { ImportButton } from "react-admin-import-csv";
+import { CreateButton, ExportButton } from "ra-ui-materialui";
+import jsonExport from 'jsonexport/dist';
 
 const postFilters = [
     <TextInput label="Search" source="q" alwaysOn />,
 ];
 
-const CreateManyButton = () => {
-    const redirect = useRedirect();
-    return (
-        <Button
-            label="Create Many"
-            onClick={(event) => {
-                redirect('/plots/createMany');
-            }}
-            startIcon={<LibraryAddIcon fontSize='inherit' />}
-        />
-
-    )
-}
-const PlotListActions = () => {
+const PlotListActions = (props) => {
+    const {
+        className,
+        basePath,
+        total,
+        resource,
+        currentSort,
+        filterValues,
+        exporter,
+    } = props;
     const { permissions } = usePermissions();
+
     return (
-        <TopToolbar>
-            {permissions === 'admin' && <><CreateButton /><CreateManyButton /></>}
-            <ExportButton />
+        <TopToolbar className={className}>
+            {permissions === 'admin' && <>
+                <CreateButton basePath={basePath} />
+                <ImportButton parseConig={{ dynamicTyping: true }} {...props} />
+            </>}
+            <ExportButton
+                disabled={total === 0}
+                resource={resource}
+                sort={currentSort}
+                filter={filterValues}
+                exporter={exporter}
+            />
         </TopToolbar>
     );
-}
+};
+
+const exporter = plots => {
+    const plotsForExport = plots.map(plot => {
+        const {
+            area_id,
+            area,
+            samples,
+            geom,
+            latitude,
+            longitude,
+            last_updated,
+            name,
+            image,
+            ...plotForExport
+        } = plot; // omit fields
+        plotForExport.area_name = plot.area.name; // add a field
+        return plotForExport;
+    });
+
+    // console.log("plotsForExport", plotsForExport[1]);
+    jsonExport(plotsForExport, {
+        headers: [
+            "id", "plot_iterator", "slope", "gradient", "vegetation_type",
+            "topography", "aspect", "created_on", "weather", "lithology",
+            "coord_x", "coord_y", "coord_z", "coord_srid", "area_name"
+        ]  // order fields in the export
+    }, (err, csv) => {
+        downloadCSV(csv, 'plots');
+    });
+};
 
 const AreaNameField = () => {
     const record = useRecordContext();
@@ -92,6 +130,7 @@ export const PlotList = () => {
             storeKey={false}
             empty={false}
             perPage={25}
+            exporter={exporter}
         >
             <Datagrid
                 rowClick="show"

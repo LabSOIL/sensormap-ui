@@ -9,6 +9,7 @@ import {
     Polygon,
     Tooltip,
     useMap,
+    Polyline,
 } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import { BaseLayers } from './Layers';
@@ -20,7 +21,7 @@ import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 import Legend from './Legend'; // Import the Legend component
 import MarkerClusterGroup from 'react-leaflet-cluster'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Layout } from 'react-admin';
 
@@ -81,6 +82,18 @@ export const TransectCreateMap = ({ area_id }) => {
         console.log('New Nodes:', newNodes);
 
     }
+    const transectNodes = formContext.getValues('nodes') || [];
+    const [nodePolyLine, setNodePolyLine] = useState(null);
+
+    useEffect(() => {
+        if (transectNodes.length > 1) {
+            const nodeCoords = transectNodes.map(node => [node["latitude"], node["longitude"]]);
+            setNodePolyLine(<Polyline positions={nodeCoords} pathOptions={{ color: 'red' }} />);
+        }
+        transectNodes = formContext.getValues('nodes') || [];
+    }, [transectNodes]);
+
+
     return (
         <MapContainer
             style={{ width: '100%', height: '500px' }}
@@ -116,6 +129,8 @@ export const TransectCreateMap = ({ area_id }) => {
                     )
                 }) : null}
             </MarkerClusterGroup>
+            // Draw a polyline from all the nodes
+            {nodePolyLine}
             <MapRecenter lat={polygonCoordinates[0][0][0]} lng={polygonCoordinates[0][0][1]} zoomLevel={15} />
             <Legend />
         </MapContainer>

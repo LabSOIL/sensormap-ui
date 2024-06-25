@@ -9,6 +9,7 @@ import {
     FileInput,
     FileField,
     useRedirect,
+    useNotify,
 } from 'react-admin';
 import { useState } from 'react';
 
@@ -16,6 +17,7 @@ const PlotSampleCreateMany = () => {
     const dataProvider = useDataProvider();
     const [errors, setErrors] = useState([]);
     const redirect = useRedirect();
+    const notify = useNotify();
     const save = async (data) => {
         try {
             const response = await dataProvider.createMany(
@@ -32,7 +34,16 @@ const PlotSampleCreateMany = () => {
     };
 
     const onFailure = (error) => {
-        setErrors(error.body.detail.errors);
+        // If 400 or 500 error, show error message
+        // If the body detail is str and not list), it means that the error is
+        // not a validation error and simply provide notification
+        if (typeof error.body.detail === 'string') {
+            notify(`Error: ${error.body.detail}`, 'error');
+        }
+
+        if (error.body) {
+            setErrors(error.body.detail.errors);
+        }
     }
     const onSuccess = () => {
         redirect('list', 'plot_samples');

@@ -180,30 +180,28 @@ const dataProvider = (
                 'Content-Type': 'text/plain',
             }),
         }).then(({ json }) => ({ data: json })),
-
-    // simple-rest doesn't handle filters on DELETE route, so we fallback to calling DELETE n times instead
-    deleteMany: (resource, params) =>
-        Promise.all(
-            params.ids.map(id =>
-                httpClient(`${apiUrl}/${resource}/${id}`, {
-                    method: 'DELETE',
-                    headers: new Headers({
-                        'Content-Type': 'text/plain',
-                    }),
-                })
-            )
-        ).then(responses => ({
-            data: responses.map(({ json }) => json.id),
-        })),
-    createMany: (resource, params) =>
-        convertFileToBase64(params.data.attachment).then(base64Data => {
+    deleteMany: (resource, params) => {
+        // Send a list of ids to delete
+        // The API should return an array of the deleted ids
+        // So that the dataProvider can update the redux store
+        // and the view
+        if (params.ids.length === 0) {
+            return Promise.resolve({ data: [] });
+        } else {
             return httpClient(`${apiUrl}/${resource}/batch`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    attachment: base64Data,
-                }),
+                method: 'DELETE',
+                body: JSON.stringify(params.ids),
             }).then(({ json }) => ({ data: json }));
-        }),
+        }
+    },
+    createMany: async (resource, params) => {
+        const items = params.data;
+        httpClient(`${apiUrl}/${resource}/batch`, {
+            method: 'POST',
+            body: JSON.stringify(items),
+        }).then(({ json }) => ({ data: json }));
+    },
 });
+
 
 export default dataProvider;
