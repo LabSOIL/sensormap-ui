@@ -70,6 +70,7 @@ const exporter = plots => {
             last_updated,
             name,
             image,
+            coord_srid,
             ...plotForExport
         } = plot; // omit fields
         plotForExport.area_name = plot.area.name; // add a field
@@ -81,7 +82,7 @@ const exporter = plots => {
         headers: [
             "id", "plot_iterator", "slope", "gradient", "vegetation_type",
             "topography", "aspect", "created_on", "weather", "lithology",
-            "coord_x", "coord_y", "coord_z", "coord_srid", "area_name"
+            "coord_x", "coord_y", "coord_z", "area_name"
         ]  // order fields in the export
     }, (err, csv) => {
         downloadCSV(csv, 'plots');

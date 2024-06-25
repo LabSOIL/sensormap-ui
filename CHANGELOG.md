@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pie chart in plot samples.
 - Delete many functionality for all tables.
 - Get elevation on `plot` table if elevation (`coord_z`) is set to 0.
+- Bulk update on `plot` table.
 
 ### Changed
 

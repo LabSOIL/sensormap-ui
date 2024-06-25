@@ -201,6 +201,13 @@ const dataProvider = (
             body: JSON.stringify(items),
         }).then(({ json }) => ({ data: json }));
     },
+    updateManyArray: async (resource, params) => {
+        const items = params.data;
+        httpClient(`${apiUrl}/${resource}/batch`, {
+            method: 'PUT',
+            body: JSON.stringify(items),
+        }).then(({ json }) => ({ data: json }));
+    }
 });
 
 
