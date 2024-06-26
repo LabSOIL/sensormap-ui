@@ -13,10 +13,14 @@ import {
     NumberField,
     FunctionField,
     TabbedShowLayout,
+    useRedirect,
+    useGetOne,
+    Button,
+    useCreate,
 } from "react-admin";
 import { Grid } from '@mui/material';
 import { SedimentChart, MicrobialPieChart } from './Charts';
-
+import { Link } from 'react-router-dom';
 
 
 const PlotSampleShowTitle = () => {
@@ -38,12 +42,110 @@ const PlotSampleShowActions = () => {
     );
 }
 
+const AreaLinkedLabel = () => {
+    // Link to the area show page
+    const record = useRecordContext();
+    const areaId = record.plot.area.id;
+    const redirect = useRedirect();
 
+    return (
+        <>Area: <Link onClick={redirect('show', 'areas', areaId)} style={{ textDecoration: 'none' }}> {record.plot.area.name}</Link ></>
+    );
+}
+
+const ProjectLinkedLabel = () => {
+    // Link to the project show page
+    const record = useRecordContext();
+    if (!record) return null;
+
+    const projectId = record.plot.area.project.id;
+    const redirect = useRedirect();
+    return (
+        <>Project: <Link onClick={redirect('show', 'projects', projectId)} style={{ textDecoration: 'none' }}> {record.plot.area.project.name}</Link ></>
+    );
+}
+
+const PlotSampleArrowNavation = () => {
+    // Create a back and forward button if samples A and B exist in the same
+    // plot. There are three samples, A B and C. If A and B exist, then we
+    // can navigate between them. The current sample is emboldened and there is
+    // no link to it. If there is no other sample, fade the text and no link
+    const record = useRecordContext();
+    if (!record) return null;
+
+    // Get the related plot, it has samples embedded as a list of objects
+    const { data: plot, isPending } = useGetOne('plots', { id: record.plot.id });
+    if (isPending) return null;
+    if (!plot) return null;
+    const samples = plot.samples;
+    // Go through array of samples and look for name: A and B and C
+    let sampleA = null;
+    let sampleB = null;
+    let sampleC = null;
+    for (let i = 0; i < samples.length; i++) {
+        if (samples[i].name === 'A') {
+            sampleA = samples[i];
+        }
+        if (samples[i].name === 'B') {
+            sampleB = samples[i];
+        }
+        if (samples[i].name === 'C') {
+            sampleC = samples[i];
+        }
+    }
+    const activeSample = record;
+
+    const NavigationButton = ({ sample, name, activeSample }) => {
+        const redirect = useRedirect();
+
+        const disabled = activeSample.name === name;
+        let onClickEvent = null;
+        const handleClick = () => {
+            if (sample) {
+                redirect('show', 'plot_samples', sample.id);
+            } else {
+                redirect(
+                    'create',
+                    'plot_samples',
+                    null,
+                    {},
+                    {
+                        record: { plot_id: record.plot.id, name: name }
+                    }
+                );
+            }
+        }
+        return (
+            <Button
+                color={sample ? 'primary' : 'error'}
+                disabled={disabled}
+                onClick={handleClick}
+            >{sample ? sample.name : name}</Button>
+        );
+    }
+    return (
+        <div>
+            <NavigationButton sample={sampleA} name="A" activeSample={activeSample} />
+            <NavigationButton sample={sampleB} name="B" activeSample={activeSample} />
+            <NavigationButton sample={sampleC} name="C" activeSample={activeSample} />
+        </div >
+    );
+
+}
 
 export const PlotSampleShow = () => (
     <Show title={<PlotSampleShowTitle />} actions={<PlotSampleShowActions />}>
         <SimpleShowLayout>
             <Grid container spacing={2}>
+                <Grid item xs={4}>
+                    <PlotSampleArrowNavation />
+                </Grid>
+                <Grid item xs={4}>
+                    <AreaLinkedLabel />
+                </Grid>
+                <Grid item xs={4}>
+                    <ProjectLinkedLabel />
+                </Grid>
                 <Grid item xs={3}>
                     <ReferenceField
                         label="Plot"
@@ -52,7 +154,7 @@ export const PlotSampleShow = () => (
                         link="show"
                         source="plot_id"
                     >
-                        <Labeled label="Name"><TextField source="name" /></Labeled>
+                        <Labeled label="Plot"><TextField source="name" /></Labeled>
                     </ReferenceField>
                 </Grid>
                 <Grid item xs={3}>

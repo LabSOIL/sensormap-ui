@@ -11,6 +11,7 @@ import {
     useRecordContext,
     useCreatePath,
     Link,
+    useGetOne,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
@@ -66,8 +67,15 @@ const PlotSampleListActions = (props) => {
     );
 };
 
+const getProjectNameFromAreaID = (area_id) => {
+    const { data, isPending, error } = useGetOne(
+        'areas', { id: area_id }
+    );
+    return data;
+}
+
 const exporter = plots => {
-    const plotsForExport = plots.map(plot => {
+    const samplesForExport = plots.map(plot => {
         const {
             // area_id,
             // area,
@@ -79,14 +87,16 @@ const exporter = plots => {
             // name,
             // image,
             // coord_srid,
-            ...plotForExport
+            ...sampleForExport
         } = plot; // omit fields
-        plotForExport.area_name = plot.area.name; // add a field
-        return plotForExport;
+        console.log("Area ID:", sampleForExport.plot.area_id)
+
+        // plotForExport.area_name = plot.area.name; // add a field
+        return sampleForExport;
     });
 
     // console.log("plotsForExport", plotsForExport[1]);
-    jsonExport(plotsForExport, {
+    jsonExport(samplesForExport, {
         headers: [
             "id", "plot_iterator", "slope", "gradient", "vegetation_type",
             "topography", "aspect", "created_on", "weather", "lithology",
@@ -128,6 +138,7 @@ export const PlotSampleList = () => {
             storeKey={false}
             empty={false}
             perPage={25}
+            exporter={exporter}
         >
             <Datagrid rowClick="show">
                 <FieldWrapper label="Plot"><PlotNameField /></FieldWrapper>
