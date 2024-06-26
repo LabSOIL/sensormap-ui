@@ -167,7 +167,7 @@ export const PlotShow = () => (
             <Grid container>
                 <Grid item xs={6}>
                     <Typography variant="h6" textAlign="center" gutterBottom>Samples</Typography>
-                    <TopToolbar><CreateSampleButton /><CreateManyButton /></TopToolbar>
+                    <TopToolbar><CreateSampleButton /></TopToolbar>
                     <ReferenceManyField
                         reference="plot_samples"
                         target="plot_id"

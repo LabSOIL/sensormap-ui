@@ -45,11 +45,32 @@ const PlotSampleShowActions = () => {
 const AreaLinkedLabel = () => {
     // Link to the area show page
     const record = useRecordContext();
+    if (!record) return null;
+
     const areaId = record.plot.area.id;
     const redirect = useRedirect();
 
+    const handleClick = () => {
+        redirect('show', 'areas', areaId);
+    }
     return (
-        <>Area: <Link onClick={redirect('show', 'areas', areaId)} style={{ textDecoration: 'none' }}> {record.plot.area.name}</Link ></>
+        <><Button onClick={handleClick} style={{ textDecoration: 'none' }}> {record.plot.area.name}</Button ></>
+    );
+}
+
+const PlotLinkedLabel = () => {
+    // Link to the area show page
+    const record = useRecordContext();
+    if (!record) return null;
+
+    const plotId = record.plot.id;
+    const redirect = useRedirect();
+
+    const handleClick = () => {
+        redirect('show', 'plots', plotId);
+    }
+    return (
+        <><Button onClick={handleClick} style={{ textDecoration: 'none' }}> {record.plot.name}</Button ></>
     );
 }
 
@@ -60,11 +81,44 @@ const ProjectLinkedLabel = () => {
 
     const projectId = record.plot.area.project.id;
     const redirect = useRedirect();
+
+    const handleClick = () => {
+        redirect('show', 'projects', projectId);
+    }
+
     return (
-        <>Project: <Link onClick={redirect('show', 'projects', projectId)} style={{ textDecoration: 'none' }}> {record.plot.area.project.name}</Link ></>
+        <><Button onClick={handleClick} style={{ textDecoration: 'none' }}> {record.plot.area.project.name}</Button ></>
     );
 }
+const NavigationButton = ({ sample, name, activeSample }) => {
+    const record = useRecordContext();
+    if (!record) return null;
+    const redirect = useRedirect();
+    const disabled = activeSample.name === name;
 
+    const handleClick = () => {
+        if (sample) {
+            redirect('show', 'plot_samples', sample.id);
+        } else {
+            redirect(
+                'create',
+                'plot_samples',
+                null,
+                {},
+                {
+                    record: { plot_id: record.plot.id, name: name }
+                }
+            );
+        }
+    }
+    return (
+        <Button
+            color={sample ? 'primary' : 'error'}
+            disabled={disabled}
+            onClick={handleClick}
+        >{sample ? sample.name : name}</Button>
+    );
+}
 const PlotSampleArrowNavation = () => {
     // Create a back and forward button if samples A and B exist in the same
     // plot. There are three samples, A B and C. If A and B exist, then we
@@ -95,34 +149,7 @@ const PlotSampleArrowNavation = () => {
     }
     const activeSample = record;
 
-    const NavigationButton = ({ sample, name, activeSample }) => {
-        const redirect = useRedirect();
 
-        const disabled = activeSample.name === name;
-        let onClickEvent = null;
-        const handleClick = () => {
-            if (sample) {
-                redirect('show', 'plot_samples', sample.id);
-            } else {
-                redirect(
-                    'create',
-                    'plot_samples',
-                    null,
-                    {},
-                    {
-                        record: { plot_id: record.plot.id, name: name }
-                    }
-                );
-            }
-        }
-        return (
-            <Button
-                color={sample ? 'primary' : 'error'}
-                disabled={disabled}
-                onClick={handleClick}
-            >{sample ? sample.name : name}</Button>
-        );
-    }
     return (
         <div>
             <NavigationButton sample={sampleA} name="A" activeSample={activeSample} />
@@ -130,37 +157,43 @@ const PlotSampleArrowNavation = () => {
             <NavigationButton sample={sampleC} name="C" activeSample={activeSample} />
         </div >
     );
-
 }
 
 export const PlotSampleShow = () => (
     <Show title={<PlotSampleShowTitle />} actions={<PlotSampleShowActions />}>
         <SimpleShowLayout>
             <Grid container spacing={2}>
-                <Grid item xs={4}>
+                <Grid item xs={3}>
                     <PlotSampleArrowNavation />
                 </Grid>
-                <Grid item xs={4}>
-                    <AreaLinkedLabel />
-                </Grid>
-                <Grid item xs={4}>
-                    <ProjectLinkedLabel />
+                <Grid item xs={3}>
+                    <PlotLinkedLabel />
                 </Grid>
                 <Grid item xs={3}>
-                    <ReferenceField
-                        label="Plot"
-                        reference="plots"
-                        sort={{ field: 'name', order: 'ASC' }}
-                        link="show"
-                        source="plot_id"
-                    >
-                        <Labeled label="Plot"><TextField source="name" /></Labeled>
-                    </ReferenceField>
+                    <AreaLinkedLabel />
+                </Grid>
+                <Grid item xs={3}>
+                    <ProjectLinkedLabel />
+                </Grid>
+                <Grid item xs={12}>
+                    <hr style={{
+                        color: 'black',
+                        backgroundColor: 'black',
+                        height: 1,
+                        borderColor: 'black',
+                        opacity: 0.25
+                    }} />
                 </Grid>
                 <Grid item xs={3}>
                     <Labeled label="Name">
                         <TextField source="name" />
                     </Labeled>
+                </Grid>
+                <Grid item xs={3}>
+                    <Labeled label="Depth (cm)">
+                        <FunctionField render={record => `${record.upper_depth_cm} - ${record.lower_depth_cm} cm`} />
+                    </Labeled>
+
                 </Grid>
                 <Grid item xs={3}>
                     <Labeled label="Created On">
@@ -172,12 +205,7 @@ export const PlotSampleShow = () => (
                         <DateField source="last_updated" showTime />
                     </Labeled>
                 </Grid>
-                <Grid item xs={3}>
-                    <Labeled label="Depth (cm)">
-                        <FunctionField render={record => `${record.upper_depth_cm} - ${record.lower_depth_cm} cm`} />
-                    </Labeled>
 
-                </Grid>
 
                 <Grid item xs={3}>
                     <Labeled label="Sample Weight (g)">

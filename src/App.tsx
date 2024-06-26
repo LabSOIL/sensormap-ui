@@ -88,18 +88,8 @@ const App = () => {
                 <>
                     <Resource name="projects" {...projects} />
                     <Resource name="areas" {...areas} />
-                    <Resource name="plots" {...plots.plot} >
-                        <Route
-                            path="/createMany"
-                            element={<plots.plot.createMany />}
-                        />
-                    </Resource>
-                    <Resource name="plot_samples" {...plots.sample} >
-                        <Route
-                            path="/createMany"
-                            element={<plots.sample.createMany />}
-                        />
-                    </Resource>
+                    <Resource name="plots" {...plots.plot} />
+                    <Resource name="plot_samples" {...plots.sample} />
                     <Resource name="sensors" {...sensors.sensor} />
                     <Resource name="sensordata" {...sensors.sensordata} />
                     <Resource name="soil_profiles" {...soil.profile} />

@@ -12,6 +12,7 @@ import {
     useCreatePath,
     Link,
     useGetOne,
+    downloadCSV,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
@@ -75,32 +76,34 @@ const getProjectNameFromAreaID = (area_id) => {
 }
 
 const exporter = plots => {
-    const samplesForExport = plots.map(plot => {
+    const samplesForExport = plots.map(sample => {
         const {
-            // area_id,
-            // area,
-            // samples,
-            // geom,
-            // latitude,
-            // longitude,
-            // last_updated,
-            // name,
-            // image,
-            // coord_srid,
+            plot,
+            last_updated,
             ...sampleForExport
-        } = plot; // omit fields
-        console.log("Area ID:", sampleForExport.plot.area_id)
+        } = sample; // omit fields
 
-        // plotForExport.area_name = plot.area.name; // add a field
+        sampleForExport.project_name = sample.plot.area.project.name;
+        sampleForExport.area_name = sample.plot.area.name;
+        sampleForExport.plot_gradient = sample.plot.gradient;
+        sampleForExport.plot_iterator = sample.plot.plot_iterator;
+
         return sampleForExport;
     });
 
     // console.log("plotsForExport", plotsForExport[1]);
     jsonExport(samplesForExport, {
         headers: [
-            "id", "plot_iterator", "slope", "gradient", "vegetation_type",
-            "topography", "aspect", "created_on", "weather", "lithology",
-            "coord_x", "coord_y", "coord_z", "area_name"
+            "id", "plot_id", "project_name", "area_name", "plot_gradient",
+            "plot_iterator", "name", "created_on",
+            "upper_depth_cm", "lower_depth_cm", "sample_weight",
+            "subsample_weight", "subsample_replica_weight", "ph", "rh", "loi",
+            "mfc", "c", "n", "cn", "clay_percent", "silt_percent",
+            "sand_percent", "fe_ug_per_g", "na_ug_per_g", "al_ug_per_g",
+            "k_ug_per_g", "ca_ug_per_g", "mg_ug_per_g", "mn_ug_per_g",
+            "s_ug_per_g", "cl_ug_per_g", "p_ug_per_g", "si_ug_per_g",
+            "fungi_per_g", "bacteria_per_g", "archea_per_g",
+            "methanogens_per_g", "methanotrophs_per_g"
         ]  // order fields in the export
     }, (err, csv) => {
         downloadCSV(csv, 'plots');
@@ -141,13 +144,12 @@ export const PlotSampleList = () => {
             exporter={exporter}
         >
             <Datagrid rowClick="show">
+                <TextField source="plot.area.project.name" label="Project" />
                 <FieldWrapper label="Plot"><PlotNameField /></FieldWrapper>
+                <TextField source="plot.area.name" label="Area" />
                 <TextField source="name" />
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
-                <NumberField source="sample_weight" label="Sample Weight (g)" />
-                <NumberField source="subsample_weight" label="Subsample Weight" />
-                <NumberField source="subsample_replica_weight" label="Subsample Replica Weight" />
             </Datagrid>
         </List>
     );
