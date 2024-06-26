@@ -1,5 +1,6 @@
 import { stringify } from 'query-string';
 import { fetchUtils, DataProvider } from 'ra-core';
+import { useNotify } from 'react-admin';
 
 const convertFileToBase64 = file =>
     new Promise((resolve, reject) => {
@@ -196,14 +197,14 @@ const dataProvider = (
     },
     createMany: async (resource, params) => {
         const items = params.data;
-        httpClient(`${apiUrl}/${resource}/batch`, {
+        return httpClient(`${apiUrl}/${resource}/batch`, {
             method: 'POST',
             body: JSON.stringify(items),
         }).then(({ json }) => ({ data: json }));
     },
     updateManyArray: async (resource, params) => {
         const items = params.data;
-        httpClient(`${apiUrl}/${resource}/batch`, {
+        return httpClient(`${apiUrl}/${resource}/batch`, {
             method: 'PUT',
             body: JSON.stringify(items),
         }).then(({ json }) => ({ data: json }));

@@ -18,6 +18,7 @@ import {
     Loading,
     useCreatePath,
     BulkDeleteButton,
+    useNotify,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { Fragment } from "react/jsx-runtime";
@@ -40,12 +41,28 @@ const PlotListActions = (props) => {
         exporter,
     } = props;
     const { permissions } = usePermissions();
+    const notify = useNotify();
 
     return (
         <TopToolbar className={className}>
             {permissions === 'admin' && <>
                 <CreateButton basePath={basePath} />
-                <ImportButton parseConig={{ dynamicTyping: true }} {...props} />
+                <ImportButton
+                    parseConig={{ dynamicTyping: true }}
+                    postCommitCallback={(response) => {
+                        console.log("Response:", response);
+                        if (response[0].success === false) {
+                            // Provide useful message to user
+                            notify(
+                                `Error: ${response[0]?.err.message} (${response[0]?.err?.body.detail.length} errors)\n${response[0].err?.body.detail.map(obj => `Line ${obj.loc[1]} (${obj.loc[2]}): ${obj.msg}`).join('\n')}`, {
+                                type: 'error',
+                                multiLine: true,
+                            });
+                            throw new Error(error);
+                        }
+                    }}
+                    {...props}
+                />
             </>}
             <ExportButton
                 disabled={total === 0}
