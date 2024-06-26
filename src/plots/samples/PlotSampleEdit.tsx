@@ -1,3 +1,4 @@
+import { Typography } from '@mui/material';
 /* eslint react/jsx-key: off */
 import {
     DateInput,
@@ -71,7 +72,12 @@ const PlotSampleEdit = () => {
                 <NumberInput source="cl_ug_per_g" label="Chlorine (Cl) in ug/g" />
                 <NumberInput source="p_ug_per_g" label="Phosphorus (P) in ug/g" />
                 <NumberInput source="si_ug_per_g" label="Silicon (Si) in ug/g" />
-
+                <Typography variant="h6" gutterBottom>Microbial Fields</Typography>
+                <NumberInput source="fungi_per_g" helperText="Fungi (fungal 18S gene copy number per g of soil)" />
+                <NumberInput source="bacteria_per_g" helperText="Bacteria (bacterial 16S gene copy number per g of soil)" />
+                <NumberInput source="archea_per_g" helperText="Archea (archeal 16S gene copy number per g of soil)" />
+                <NumberInput source="methanogens_per_g" helperText="Methanogens (mcrA gene copy number per g of soil)" />
+                <NumberInput source="methanotrophs_per_g" helperText="Methanotrophs (pmoA gene copy number per g of soil)" />
             </SimpleForm>
         </Edit>
     )

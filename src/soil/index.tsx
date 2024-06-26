@@ -6,7 +6,9 @@ import SoilProfileCreate from './SoilProfileCreate';
 import SoilProfileEdit from './SoilProfileEdit';
 import SoilProfileList from './SoilProfileList';
 import SoilProfileShow from './SoilProfileShow';
-
+import FilterHdrIcon from '@mui/icons-material/FilterHdr';
+import TerrainIcon from '@mui/icons-material/Terrain';
+import GrassIcon from '@mui/icons-material/Grass';
 
 const SoilProfile = {
     create: SoilProfileCreate,
@@ -14,6 +16,7 @@ const SoilProfile = {
     list: SoilProfileList,
     show: SoilProfileShow,
     recordRepresentation: 'name.en',
+    icon: FilterHdrIcon
 };
 
 const SoilType = {
@@ -22,6 +25,7 @@ const SoilType = {
     list: SoilTypeList,
     show: SoilTypeShow,
     recordRepresentation: 'name.en',
+    icon: GrassIcon
 };
 
 export default {

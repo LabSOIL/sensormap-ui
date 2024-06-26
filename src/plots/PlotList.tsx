@@ -6,9 +6,6 @@ import {
     useGetList,
     usePermissions,
     TopToolbar,
-    // CreateButton,
-    // ExportButton,
-    useRedirect,
     ReferenceField,
     DateField,
     FunctionField,
@@ -17,11 +14,9 @@ import {
     useRecordContext,
     Loading,
     useCreatePath,
-    BulkDeleteButton,
     useNotify,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
-import { Fragment } from "react/jsx-runtime";
 import { ImportButton } from "react-admin-import-csv";
 import { CreateButton, ExportButton } from "ra-ui-materialui";
 import jsonExport from 'jsonexport/dist';
@@ -50,7 +45,6 @@ const PlotListActions = (props) => {
                 <ImportButton
                     parseConig={{ dynamicTyping: true }}
                     postCommitCallback={(response) => {
-                        console.log("Response:", response);
                         if (response[0].success === false) {
                             // Provide useful message to user
                             notify(
@@ -122,13 +116,6 @@ const AreaNameField = () => {
     );
 }
 
-const PlotBulkActionButtons = props => (
-    <Fragment>
-        {/* <ResetViews label="Reset Views" {...props} /> */}
-        {/* Add the default bulk delete action */}
-        <BulkDeleteButton {...props} />
-    </Fragment>
-);
 export const PlotList = () => {
     const FieldWrapper = ({ children, label }) => children;
     const { data, total, isLoading, error } = useGetList(
@@ -152,7 +139,6 @@ export const PlotList = () => {
         >
             <Datagrid
                 rowClick="show"
-                bulkActionButtons={<PlotBulkActionButtons />}
             >
                 <TextField source="name" />
                 <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>

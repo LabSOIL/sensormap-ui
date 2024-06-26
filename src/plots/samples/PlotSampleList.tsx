@@ -5,45 +5,98 @@ import {
     useGetList,
     usePermissions,
     TopToolbar,
-    CreateButton,
-    ExportButton,
     TextInput,
-    Button,
+    useNotify,
     NumberField,
-    useRedirect,
     useRecordContext,
     useCreatePath,
     Link,
 } from "react-admin";
-import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import { stopPropagation } from "ol/events/Event";
+import { ImportButton } from "react-admin-import-csv";
+import { CreateButton, ExportButton } from "ra-ui-materialui";
+import jsonExport from 'jsonexport/dist';
 
 const postFilters = [
     <TextInput label="Search" source="q" alwaysOn />,
 ];
 
-const CreateManyButton = () => {
-    const redirect = useRedirect();
-    return (
-        <Button
-            label="Create Many"
-            onClick={(event) => {
-                redirect('/plot_samples/createMany');
-            }}
-            startIcon={<LibraryAddIcon fontSize='inherit' />}
-        />
 
-    )
-}
-const PlotSampleListActions = () => {
+const PlotSampleListActions = (props) => {
+    const {
+        className,
+        basePath,
+        total,
+        resource,
+        currentSort,
+        filterValues,
+        exporter,
+    } = props;
     const { permissions } = usePermissions();
+    const notify = useNotify();
+
     return (
-        <TopToolbar>
-            {permissions === 'admin' && <><CreateButton /><CreateManyButton /></>}
-            <ExportButton />
+        <TopToolbar className={className}>
+            {permissions === 'admin' && <>
+                <CreateButton basePath={basePath} />
+                <ImportButton
+                    parseConig={{ dynamicTyping: true }}
+                    postCommitCallback={(response) => {
+                        if (response[0].success === false) {
+                            // Provide useful message to user
+                            notify(
+                                `Error: ${response[0]?.err.message} (${response[0]?.err?.body.detail.length} errors)\n${response[0].err?.body.detail.map(obj => `Line ${obj.loc[1]} (${obj.loc[2]}): ${obj.msg}`).join('\n')}`, {
+                                type: 'error',
+                                multiLine: true,
+                            });
+                            throw new Error(error);
+                        }
+                    }}
+                    {...props}
+                />
+            </>}
+            <ExportButton
+                disabled={total === 0}
+                resource={resource}
+                sort={currentSort}
+                filter={filterValues}
+                exporter={exporter}
+            />
         </TopToolbar>
     );
-}
+};
+
+const exporter = plots => {
+    const plotsForExport = plots.map(plot => {
+        const {
+            // area_id,
+            // area,
+            // samples,
+            // geom,
+            // latitude,
+            // longitude,
+            // last_updated,
+            // name,
+            // image,
+            // coord_srid,
+            ...plotForExport
+        } = plot; // omit fields
+        plotForExport.area_name = plot.area.name; // add a field
+        return plotForExport;
+    });
+
+    // console.log("plotsForExport", plotsForExport[1]);
+    jsonExport(plotsForExport, {
+        headers: [
+            "id", "plot_iterator", "slope", "gradient", "vegetation_type",
+            "topography", "aspect", "created_on", "weather", "lithology",
+            "coord_x", "coord_y", "coord_z", "area_name"
+        ]  // order fields in the export
+    }, (err, csv) => {
+        downloadCSV(csv, 'plots');
+    });
+};
+
 const PlotNameField = () => {
     const record = useRecordContext();
     const createPath = useCreatePath();
@@ -78,8 +131,6 @@ export const PlotSampleList = () => {
         >
             <Datagrid rowClick="show">
                 <FieldWrapper label="Plot"><PlotNameField /></FieldWrapper>
-
-
                 <TextField source="name" />
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
