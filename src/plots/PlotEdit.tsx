@@ -96,20 +96,6 @@ const SlopeInput = () => {
     }
 
     return (<>
-        {/* <Button
-            label="Get from Swiss Hillside map"
-            variant="outlined"
-            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
-            onClick={(event) => {
-                updateSlope();
-            }}
-        /> */}
-        {/* <Typography
-            variant="caption"
-            color={'error'}
-        >
-            {errorMessage ? errorMessage : null}
-        </Typography> */}
         <TextInput source="slope" label="Slope" />
     </>
     )

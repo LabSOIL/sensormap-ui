@@ -5,6 +5,8 @@ import {
     TextField,
     TextInput,
     required,
+    ImageField,
+    ImageInput,
 } from 'react-admin';
 
 const SoilTypeCreate = () => {
@@ -14,7 +16,15 @@ const SoilTypeCreate = () => {
             <SimpleForm>
                 <TextField source="id" />
                 <TextInput source="name" validate={[required()]} />
-                <TextInput source="description" validate={[required()]}  />
+                <TextInput source="description" validate={[required()]} />
+                <ImageInput
+                    source="image"
+                    label="Related image"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
             </SimpleForm>
         </Create >
 

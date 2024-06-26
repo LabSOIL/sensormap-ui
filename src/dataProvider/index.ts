@@ -13,7 +13,8 @@ const convertFileToBase64 = file =>
 const handleImageUpload = async (resource, params) => {
     const { data } = params;
 
-    if (resource === 'plots' && data.image && data.image.rawFile instanceof File) {
+    if ((resource === 'plots' || resource === 'soil_types')
+        && data.image && data.image.rawFile instanceof File) {
         data.image = await convertFileToBase64(data.image);
     }
 
