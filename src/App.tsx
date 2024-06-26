@@ -22,6 +22,7 @@ import plots from './plots';
 import soil from './soil';
 import projects from './projects';
 import transects from './transects';
+import gnss from './gnss';
 import axios from 'axios';
 
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required' };
@@ -95,6 +96,7 @@ const App = () => {
                     <Resource name="soil_profiles" {...soil.profile} />
                     <Resource name="soil_types" {...soil.type} />
                     <Resource name="transects" {...transects} />
+                    <Resource name="gnss" {...gnss} />
                     {permissions ? (
                         <>
                             {permissions === 'admin' ? (

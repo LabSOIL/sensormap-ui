@@ -10,12 +10,16 @@ const convertFileToBase64 = file =>
         reader.readAsDataURL(file.rawFile);
     });
 
-const handleImageUpload = async (resource, params) => {
+const handleBinaryUpload = async (resource, params) => {
     const { data } = params;
 
     if ((resource === 'plots' || resource === 'soil_types')
         && data.image && data.image.rawFile instanceof File) {
         data.image = await convertFileToBase64(data.image);
+    }
+    if (resource === 'gnss' && data.attachments && data.attachments.rawFile instanceof File) {
+        data.data_base64 = await convertFileToBase64(data.attachments);
+        data.filename = data.attachments.title;
     }
 
     if (resource === 'soil_profiles') {
@@ -149,7 +153,7 @@ const dataProvider = (
     },
 
     update: async (resource, params) => {
-        params = await handleImageUpload(resource, params);
+        params = await handleBinaryUpload(resource, params);
         return httpClient(`${apiUrl}/${resource}/${params.id}`, {
             method: 'PUT',
             body: JSON.stringify(params.data),
@@ -168,7 +172,7 @@ const dataProvider = (
         ).then(responses => ({ data: responses.map(({ json }) => json.id) })),
 
     create: async (resource, params) => {
-        params = await handleImageUpload(resource, params);
+        params = await handleBinaryUpload(resource, params);
         return httpClient(`${apiUrl}/${resource}`, {
             method: 'POST',
             body: JSON.stringify(params.data),

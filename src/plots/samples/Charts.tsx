@@ -121,10 +121,10 @@ export const SedimentChart = () => {
         height: 500,
         autosize: true,
         margin: {
-            l: 30,
-            r: 30,
-            t: 30,
-            b: 30
+            l: 50,
+            r: 50,
+            t: 50,
+            b: 50
         },
         font: {
             size: 16
