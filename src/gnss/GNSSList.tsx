@@ -24,6 +24,7 @@ const CreatePlotButton = () => {
                 record: {
                     coord_x: record.x,
                     coord_y: record.y,
+                    coord_z: record.elevation_gps,
                     created_on: record.time
                 }
             })
@@ -46,6 +47,7 @@ const CreateSoilProfileButton = () => {
                 record: {
                     coord_x: record.x,
                     coord_y: record.y,
+                    coord_z: record.elevation_gps,
                     created_on: record.time
                 }
             })
