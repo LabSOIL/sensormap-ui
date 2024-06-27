@@ -22,8 +22,9 @@ const CreatePlotButton = () => {
         onClick={(event) => {
             redirect('create', 'plots', null, {}, {
                 record: {
-                    coord_x: record.latitude,
-                    coord_y: record.longitude
+                    coord_x: record.x,
+                    coord_y: record.y,
+                    created_on: record.time
                 }
             })
             event.stopPropagation();
@@ -43,8 +44,9 @@ const CreateSoilProfileButton = () => {
         onClick={(event) => {
             redirect('create', 'soil_profiles', null, {}, {
                 record: {
-                    coord_x: record.latitude,
-                    coord_y: record.longitude
+                    coord_x: record.x,
+                    coord_y: record.y,
+                    created_on: record.time
                 }
             })
             event.stopPropagation();
@@ -62,6 +64,8 @@ export const GNSSList = () => {
                     <TextField source="name" />
                     <NumberField source="latitude" />
                     <NumberField source="longitude" />
+                    <TextField source="x" />
+                    <TextField source="y" />
                     <NumberField source="elevation_gps" />
                     <TextField source="comment" />
                     <TextField source="original_filename" />

@@ -13,6 +13,8 @@ export const PlotShow = () => (
             <TextField source="name" />
             <NumberField source="latitude" />
             <NumberField source="longitude" />
+            <TextField source="x" label="X (SRID: 2056)" />
+            <TextField source="y" label="Y (SRID: 2056)" />
             <NumberField source="elevation_gps" />
             <TextField source="comment" />
             <TextField source="original_filename" />
