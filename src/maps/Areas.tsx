@@ -61,7 +61,7 @@ export const LocationFieldAreas = () => {
             scrollWheelZoom={true}
         >
             <BaseLayers />
-            {validAreas ? validAreas.map(
+            {/* {validAreas ? validAreas.map(
                 (area, index) => (
                     <Polygon
                         key={index}
@@ -85,7 +85,7 @@ export const LocationFieldAreas = () => {
                 )
             )
                 : null
-            }
+            } */}
         </MapContainer>
     );
 };
