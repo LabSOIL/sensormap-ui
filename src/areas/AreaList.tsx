@@ -39,18 +39,14 @@ export const ColorBox = () => {
                     marginRight: '10px', // Space between box and text
                 }}
             />
-            <TextField source="project.name" label="Project"/>
+            <TextField source="project.name" label="Project" />
         </div>
     );
 };
 
+
+
 export const AreaList = () => {
-    const { data, total, isLoading, error } = useGetList(
-        'areas', {}
-    );
-
-    if (isLoading) return <Loading />;
-
     return (
         <List actions={<AreaListActions />} storeKey={false}>
 
@@ -60,19 +56,11 @@ export const AreaList = () => {
                 <FunctionField render={record => `${record.sensors.length}`} label="Sensors" />
                 <FunctionField render={record => `${record.plots.length}`} label="Plots" />
                 <FunctionField render={record => `${record.soil_profiles.length}`} label="Soil Profiles" />
-                {/* <FunctionField render={} */}
-              
                 <ColorBox />
-              
-
-
             </Datagrid>
-            <LocationFieldAreas
-                areas={data} />
+            <LocationFieldAreas />
         </List>
     );
 };
-
-
 
 export default AreaList;

@@ -43,7 +43,7 @@ const PlotListActions = (props) => {
             {permissions === 'admin' && <>
                 <CreateButton basePath={basePath} />
                 <ImportButton
-                    parseConig={{ dynamicTyping: true }}
+                    parseConfig={{ dynamicTyping: true }}
                     postCommitCallback={(response) => {
                         if (response[0].success === false) {
                             // Provide useful message to user

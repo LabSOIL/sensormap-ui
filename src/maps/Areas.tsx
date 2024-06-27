@@ -4,6 +4,7 @@ import {
     Button,
     Link,
     useCreatePath,
+    Loading,
 } from 'react-admin';
 import {
     MapContainer,
@@ -11,16 +12,24 @@ import {
     Polygon,
     Tooltip,
     FeatureGroup,
-
 } from 'react-leaflet';
 import { EditControl } from "react-leaflet-draw"
 import { BaseLayers } from './Layers';
 import { Typography } from '@mui/material';
 
 
-export const LocationFieldAreas = ({ areas }) => {
+export const LocationFieldAreas = () => {
     const redirect = useRedirect();
     const createPath = useCreatePath();
+
+    const { data: areas, total, isLoading, error } = useGetList(
+        'areas', {}
+    );
+
+    if (isLoading) return <Loading />;
+    if (!areas) return null;
+
+
     if (areas.length === 0) {
         return <Typography variant="body1">No areas found</Typography>;
     }
@@ -52,30 +61,30 @@ export const LocationFieldAreas = ({ areas }) => {
             scrollWheelZoom={true}
         >
             <BaseLayers />
-            {
-                validAreas.map(
-                    (area, index) => (
-                        <Polygon
-                            key={index}
-                            pathOptions={{ fillOpacity: 0.25, color: area.project.color }}
-                            eventHandlers={{
-                                click: () => {
-                                    redirect('show', 'areas', area['id']);
-                                }
-                            }}
-                            positions={flipPolygonCoordinates(area["geom"]['coordinates'])}
+            {validAreas ? validAreas.map(
+                (area, index) => (
+                    <Polygon
+                        key={index}
+                        pathOptions={{ fillOpacity: 0.25, color: area.project.color }}
+                        eventHandlers={{
+                            click: () => {
+                                redirect('show', 'areas', area['id']);
+                            }
+                        }}
+                        positions={flipPolygonCoordinates(area["geom"]['coordinates'])}
+                    >
+                        <Tooltip
+                            permanent
+                            interactive={true}
                         >
-                            <Tooltip
-                                permanent
-                                interactive={true}
-                            >
-                                <Link to={createPath({ type: 'show', resource: 'areas', id: area['id'] })}>
-                                    {area.name}
-                                </Link>
-                            </Tooltip>
-                        </Polygon>
-                    )
+                            <Link to={createPath({ type: 'show', resource: 'areas', id: area['id'] })}>
+                                {area.name}
+                            </Link>
+                        </Tooltip>
+                    </Polygon>
                 )
+            )
+                : null
             }
         </MapContainer>
     );
