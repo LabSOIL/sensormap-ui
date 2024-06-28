@@ -2,17 +2,12 @@ import {
     List,
     Datagrid,
     TextField,
-    ReferenceManyCount,
-    useGetList,
     usePermissions,
     TopToolbar,
     CreateButton,
     ExportButton,
-    ReferenceField,
     useRecordContext,
-    Loading,
     FunctionField,
-    Labeled,
 } from "react-admin";
 import { LocationFieldAreas } from '../maps/Areas';
 
@@ -45,18 +40,10 @@ export const ColorBox = () => {
     );
 };
 
-
-
 export const AreaList = () => {
     return (
         <List actions={<AreaListActions />} storeKey={false}>
-
-            <Datagrid rowClick="show" sx={{
-                '& .column-title': {
-                    sm: { display: 'none' },
-                    md: { display: 'table-cell' },
-                },
-            }}>
+            <Datagrid rowClick="show" >
                 <TextField source="name" />
                 <TextField source="description" />
                 <FunctionField render={record => `${record.sensors.length}`} label="Sensors" />

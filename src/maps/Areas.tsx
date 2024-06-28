@@ -1,19 +1,15 @@
 import {
     useRedirect,
-    useGetList,
-    Button,
     Link,
     useCreatePath,
     Loading,
+    useListContext,
 } from 'react-admin';
 import {
     MapContainer,
-    TileLayer,
     Polygon,
     Tooltip,
-    FeatureGroup,
 } from 'react-leaflet';
-import { EditControl } from "react-leaflet-draw"
 import { BaseLayers } from './Layers';
 import { Typography } from '@mui/material';
 
@@ -22,13 +18,8 @@ export const LocationFieldAreas = () => {
     const redirect = useRedirect();
     const createPath = useCreatePath();
 
-    const { data: areas, total, isLoading, error } = useGetList(
-        'areas', {}
-    );
-
-    if (isLoading) return <Loading />;
-    if (!areas) return null;
-
+    const { data: areas, isPending } = useListContext();
+    if (isPending) return <Loading />;
 
     if (areas.length === 0) {
         return <Typography variant="body1">No areas found</Typography>;
