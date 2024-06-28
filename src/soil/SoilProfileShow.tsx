@@ -96,29 +96,30 @@ export const SoilProfileShow = () => {
                             gutterBottom
                         />
                     </Grid>
-                    <Grid item xs={4}>
-                        <Labeled><TextField source="coord_x" /></Labeled >
+                    <Grid item xs={2}>
+                        <Labeled>
+                            <FunctionField render={record => `${record.coord_x}, ${record.coord_y}`} label="X, Y Coordinates (m)" />
+                            {/* <TextField source="coord_x" /> */}
+                        </Labeled >
                     </Grid>
-                    <Grid item xs={4}>
-                        <Labeled><TextField source="coord_y" /></Labeled >
+                    <Grid item xs={2}>
+                        <Labeled><TextField source="vegetation_type" /></Labeled >
+
                     </Grid>
-                    <Grid item xs={4}>
-                        <Labeled><TextField source="coord_x" /></Labeled >
-                    </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={2}>
                         <Labeled><TextField source="aspect" /></Labeled >
                     </Grid>
-                    <Grid item xs={4}>
-                        <Labeled><TextField source="slope" /></Labeled >
+                    <Grid item xs={2}>
+                        <Labeled><TextField source="parent_material" /></Labeled >
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={2}>
                         <Labeled><TextField source="topography" /></Labeled >
                     </Grid>
-                    <Grid item xs={8}>
-                        <Labeled><TextField source="vegetation_type" /></Labeled >
+                    <Grid item xs={2}>
+                        <Labeled><DateField source="last_updated" showTime /></Labeled>
                     </Grid>
                     <Grid item xs={4}>
-                        <Labeled><DateField source="last_updated" showTime /></Labeled>
+                        <Labeled><TextField source="coord_z" label="Elevation (m)" /></Labeled >
                     </Grid>
                 </Grid>
 

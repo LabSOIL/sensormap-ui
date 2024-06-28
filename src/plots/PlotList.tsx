@@ -91,7 +91,7 @@ const exporter = plots => {
     // console.log("plotsForExport", plotsForExport[1]);
     jsonExport(plotsForExport, {
         headers: [
-            "id", "plot_iterator", "slope", "gradient", "vegetation_type",
+            "id", "plot_iterator", "gradient", "vegetation_type",
             "topography", "aspect", "created_on", "weather", "lithology",
             "coord_x", "coord_y", "coord_z", "area_name"
         ]  // order fields in the export
@@ -146,7 +146,6 @@ export const PlotList = () => {
                 <TextField source="coord_x" label="X (m)" sortable={false} />
                 <TextField source="coord_y" label="Y (m)" sortable={false} />
                 <TextField source="coord_z" label="Elevation (m)" sortable={false} />
-                <TextField source="slope" label="Slope (°)" />
                 <DateField source="created_on" />
                 <DateField source="last_updated" />
                 <FunctionField render={record => `${record.samples.length}`} label="Samples" />
@@ -157,43 +156,5 @@ export const PlotList = () => {
         </List >
     );
 };
-
-
-// const link =
-// resourceLinkPath === false ||
-// (resourceLinkPath === 'edit' && !resourceDefinition.hasEdit) ||
-// (resourceLinkPath === 'show' && !resourceDefinition.hasShow)
-//     ? false
-//     : createPath({
-//           resource: reference,
-//           id: referenceRecord.id,
-//           type:
-//               typeof resourceLinkPath === 'function'
-//                   ? resourceLinkPath(referenceRecord, reference)
-//                   : resourceLinkPath,
-//       });
-
-// let child = children || (
-// <Typography component="span" variant="body2">
-//     {getRecordRepresentation(referenceRecord)}
-// </Typography>
-// );
-
-// if (link) {
-// return (
-//     <Root className={className} sx={sx}>
-//         <RecordContextProvider value={referenceRecord}>
-//             <Link
-//                 to={link}
-//                 className={ReferenceFieldClasses.link}
-//                 onClick={stopPropagation}
-//                 state={{ _scrollToTop: true }}
-//             >
-//                 {child}
-//             </Link>
-//         </RecordContextProvider>
-//     </Root>
-// );
-// }
 
 export default PlotList;

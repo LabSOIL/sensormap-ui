@@ -150,9 +150,6 @@ export const PlotShow = () => (
                     <Labeled><TextField source="aspect" /></Labeled >
                 </Grid>
                 <Grid item xs={4}>
-                    <Labeled><TextField source="slope" /></Labeled >
-                </Grid>
-                <Grid item xs={4}>
                     <Labeled><TextField source="topography" /></Labeled >
                 </Grid>
                 <Grid item xs={8}>

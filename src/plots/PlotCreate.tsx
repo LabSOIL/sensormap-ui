@@ -65,38 +65,6 @@ const ElevationInput = () => {
     )
 }
 
-const SlopeInput = () => {
-    const formContext = useFormContext();
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [successResponse, setSuccessResponse] = useState(false);
-
-    const updateSlope = () => {
-        const x = formContext.getValues('coord_x');
-        const y = formContext.getValues('coord_y');
-        const url = `${apiUrl}/utils/slope?x=${x}&y=${y}`;
-
-        fetch(url)
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                if (data.success === false) {
-                    setErrorMessage(`Error fetching slope: ${data.error.message}`);
-                } else {
-                    setErrorMessage(null);
-                    setSuccessResponse(true);
-                    formContext.setValue('slope', data.slope_class);
-                }
-            })
-    }
-
-    return (
-        <>
-            <TextInput source="slope" label="Slope" />
-        </>
-    )
-}
-
 const PlotCreate = () => {
     return (
         <Create redirect="show">
@@ -130,8 +98,6 @@ const PlotCreate = () => {
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
-                {/* <NumberInput source="slope" label="Slope (°)" /> */}
-                <SlopeInput />
             </SimpleForm>
         </Create >
 

@@ -46,7 +46,7 @@ export const SoilProfileList = () => {
                 <TextField source="coord_y" label="Y (m)" />
                 <TextField source="coord_z" label="Elevation (m)" />
                 <TextField source="aspect" label="Aspect (°)" />
-                <TextField source="slope" label="Slope (°)" />
+                <TextField source="parent_material" label="Parent Material" />
                 <DateField source="date_created" />
             </Datagrid>
         </List>

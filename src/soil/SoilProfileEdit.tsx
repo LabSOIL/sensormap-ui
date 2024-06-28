@@ -131,7 +131,7 @@ const SoilProfileEdit = () => {
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
-                <TextInput source="slope" label="Slope (°)" />
+                <TextInput source="parent_material" label="Parent material" />
                 <ArrayInput source="description_horizon" label="Horizon description" helperText="Add a new row for another title and description" >
                     <SimpleFormIterator inline>
                         <TextInput source="title" validate={[required()]} />
