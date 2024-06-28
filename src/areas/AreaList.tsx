@@ -12,6 +12,7 @@ import {
     useRecordContext,
     Loading,
     FunctionField,
+    Labeled,
 } from "react-admin";
 import { LocationFieldAreas } from '../maps/Areas';
 
@@ -39,7 +40,7 @@ export const ColorBox = () => {
                     marginRight: '10px', // Space between box and text
                 }}
             />
-            <TextField source="project.name" label="Project" />
+            <TextField source="project.name" />
         </div>
     );
 };
@@ -50,13 +51,18 @@ export const AreaList = () => {
     return (
         <List actions={<AreaListActions />} storeKey={false}>
 
-            <Datagrid rowClick="show">
+            <Datagrid rowClick="show" sx={{
+                '& .column-title': {
+                    sm: { display: 'none' },
+                    md: { display: 'table-cell' },
+                },
+            }}>
                 <TextField source="name" />
                 <TextField source="description" />
                 <FunctionField render={record => `${record.sensors.length}`} label="Sensors" />
                 <FunctionField render={record => `${record.plots.length}`} label="Plots" />
                 <FunctionField render={record => `${record.soil_profiles.length}`} label="Soil Profiles" />
-                <ColorBox />
+                <FunctionField render={() => <ColorBox />} label="Project" />
             </Datagrid>
             <LocationFieldAreas />
         </List>
