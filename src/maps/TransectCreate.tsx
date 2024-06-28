@@ -78,10 +78,8 @@ export const TransectCreateMap = ({ area_id }) => {
         const transectNodes = formContext.getValues('nodes') || [];
         const newNodes = [...transectNodes, plot];
         formContext.setValue('nodes', newNodes);
-
-        console.log('New Nodes:', newNodes);
-
     }
+
     let transectNodes = formContext.getValues('nodes') || [];
     const [nodePolyLine, setNodePolyLine] = useState(null);
 

@@ -88,7 +88,6 @@ const exporter = plots => {
         return plotForExport;
     });
 
-    // console.log("plotsForExport", plotsForExport[1]);
     jsonExport(plotsForExport, {
         headers: [
             "id", "plot_iterator", "gradient", "vegetation_type",

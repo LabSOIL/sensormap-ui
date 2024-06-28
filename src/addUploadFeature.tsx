@@ -4,7 +4,6 @@ import { fetchUtils } from 'ra-core';
 const addUploadCapabilities = dataProvider => ({
     ...dataProvider,
     update: (resource, params) => {
-        console.log("UPDATING: Uploading...", resource, params);
         if (resource === 'sensors') {
             // data field.
             // A new data file is an updated version of the existing file.
@@ -56,8 +55,6 @@ const addUploadCapabilities = dataProvider => ({
             const gpsData = params.data.gpx.filter(
                 p => p.rawFile instanceof File
             );
-            console.log("CREATING: Uploading many ...", resource, params);
-            console.log(dataProvider)
             return Promise.all(gpsData.map(convertFileToBase64))
                 .then(base64GPSData =>
                     base64GPSData.map(gps64Data => ({
@@ -81,10 +78,6 @@ const addUploadCapabilities = dataProvider => ({
                         )
                     );
         } else {
-            console.log(
-                "createMany is not supported and will loop create() instead"
-            );
-            // fallback to the default implementation
             for (let i = 0; i < params.data.length; i++) {
                 dataProvider.create(resource, params.data[i]);
             }

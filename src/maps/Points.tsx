@@ -72,9 +72,7 @@ export const LocationFieldPoints = () => {
     );
 
     if (!record || plotLoading || sensorLoading || soilProfileLoading) return <Loading />;
-    console.log("Sensor data", sensorData);
-    console.log("Plot data", plotData);
-    console.log("Soil Profile data", soilProfileData);
+
     const flipCoordinates = (coords) => {
         return coords.map(coord => [coord[1], coord[0]]);
     };

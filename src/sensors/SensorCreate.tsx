@@ -26,7 +26,6 @@ import {
 const SensorCreate = () => {
     const dataProvider = useDataProvider();
     const save = data => {
-        console.log(data);
         dataProvider.createMany('sensors', { data: data });
     };
 

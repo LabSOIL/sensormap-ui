@@ -34,7 +34,6 @@ const ElevationInput = () => {
     const [successResponse, setSuccessResponse] = useState(false);
 
     const updateElevation = () => {
-        console.log('Update elevation');
         const x = formContext.getValues('coord_x');
         const y = formContext.getValues('coord_y');
         const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;

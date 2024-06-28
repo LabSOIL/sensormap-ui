@@ -47,7 +47,6 @@ export const keycloakAuthProvider = (
             const isTokenValid = await this.isTokenValid(client.token);
 
             if (isTokenValid) {
-                console.log("Token is valid");
                 // Token is valid, proceed with the request
                 return Promise.resolve();
             } else {
@@ -82,7 +81,6 @@ export const keycloakAuthProvider = (
         }
     },
     async refreshToken() {
-        console.log("Token expired, refreshing...")
         // Implement logic to refresh the token, typically using Keycloak's refresh token
         // Update the Keycloak client with the new token
         await client.updateToken(360);

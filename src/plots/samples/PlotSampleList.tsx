@@ -91,7 +91,6 @@ const exporter = plots => {
         return sampleForExport;
     });
 
-    // console.log("plotsForExport", plotsForExport[1]);
     jsonExport(samplesForExport, {
         headers: [
             "id", "plot_id", "project_name", "area_name", "plot_gradient",

@@ -31,7 +31,6 @@ const UserList = () => {
     const { permissions } = usePermissions();
     const handleRowClick = (id, basePath, record) => {
         // Custom logic for handling row click
-        console.log(`Row with ID ${id} clicked`);
 
         // Example: Navigate to a custom route
         // Update the user-id with an updated value
