@@ -21,7 +21,8 @@ export const LocationFieldAreas = () => {
     const { data: areas, isPending } = useListContext();
     if (isPending) return <Loading />;
 
-    if (areas.length === 0) {
+
+    if (!areas || (areas && areas.length === 0)) {
         return <Typography variant="body1">No areas found</Typography>;
     }
     // If there are no geometry coordinates, we can't display the area. There
