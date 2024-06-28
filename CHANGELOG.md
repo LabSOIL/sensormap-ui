@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2024-06-28
+
 ### Added
 
 - Fulltext query on any string fields in Plots and Soil profiles.
@@ -14,16 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Delete many functionality for all tables.
 - Get elevation on `plot` table if elevation (`coord_z`) is set to 0.
 - Bulk update on `plot` table.
+- GNSS component to upload Waypoints and create plots & soil profiles
+from coordinates.
+- `parent_material` field added in `soil_profile` table.
+- Image upload for soil type.
+- Icons to menu
 
 ### Changed
 
-- Set create many on `plot` table with list of records instead of CSV using
-the `react-admin-import-csv`.
+- Use listContext to get areas for map in list view
+- Set create many on `plot` and `soil_profile` tables with list of records
+instead using the `react-admin-import-csv`.
+
 
 ### Removed
 
 - The list of Plot Samples as this data is found within the plots.
-
+- `Slope` field in `plot` and `soil_profile` tables.
 
 ## [1.1.2] - 2024-06-10
 
@@ -51,6 +60,7 @@ the `react-admin-import-csv`.
 polygon.
 
 [unreleased]: https://github.com/LabSOIL/sensormap-ui/compare/v1.1.1...HEAD
+[1.1.3]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.2...0.1.3
 [1.1.2]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.1...0.1.2
 [1.1.1]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.0...0.1.1
 [1.1.0]: https://github.com/LabSOIL/sensormap-ui/compare/0.0.1...0.1.0
