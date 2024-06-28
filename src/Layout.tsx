@@ -1,16 +1,11 @@
-import * as React from 'react';
-
-import { ReactQueryDevtools } from 'react-query/devtools';
+// in src/Layout.js
 import { Layout } from 'react-admin';
-import { CssBaseline } from '@mui/material';
+import { CustomMenu } from './Menu';
 
-export default props => (
-    <>
-        <CssBaseline />
-        <Layout {...props} />
-        <ReactQueryDevtools
-            initialIsOpen={false}
-            toggleButtonProps={{ style: { width: 20, height: 30 } }}
-        />
-    </>
+export const CustomLayout = ({ children }) => (
+    <Layout menu={CustomMenu}>
+        {children}
+    </Layout>
 );
+
+export default CustomLayout;

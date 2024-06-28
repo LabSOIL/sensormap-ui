@@ -100,7 +100,6 @@ const PlotCreate = () => {
                 <TextInput source="aspect" label="Aspect" />
             </SimpleForm>
         </Create >
-
     )
 };
 

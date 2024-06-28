@@ -5,6 +5,8 @@ import {
     Resource,
     AuthProvider,
     DataProvider,
+    MenuItemLink,
+    Responsive,
 } from 'react-admin';
 import { Route } from 'react-router-dom';
 import simpleRestProvider from './dataProvider/index'
@@ -14,7 +16,7 @@ import Keycloak, {
 } from 'keycloak-js';
 import { httpClient } from 'ra-keycloak';
 import { keycloakAuthProvider } from './authProvider';
-import Layout from './Layout';
+import CustomLayout from './Layout';
 import users from './users';
 import sensors from './sensors';
 import areas from "./areas";
@@ -83,7 +85,7 @@ const App = () => {
             authProvider={authProvider.current}
             dataProvider={dataProvider.current}
             title="SOIL Sensor Map"
-            layout={Layout}
+            layout={CustomLayout}
         >
             {permissions => (
                 <>
