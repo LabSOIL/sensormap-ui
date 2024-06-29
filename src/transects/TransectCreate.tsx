@@ -26,7 +26,7 @@ const TransectCreate = () => {
     return (
         <Create redirect="show">
             <SimpleForm >
-                <TextField source="id" />
+                {/* <TextField source="id" /> */}
                 <NumberInput
                     source="plot_iterator"
                     label="ID"

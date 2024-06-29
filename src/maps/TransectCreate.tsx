@@ -68,8 +68,9 @@ export const TransectCreateMap = ({ area_id }) => {
 
         useEffect(() => {
             // Fly to that coordinates and set new zoom level
+
             map.flyTo([lat, lng], zoomLevel);
-        }, [area_id]);
+        }, [record]);
         return null;
     };
 
