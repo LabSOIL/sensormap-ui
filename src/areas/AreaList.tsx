@@ -49,6 +49,7 @@ export const AreaList = () => {
                 <FunctionField render={record => `${record.sensors.length}`} label="Sensors" />
                 <FunctionField render={record => `${record.plots.length}`} label="Plots" />
                 <FunctionField render={record => `${record.soil_profiles.length}`} label="Soil Profiles" />
+                <FunctionField render={record => `${record.transects.length}`} label="Transects" />
                 <FunctionField render={() => <ColorBox />} label="Project" />
             </Datagrid>
             <LocationFieldAreas />

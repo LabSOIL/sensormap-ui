@@ -60,9 +60,8 @@ export const TransectList = () => {
         >
             <Datagrid rowClick="show">
                 <TextField source="id" />
+                <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
                 <TextField source="name" />
-                {/* <FieldWrapper label="Area"><AreaNameField /></FieldWrapper> */}
-                <DateField source="created_on" />
                 <DateField source="last_updated" />
             </Datagrid>
         </List >
