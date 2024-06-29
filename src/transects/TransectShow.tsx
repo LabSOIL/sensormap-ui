@@ -18,6 +18,7 @@ import {
     Datagrid,
     ReferenceManyField,
     Loading,
+    ArrayField,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
@@ -114,82 +115,17 @@ const ImageField = ({ source }) => {
 export const PlotShow = () => (
     <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
         <SimpleShowLayout >
-            <Grid container>
-                <Grid item xs={8} textAlign="left">
-                    <FunctionField
-                        render={record => `${record.name}: `}
-                        variant="h5"
-                        gutterBottom
-                        label={null}
-                    />
-                    <ReferenceField source="area_id" reference="areas" link="show">
-                        <TextField source="name" variant="h5" />
-                    </ReferenceField>{" "}
-                    <TextField source="gradient" variant="h5" />
-                </Grid>
 
-                <Grid item xs={4} textAlign="right">
-                    <DateField
-                        source="created_on"
-                        variant="h5"
-                        gutterBottom
-                    />
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled>
-                        <TextField source="coord_x" label="X (m)" />
-                    </Labeled >
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled><TextField source="coord_y" label="Y (m)" /></Labeled >
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled><TextField source="coord_z" label="Elevation (m)" /></Labeled >
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled><TextField source="aspect" /></Labeled >
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled><TextField source="slope" /></Labeled >
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled><TextField source="topography" /></Labeled >
-                </Grid>
-                <Grid item xs={8}>
-                    <Labeled><TextField source="vegetation_type" /></Labeled >
-                </Grid>
-                <Grid item xs={4}>
-                    <Labeled><DateField source="last_updated" showTime /></Labeled>
-                </Grid>
-            </Grid>
+            <TextField source="id" label="Transect ID" />
 
             <ColoredLine color="grey" height={2} />
-            <Grid container>
-                <Grid item xs={6}>
-                    <Typography variant="h6" textAlign="center" gutterBottom>Samples</Typography>
-                    <TopToolbar><CreateSampleButton /><CreateManyButton /></TopToolbar>
-                    <ReferenceManyField
-                        reference="plot_samples"
-                        target="plot_id"
-                        label="Samples"
-                        sort={{ field: 'name', order: 'ASC' }}
-                    >
-                        <Datagrid rowClick="show" bulkActionButtons={false}>
-                            <TextField source="name" />
-                            <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
-                            <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
-                            <NumberField source="sample_weight" label="Weight (g)" />
-                            <DateField source="sampled_on" />
-                        </Datagrid>
-                    </ReferenceManyField>
-
-                </Grid>
-                <Grid item xs={6}>
-                    <Typography variant="h6" textAlign="center" gutterBottom>Plot illustration</Typography>
-                    <ImageField source="image" />
-                </Grid>
-
-            </Grid>
+            <Typography variant="h6" textAlign="center" gutterBottom>Nodes</Typography>
+            <ArrayField source="nodes">
+                <Datagrid rowClick="show" bulkActionButtons={false}>
+                    <TextField source="id" label="Plot ID" />
+                    <TextField source="name" label="Plot name" />
+                </Datagrid>
+            </ArrayField>
         </SimpleShowLayout>
     </Show >
 );

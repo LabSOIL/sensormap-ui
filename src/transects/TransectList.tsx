@@ -59,8 +59,9 @@ export const TransectList = () => {
             perPage={25}
         >
             <Datagrid rowClick="show">
+                <TextField source="id" />
                 <TextField source="name" />
-                <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
+                {/* <FieldWrapper label="Area"><AreaNameField /></FieldWrapper> */}
                 <DateField source="created_on" />
                 <DateField source="last_updated" />
             </Datagrid>
