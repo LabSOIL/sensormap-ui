@@ -15,13 +15,17 @@ const Instrument = {
     list: InstrumentList,
     show: InstrumentShow,
     recordRepresentation: 'name',
+    options: {
+        label: 'Instrument Processing',
+    },
+
     icon: BuildIcon,
 };
 
 const InstrumentChannel = {
     create: InstrumentChannelCreate,
     edit: InstrumentChannelEdit,
-    list: InstrumentChannelList,
+    // list: InstrumentChannelList,
     show: InstrumentChannelShow,
     recordRepresentation: 'name',
     parent: Instrument,

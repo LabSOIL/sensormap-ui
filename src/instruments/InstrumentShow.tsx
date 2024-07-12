@@ -16,6 +16,7 @@ import {
     ArrayField,
     Datagrid,
     useRedirect,
+    BooleanField,
 } from "react-admin";
 import Plot from 'react-plotly.js';
 import { Grid, Typography } from '@mui/material';
@@ -70,7 +71,7 @@ const LinePlotShow = () => {
                 };
             })}
                 layout={{
-                    width: 1400,
+                    width: 800,
                     height: 600,
                     title: "Measurements",
                     showlegend: true,
@@ -92,6 +93,20 @@ export const InstrumentShow = () => {
         if (!record) return;
         redirect('show', 'instrument_channels', record);
     }
+    const BooleanFieldFromList = () => {
+        const record = useRecordContext();
+        if (!record) {
+            return null;
+        }
+        const baseline_values = record.baseline_values.length > 0;
+        console.log("Baseline points: ", record.baseline_values)
+
+        return <BooleanField
+            label="Baseline adjusted"
+            source="baseline_values"
+            record={{ baseline_values }}
+        />;
+    }
     return (
         <Show actions={<InstrumentShowActions />}>
             <SimpleShowLayout >
@@ -105,7 +120,7 @@ export const InstrumentShow = () => {
                         <ArrayField source="channels">
                             <Datagrid rowClick={handleRowClick}>
                                 <TextField source="channel_name" sortable={false} />
-                                <NumberField source="data.length" label="Number of records" sortable={false} />
+                                <BooleanFieldFromList />
                             </Datagrid>
                         </ArrayField>
                     </TabbedShowLayout.Tab>

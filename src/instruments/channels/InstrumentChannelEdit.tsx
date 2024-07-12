@@ -9,6 +9,8 @@ import {
     ArrayInput,
     SimpleFormIterator,
     useDataProvider,
+    useRefresh,
+    useNotify,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -25,13 +27,12 @@ const MyToolbar = () => (
     </Toolbar>
 );
 
-const LinePlotShow = () => {
+const LinePlotEditor = () => {
     const record = useRecordContext();
     const { setValue, watch } = useFormContext();
-    const baselinePoints = watch('baseline_points', []);
+    const baselinePoints = watch('baseline_values', []);
     const [layout, setLayout] = useState({
-        width: 1400,
-        height: 600,
+        width: 800,
         title: record?.channel_name || '',
         xaxis: { title: "Time" },
         yaxis: { title: "Value" }
@@ -40,7 +41,7 @@ const LinePlotShow = () => {
     if (!record) {
         return <Loading />;
     }
-    if (!record.data) {
+    if (!record.raw_values) {
         return <Typography variant="h6">No data to display</Typography>;
     }
 
@@ -62,7 +63,7 @@ const LinePlotShow = () => {
                 updatedPoints.splice(index, 1);
             }
         });
-        setValue('baseline_points', updatedPoints);
+        setValue('baseline_values', updatedPoints);
     };
 
     const handleRelayout = useCallback((eventData) => {
@@ -74,40 +75,70 @@ const LinePlotShow = () => {
 
 
     return (
-        <div>
-            <Plot
-                data={[
-                    {
-                        x: record.data.x,
-                        y: record.data.y,
-                        type: 'scatter',
-                        mode: 'lines+markers',
-                        marker: { color: 'red' },
-                    },
-                    {
-                        x: baselinePoints.map(point => point.x),
-                        y: baselinePoints.map(point => point.y),
-                        type: 'scatter',
-                        mode: 'markers',
-                        marker: { color: 'blue', size: 10 },
-                        name: 'Clicked Points',
-                    }
-                ]}
-                layout={layout}
-                onClick={handlePlotClick}
-                onRelayout={handleRelayout}
-            />
-        </div>
+        <Plot
+            data={[
+                {
+                    x: record.time_values,
+                    y: record.raw_values,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    marker: { color: 'red' },
+                },
+                {
+                    x: baselinePoints.map(point => point.x),
+                    y: baselinePoints.map(point => point.y),
+                    type: 'scatter',
+                    mode: 'markers',
+                    marker: { color: '#2F4F4F', size: 20, opacity: 0.8 },
+                    name: 'Clicked Points',
+                }
+            ]}
+            layout={layout}
+            onClick={handlePlotClick}
+            onRelayout={handleRelayout}
+        />
+    );
+};
+
+const UpdateEditButton = () => {
+    const notify = useNotify();
+    const dataProvider = useDataProvider();
+    const refresh = useRefresh();
+    const record = useRecordContext();
+
+    if (!record || record === undefined || !record.id) {
+        return null;
+    }
+    console.log(record);
+    const onSuccess = data => {
+        console.log("data", data)
+        dataProvider.update('instrument_channels', {
+            id: record.id,
+            data: {
+                baseline_values: data.baseline_values
+            }
+        }).then(() => {
+            notify('Changes saved');
+            refresh();
+        }).catch((error) => {
+            notify(`Error: ${error.message}`, 'error');
+        });
+    }
+
+    return (
+        <SaveButton type="button" mutationOptions={{ onSuccess }} alwaysEnable />
     );
 };
 
 const InstrumentChannelEdit = () => {
+
     return (
-        <Edit redirect="show">
+        <Edit>
             <SimpleForm toolbar={<MyToolbar />}>
                 <TextInput source="id" disabled />
-                <LinePlotShow />
-                <ArrayInput source="baseline_points" >
+                <TextInput source="baseline_spline" />
+                <LinePlotEditor />
+                <ArrayInput source="baseline_values" >
                     <SimpleFormIterator
                         getItemLabel={index => `#${index + 1}`}
                         inline
@@ -117,7 +148,7 @@ const InstrumentChannelEdit = () => {
                         <TextInput source="y" readOnly />
                     </SimpleFormIterator>
                 </ArrayInput>
-
+                <UpdateEditButton />
             </SimpleForm>
         </Edit>
     )

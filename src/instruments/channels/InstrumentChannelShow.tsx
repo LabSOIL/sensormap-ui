@@ -46,23 +46,18 @@ const LinePlotShow = () => {
     if (!record) {
         return <Loading />;
     }
-    if (!record.data) {
-        return <Typography variant="h6">No data to display</Typography>;
-    }
-
 
     // Create a line plot using record.data.x and record.data.y
     return (
         <div><Box>
             <Plot data={[{
-                x: record.data.x,
-                y: record.data.y,
+                x: record.time_values,
+                y: record.raw_values,
                 type: 'scatter',
                 mode: 'lines+markers',
                 marker: { color: 'red' },
             }]} layout={{
-                width: 1400,
-                height: 600,
+                width: 800,
                 title: record.channel_name,
                 xaxis: { title: "Time" },
                 yaxis: { title: "Value" }
@@ -79,6 +74,7 @@ export const InstrumentChannelShow = () => (
             <TextField source="experiment.filename" />
             <TextField source="experiment.last_updated" />
             <TextField source="channel_name" />
+            <FunctionField label="Number of values" render={record => record.raw_values.length} />
             <ColoredLine color="grey" height={2} />
             <LinePlotShow />
 
