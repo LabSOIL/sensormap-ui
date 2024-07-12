@@ -17,6 +17,7 @@ export const InstrumentChannelList = () => {
                     <FunctionField render={record => `${record.filename} (${record.name})`} />
                 </ReferenceField>
                 <TextField source="description" />
+                <FunctionField label="Baseline Points" render={record => record.baseline_points.length} />
                 <DateField source="last_updated" showTime />
             </Datagrid>
         </List >

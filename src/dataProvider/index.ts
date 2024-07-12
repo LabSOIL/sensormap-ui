@@ -214,7 +214,7 @@ const dataProvider = (
             method: 'PUT',
             body: JSON.stringify(items),
         }).then(({ json }) => ({ data: json }));
-    }
+    },
 });
 
 
