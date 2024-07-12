@@ -14,7 +14,7 @@ const Plot = {
     edit: PlotEdit,
     list: PlotList,
     show: PlotShow,
-    recordRepresentation: 'name.en',
+    recordRepresentation: 'name',
     icon: YardOutlinedIcon
 };
 
@@ -23,7 +23,7 @@ const Sample = {
     edit: PlotSampleEdit,
     list: PlotSampleList,
     show: PlotSampleShow,
-    recordRepresentation: 'name.en',
+    recordRepresentation: 'name',
     icon: LibraryBooksIcon,
     options: {
         label: 'Samples',

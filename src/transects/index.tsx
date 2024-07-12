@@ -9,7 +9,7 @@ const Transect = {
     edit: TransectEdit,
     list: TransectList,
     show: TransectShow,
-    recordRepresentation: 'name.en',
+    recordRepresentation: 'name',
     icon: TimelineIcon,
 };
 

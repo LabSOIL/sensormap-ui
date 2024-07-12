@@ -15,7 +15,7 @@ const SoilProfile = {
     edit: SoilProfileEdit,
     list: SoilProfileList,
     show: SoilProfileShow,
-    recordRepresentation: 'name.en',
+    recordRepresentation: 'name',
     icon: FilterHdrIcon
 };
 
@@ -24,7 +24,7 @@ const SoilType = {
     edit: SoilTypeEdit,
     list: SoilTypeList,
     show: SoilTypeShow,
-    recordRepresentation: 'name.en',
+    recordRepresentation: 'name',
     icon: GrassIcon
 };
 

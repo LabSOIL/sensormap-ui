@@ -24,6 +24,8 @@ import projects from './projects';
 import transects from './transects';
 import gnss from './gnss';
 import axios from 'axios';
+import instruments from './instruments';
+
 
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required' };
 
@@ -97,6 +99,8 @@ const App = () => {
                     <Resource name="soil_types" {...soil.type} />
                     <Resource name="transects" {...transects} />
                     <Resource name="gnss" {...gnss} />
+                    <Resource name="instruments" {...instruments.instrument} />
+                    <Resource name="instrument_channels" {...instruments.channels} />
                     {permissions ? (
                         <>
                             {permissions === 'admin' ? (

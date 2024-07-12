@@ -17,7 +17,8 @@ const handleBinaryUpload = async (resource, params) => {
         && data.image && data.image.rawFile instanceof File) {
         data.image = await convertFileToBase64(data.image);
     }
-    if (resource === 'gnss' && data.attachments && data.attachments.rawFile instanceof File) {
+    if ((resource === 'gnss' || resource === 'instruments')
+        && data.attachments && data.attachments.rawFile instanceof File) {
         data.data_base64 = await convertFileToBase64(data.attachments);
         data.filename = data.attachments.title;
     }

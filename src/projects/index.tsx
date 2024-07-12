@@ -10,4 +10,5 @@ export default {
     edit: ProjectEdit,
     list: ProjectList,
     show: ProjectShow,
+    recordRepresentation: 'name',
 };

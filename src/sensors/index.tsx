@@ -12,7 +12,8 @@ const sensor = {
     edit: SensorEdit,
     list: SensorList,
     show: SensorShow,
-    icon: SensorsIcon
+    icon: SensorsIcon,
+    recordRepresentation: 'name',
 };
 
 

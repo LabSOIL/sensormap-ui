@@ -45,7 +45,7 @@ const ProjectShow = () => (
             <TextField source="id" />
             <TextField source="name" />
             <TextField source="description" />
-            <DateField source="last_updated" showTime/>
+            <DateField source="last_updated" showTime />
             <ColorField source="color" />
             <ReferenceManyField reference="areas" target="project_id" label="Areas">
                 <Datagrid rowClick="show">
