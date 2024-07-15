@@ -47,6 +47,7 @@ const LinePlotShow = () => {
         return <Loading />;
     }
 
+    // Sort the list by name
     // Create a line plot using record.data.x and record.data.y
     return (
         <div><Box>

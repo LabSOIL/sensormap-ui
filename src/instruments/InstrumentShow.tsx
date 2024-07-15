@@ -86,27 +86,44 @@ const LinePlotShow = () => {
     );
 };
 
-export const InstrumentShow = () => {
-    const redirect = useRedirect();
-    const handleRowClick = (record) => {
-        console.log(record);
-        if (!record) return;
-        redirect('show', 'instrument_channels', record);
-    }
+const ChannelList = () => {
     const BooleanFieldFromList = () => {
         const record = useRecordContext();
         if (!record) {
             return null;
         }
         const baseline_values = record.baseline_values.length > 0;
-        console.log("Baseline points: ", record.baseline_values)
 
         return <BooleanField
             label="Baseline adjusted"
             source="baseline_values"
             record={{ baseline_values }}
         />;
+    };
+    const redirect = useRedirect();
+    const handleRowClick = (record) => {
+        if (!record) return;
+        redirect('show', 'instrument_channels', record);
+    };
+
+    const record = useRecordContext();
+    if (!record) {
+        return <Loading />;
     }
+    // Sort the channels list by name
+    record.channels.sort((a, b) => a.channel_name.localeCompare(b.channel_name));
+
+    return (
+        <ArrayField source="channels">
+            <Datagrid rowClick={handleRowClick}>
+                <TextField source="channel_name" sortable={false} />
+                <BooleanFieldFromList />
+            </Datagrid>
+        </ArrayField>
+    );
+}
+
+export const InstrumentShow = () => {
     return (
         <Show actions={<InstrumentShowActions />}>
             <SimpleShowLayout >
@@ -117,12 +134,7 @@ export const InstrumentShow = () => {
                 <ColoredLine color="grey" height={2} />
                 <TabbedShowLayout>
                     <TabbedShowLayout.Tab label="Channels">
-                        <ArrayField source="channels">
-                            <Datagrid rowClick={handleRowClick}>
-                                <TextField source="channel_name" sortable={false} />
-                                <BooleanFieldFromList />
-                            </Datagrid>
-                        </ArrayField>
+                        <ChannelList />
                     </TabbedShowLayout.Tab>
                 </TabbedShowLayout>
             </SimpleShowLayout>

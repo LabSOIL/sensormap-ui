@@ -9,8 +9,6 @@ import {
     ArrayInput,
     SimpleFormIterator,
     useDataProvider,
-    useRefresh,
-    useNotify,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -27,10 +25,10 @@ const MyToolbar = () => (
     </Toolbar>
 );
 
-const LinePlotEditor = () => {
+const LinePlotEdit = () => {
     const record = useRecordContext();
     const { setValue, watch } = useFormContext();
-    const baselinePoints = watch('baseline_values', []);
+    const baselinePoints = watch('baseline_chosen_points', []);
     const [layout, setLayout] = useState({
         width: 800,
         title: record?.channel_name || '',
@@ -41,7 +39,7 @@ const LinePlotEditor = () => {
     if (!record) {
         return <Loading />;
     }
-    if (!record.raw_values) {
+    if (!record.raw_values || !record.time_values) {
         return <Typography variant="h6">No data to display</Typography>;
     }
 
@@ -63,7 +61,7 @@ const LinePlotEditor = () => {
                 updatedPoints.splice(index, 1);
             }
         });
-        setValue('baseline_values', updatedPoints);
+        setValue('baseline_chosen_points', updatedPoints);
     };
 
     const handleRelayout = useCallback((eventData) => {
@@ -75,70 +73,42 @@ const LinePlotEditor = () => {
 
 
     return (
-        <Plot
-            data={[
-                {
-                    x: record.time_values,
-                    y: record.raw_values,
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    marker: { color: 'red' },
-                },
-                {
-                    x: baselinePoints.map(point => point.x),
-                    y: baselinePoints.map(point => point.y),
-                    type: 'scatter',
-                    mode: 'markers',
-                    marker: { color: '#2F4F4F', size: 20, opacity: 0.8 },
-                    name: 'Clicked Points',
-                }
-            ]}
-            layout={layout}
-            onClick={handlePlotClick}
-            onRelayout={handleRelayout}
-        />
-    );
-};
-
-const UpdateEditButton = () => {
-    const notify = useNotify();
-    const dataProvider = useDataProvider();
-    const refresh = useRefresh();
-    const record = useRecordContext();
-
-    if (!record || record === undefined || !record.id) {
-        return null;
-    }
-    console.log(record);
-    const onSuccess = data => {
-        console.log("data", data)
-        dataProvider.update('instrument_channels', {
-            id: record.id,
-            data: {
-                baseline_values: data.baseline_values
-            }
-        }).then(() => {
-            notify('Changes saved');
-            refresh();
-        }).catch((error) => {
-            notify(`Error: ${error.message}`, 'error');
-        });
-    }
-
-    return (
-        <SaveButton type="button" mutationOptions={{ onSuccess }} alwaysEnable />
+        <div>
+            <Plot
+                data={[
+                    {
+                        x: record.time_values,
+                        y: record.raw_values,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        marker: { color: 'red' },
+                        name: 'Raw Data',
+                    },
+                    {
+                        x: baselinePoints.map(point => point.x),
+                        y: baselinePoints.map(point => point.y),
+                        type: 'scatter',
+                        mode: 'markers',
+                        marker: { color: '#2F4F4F', size: 20, opacity: 0.8 },
+                        name: 'Selected Points',
+                    }
+                ]}
+                layout={layout}
+                onClick={handlePlotClick}
+                onRelayout={handleRelayout}
+            />
+        </div>
     );
 };
 
 const InstrumentChannelEdit = () => {
-
     return (
-        <Edit>
+        <Edit redirect="show">
             <SimpleForm toolbar={<MyToolbar />}>
                 <TextInput source="id" disabled />
-                <TextInput source="baseline_spline" />
-                <LinePlotEditor />
-                <ArrayInput source="baseline_values" >
+                {/* <TextInput source="baseline_spline" /> */}
+                <LinePlotEdit />
+                <ArrayInput source="baseline_chosen_points" >
                     <SimpleFormIterator
                         getItemLabel={index => `#${index + 1}`}
                         inline
@@ -148,7 +118,6 @@ const InstrumentChannelEdit = () => {
                         <TextInput source="y" readOnly />
                     </SimpleFormIterator>
                 </ArrayInput>
-                <UpdateEditButton />
             </SimpleForm>
         </Edit>
     )
