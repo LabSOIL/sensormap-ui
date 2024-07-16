@@ -11,22 +11,47 @@ import {
     useNotify,
     TopToolbar,
     ShowButton,
+    Button,
+    EditButton,
+    useRedirect,
+    usePermissions,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
 import { Loading } from 'react-admin';
 import { useState, useCallback, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import Button from '@mui/material/Button';
 
 const InstrumentChannelEdit = () => {
     const [updating, setUpdating] = useState(false);
-    const MyTopToolbar = () => (
-        <TopToolbar>
-            <ShowButton label='Return to channel' variant="contained" />
-        </TopToolbar>
-    );
+    const MyTopToolbar = () => {
+        const { permissions } = usePermissions();
+        const redirect = useRedirect();
+        const record = useRecordContext();
 
+        if (!record || !record.id) {
+            return null;
+        };
+        const handleExperimentReturn = () => {
+            redirect('show', 'instruments', record.experiment.id);
+        };
+        const handleChannelReturn = () => {
+            redirect('show', 'instrument_channels', record.id);
+        };
+        const handleRedirectToIntegrate = () => {
+            redirect(`/instrument_channels/${record.id}/integrate`);
+        };
+
+        return (
+            <TopToolbar>
+                <Button variant="contained" onClick={handleExperimentReturn}>Return to Experiment</Button>
+                <Button variant="contained" onClick={handleChannelReturn}>Return to Channel</Button>
+                {permissions === 'admin' && <>
+                    <Button onClick={handleRedirectToIntegrate} variant="contained" color="success">Integrate</Button>
+                </>}
+            </TopToolbar>
+        );
+    }
     const LinePlotEdit = () => {
         const record = useRecordContext();
         const [update, { }] = useUpdate();

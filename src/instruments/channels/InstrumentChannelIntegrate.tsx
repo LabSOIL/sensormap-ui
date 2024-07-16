@@ -9,28 +9,55 @@ import {
     useRefresh,
     useNotify,
     TopToolbar,
-    ShowButton,
+    Button,
+    EditButton,
+    useRedirect,
+    usePermissions,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
 import { Loading } from 'react-admin';
 import { useState, useCallback, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import Button from '@mui/material/Button';
 
 const InstrumentChannelIntegrate = () => {
     const [updating, setUpdating] = useState(false);
-    const MyTopToolbar = () => (
-        <TopToolbar>
-            <ShowButton label='Return to channel' variant="contained" />
-        </TopToolbar>
-    );
+
+    const MyTopToolbar = () => {
+        const { permissions } = usePermissions();
+        const redirect = useRedirect();
+        const record = useRecordContext();
+
+        if (!record || !record.id) {
+            return null;
+        }
+        const handleExperimentReturn = () => {
+            redirect('show', 'instruments', record.experiment.id);
+        };
+        const handleChannelReturn = () => {
+            redirect('show', 'instrument_channels', record.id);
+        };
+
+        return (
+            <TopToolbar>
+                <Button variant="contained" onClick={handleExperimentReturn}>Return to Experiment</Button>
+                <Button variant="contained" onClick={handleChannelReturn}>Return to Channel</Button>
+                {permissions === 'admin' && <>
+                    <EditButton
+                        label="Edit baseline"
+                        icon={false}
+                        variant='contained'
+                        color="success" />
+                </>}
+            </TopToolbar>
+        );
+    };
 
     const LinePlotEdit = () => {
         const record = useRecordContext();
-        const [update, { }] = useUpdate();
+        const [update] = useUpdate();
         const { setValue, watch } = useFormContext();
-        const baselinePairs = watch('baseline_chosen_pairs', []);
+        const IntegralPairs = watch('integral_chosen_pairs', []);
         const notify = useNotify();
         const refresh = useRefresh();
 
@@ -50,14 +77,12 @@ const InstrumentChannelIntegrate = () => {
         }
 
         const updatePairs = () => {
-            update('instrument_channels',
-                {
-                    id: record.id,
-                    data: {
-                        baseline_chosen_pairs: baselinePairs
-                    }
+            update('instrument_channels', {
+                id: record.id,
+                data: {
+                    integral_chosen_pairs: IntegralPairs
                 }
-            ).then(() => {
+            }).then(() => {
                 notify('Baseline updated', { autoHideDuration: 500 });
                 refresh();
             }).catch((error) => {
@@ -73,7 +98,7 @@ const InstrumentChannelIntegrate = () => {
             }
         }, [updating]);
 
-        const handlePlotClick = (data) => {
+        const handlePlotClick = useCallback((data) => {
             data.points = data.points.filter(point => {
                 const x = point.x;
                 const y = point.y;
@@ -91,16 +116,32 @@ const InstrumentChannelIntegrate = () => {
             const { points } = data;
             const newPoint = { x: points[0].x, y: points[0].y };
 
-            const updatedPairs = [...baselinePairs];
-            if (updatedPairs.length === 0 || updatedPairs[updatedPairs.length - 1].end) {
+            const updatedPairs = [...IntegralPairs];
+
+            // When adding a point, if the array is empty, it is a new point.
+            // If it is a second clicked point, then that should become the
+            // end point of the current array. Not until there is a start and
+            // end point for an array should another array element be created
+            // SO we need to check if end is valid (it cannot be undefined or
+            // unset) before creating a new array element.
+
+            if (
+                updatedPairs.length === 0
+                || (updatedPairs[updatedPairs.length - 1].end && updatedPairs[updatedPairs.length - 1].end !== undefined && updatedPairs[updatedPairs.length - 1].end.x !== undefined && updatedPairs[updatedPairs.length - 1].end.y !== undefined)
+            ) {
                 updatedPairs.push({ start: newPoint });
             } else {
                 updatedPairs[updatedPairs.length - 1].end = newPoint;
             }
 
-            setValue('baseline_chosen_pairs', updatedPairs);
-            setUpdating(true);
-        };
+            console.log('After update:', updatedPairs);
+
+            setValue('integral_chosen_pairs', updatedPairs);
+            // Only update when there is a start and end point
+            if (updatedPairs[updatedPairs.length - 1].end) {
+                setUpdating(true);
+            }
+        }, [IntegralPairs, record, setValue, notify]);
 
         const handleRelayout = useCallback((eventData) => {
             setLayout((prevLayout) => ({
@@ -108,6 +149,13 @@ const InstrumentChannelIntegrate = () => {
                 ...eventData
             }));
         }, []);
+
+        const handleClick = (index) => {
+            const updatedPairs = [...IntegralPairs];
+            updatedPairs.splice(index, 1);
+            setValue('integral_chosen_pairs', updatedPairs);
+            setUpdating(true);
+        };
 
         return (
             <div>
@@ -121,7 +169,7 @@ const InstrumentChannelIntegrate = () => {
                             marker: { color: 'blue' },
                             name: 'Baseline Data',
                         },
-                        ...baselinePairs.map((pair, index) => ({
+                        ...IntegralPairs.map((pair, index) => ({
                             x: [pair.start.x, pair.end?.x].filter(Boolean),
                             y: [pair.start.y, pair.end?.y].filter(Boolean),
                             type: 'scattergl',
@@ -129,7 +177,7 @@ const InstrumentChannelIntegrate = () => {
                             marker: { color: 'blue', size: 20, opacity: 0.8 },
                             name: `Selected Pair ${index + 1}`,
                         })),
-                        ...baselinePairs.map((pair, index) => (
+                        ...IntegralPairs.map((pair, index) => (
                             pair.end ? {
                                 x: [pair.start.x, pair.end.x, pair.end.x, pair.start.x],
                                 y: [0, 0, Math.max(...record.baseline_values), Math.max(...record.baseline_values)],
@@ -145,29 +193,14 @@ const InstrumentChannelIntegrate = () => {
                     onClick={handlePlotClick}
                     onRelayout={handleRelayout}
                 />
-            </div>
-        );
-    };
-
-    const handleClick = (index) => {
-        const updatedPairs = [...baselinePairs];
-        updatedPairs.splice(index, 1);
-        setValue('baseline_chosen_pairs', updatedPairs);
-        setUpdating(true);
-    };
-
-    return (
-        <Edit actions={<MyTopToolbar />}>
-            <SimpleForm toolbar={false}>
-                <LinePlotEdit />
-                <ArrayInput source="baseline_chosen_pairs">
+                <ArrayInput source="integral_chosen_pairs">
                     <SimpleFormIterator
                         inline
                         disableAdd
                         disableReordering
                         disableClear
                         removeButton={
-                            <Button onClick={(index) => handleClick(index)}>Remove Pair</Button>
+                            <Button onClick={() => handleClick(index)}>Remove Pair</Button>
                         }
                     >
                         <TextInput source="start.x" label="Start X" readOnly />
@@ -176,9 +209,17 @@ const InstrumentChannelIntegrate = () => {
                         <TextInput source="end.y" label="End Y" readOnly />
                     </SimpleFormIterator>
                 </ArrayInput>
+            </div>
+        );
+    };
+
+    return (
+        <Edit actions={<MyTopToolbar />}>
+            <SimpleForm toolbar={false}>
+                <LinePlotEdit />
             </SimpleForm>
         </Edit>
-    )
+    );
 };
 
 export default InstrumentChannelIntegrate;

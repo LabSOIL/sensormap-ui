@@ -59,6 +59,21 @@ const ChannelList = () => {
     };
     BooleanFieldFromList.defaultProps = { label: "Baseline Adjusted" };
 
+    const BooleanIntegralResults = () => {
+        const record = useRecordContext();
+        if (!record) {
+            return null;
+        }
+        const integral_results = record.integral_results.length > 0;
+
+        return <BooleanField
+            label="Integral calculated"
+            source="integral_results"
+            record={{ integral_results }}
+        />;
+    }
+    BooleanIntegralResults.defaultProps = { label: "Integrals Calculated" };
+
     const redirect = useRedirect();
     const handleRowClick = (record) => {
         if (!record) return;
@@ -80,6 +95,7 @@ const ChannelList = () => {
             >
                 <TextField source="channel_name" sortable={false} />
                 <BooleanFieldFromList />
+                <BooleanIntegralResults />
             </Datagrid>
         </ArrayField>
     );
