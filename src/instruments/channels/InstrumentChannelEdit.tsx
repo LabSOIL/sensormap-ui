@@ -3,57 +3,33 @@ import {
     Edit,
     TextInput,
     SimpleForm,
-    SaveButton,
-    Toolbar,
     useRecordContext,
     ArrayInput,
     SimpleFormIterator,
-    useDataProvider,
-    useRedirect,
     useUpdate,
     useRefresh,
     useNotify,
-    TextField,
-    ChipField,
-    FunctionField,
+    TopToolbar,
+    ShowButton,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
 import { Loading } from 'react-admin';
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import axios from 'axios';
 import Button from '@mui/material/Button';
-import dataProvider from '../../dataProvider/index';
-
-
 
 const InstrumentChannelEdit = () => {
     const [updating, setUpdating] = useState(false);
-
-    const ReturnButton = () => {
-        // Return to the channel show page
-        const redirect = useRedirect();
-        const record = useRecordContext();
-        return (
-            <Button
-                variant='contained'
-                onClick={() => redirect('show', 'instrument_channels', record.id)}
-            >
-                Return to channel
-            </Button>
-        );
-    };
-
-    const MyToolbar = () => (
-        <Toolbar>
-            <ReturnButton />
-        </Toolbar>
+    const MyTopToolbar = () => (
+        <TopToolbar>
+            <ShowButton label='Return to channel' variant="contained" />
+        </TopToolbar>
     );
 
     const LinePlotEdit = () => {
         const record = useRecordContext();
-        const [update, { isPending, error }] = useUpdate();
+        const [update, { }] = useUpdate();
         const { setValue, watch } = useFormContext();
         const baselinePoints = watch('baseline_chosen_points', []);
         const notify = useNotify();
@@ -85,7 +61,7 @@ const InstrumentChannelEdit = () => {
                 notify('Baseline updated', { autoHideDuration: 500 });
                 refresh();
             }).catch((error) => {
-                notify('Error: Changes could not be saved', 'error');
+                notify('Error: Changes could not be saved');
                 console.error(error);
             });
         };
@@ -98,6 +74,26 @@ const InstrumentChannelEdit = () => {
         }, [updating]);
 
         const handlePlotClick = (data) => {
+            // Make sure the clicked point corresponds to a data point in the
+            // raw data of the record. We don't want to add points that are
+            // from the baseline filtered points -- that doesn't make
+            // any sense..!! We can do this by checking if the y value of the
+            // clicked point is the same as the y value of the raw data at
+            // the same x value.
+            data.points = data.points.filter(point => {
+                const x = point.x;
+                const y = point.y;
+                const index = record.time_values.findIndex((value, index) => {
+                    return value === x && record.raw_values[index] === y;
+                });
+                return index !== -1;
+            });
+
+            if (data.points.length === 0) {
+                notify('No valid data point selected');
+                return;
+            }
+
             const { points } = data;
             const newPoints = points.map(point => ({
                 x: point.x,
@@ -176,9 +172,8 @@ const InstrumentChannelEdit = () => {
 
 
     return (
-        <Edit>
-            <SimpleForm toolbar={<MyToolbar />}>
-                <TextInput source="id" disabled />
+        <Edit actions={<MyTopToolbar />}>
+            <SimpleForm toolbar={false}>
                 <LinePlotEdit />
                 <ArrayInput source="baseline_chosen_points">
                     <SimpleFormIterator
