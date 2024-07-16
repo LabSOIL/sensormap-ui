@@ -100,7 +100,9 @@ const App = () => {
                     <Resource name="transects" {...transects} />
                     <Resource name="gnss" {...gnss} />
                     <Resource name="instruments" {...instruments.instrument} />
-                    <Resource name="instrument_channels" {...instruments.channels} />
+                    <Resource name="instrument_channels" {...instruments.channels} >
+                        <Route path=":id/integrate" element={<instruments.channels.integrate />} />
+                    </Resource>
                     {permissions ? (
                         <>
                             {permissions === 'admin' ? (

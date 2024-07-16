@@ -22,16 +22,20 @@ const InstrumentChannelShowActions = () => {
 
     if (!record || !record.id) {
         return null;
-    }
+    };
     const handleReturn = () => {
         redirect('show', 'instruments', record.experiment.id);
-    }
+    };
+    const handleRedirectToIntegrate = () => {
+        redirect(`/instrument_channels/${record.id}/integrate`);
+    };
 
     return (
         <TopToolbar>
-            <Button variant="contained" onClick={handleReturn} >Return to Experiment</Button>
+            <Button variant="contained" onClick={handleReturn}>Return to Experiment</Button>
             {permissions === 'admin' && <>
-                <EditButton label="Edit baseline" variant='contained' color="success" />
+                <EditButton label="Edit baseline" icon={false} variant='contained' color="success" />
+                <Button onClick={handleRedirectToIntegrate} variant="contained" color="success">Integrate</Button>
             </>}
         </TopToolbar>
     );

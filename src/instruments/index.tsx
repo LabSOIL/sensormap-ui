@@ -4,8 +4,8 @@ import InstrumentList from './InstrumentList';
 import InstrumentShow from './InstrumentShow';
 import InstrumentChannelCreate from './channels/InstrumentChannelCreate';
 import InstrumentChannelEdit from './channels/InstrumentChannelEdit';
-import InstrumentChannelList from './channels/InstrumentChannelList';
 import InstrumentChannelShow from './channels/InstrumentChannelShow';
+import InstrumentChannelIntegrate from './channels/InstrumentChannelIntegrate';
 
 import BuildIcon from '@mui/icons-material/Build';
 
@@ -25,8 +25,8 @@ const Instrument = {
 const InstrumentChannel = {
     create: InstrumentChannelCreate,
     edit: InstrumentChannelEdit,
-    // list: InstrumentChannelList,
     show: InstrumentChannelShow,
+    integrate: InstrumentChannelIntegrate,
     recordRepresentation: 'name',
     parent: Instrument,
 };
