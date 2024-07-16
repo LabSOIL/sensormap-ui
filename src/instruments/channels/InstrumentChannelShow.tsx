@@ -11,6 +11,8 @@ import {
     Loading,
     Button,
     useRedirect,
+    ArrayField,
+    Datagrid,
 } from "react-admin";
 import Plot from 'react-plotly.js';
 import { Box } from '@mui/system';
@@ -84,7 +86,18 @@ const LinePlotShow = () => {
                     marker: { color: 'blue' },
                     name: 'Filtered baseline',
                 },
-                // Set width of plot
+                // Put the integral shaded areas on the plot
+                ...record.integral_chosen_pairs.map((pair, index) => (
+                    pair.end ? {
+                        x: [pair.start.x, pair.end.x, pair.end.x, pair.start.x],
+                        y: [Math.min(...record.baseline_values), Math.min(...record.baseline_values), Math.max(...record.baseline_values), Math.max(...record.baseline_values)],
+                        type: 'scatter',
+                        fill: 'toself',
+                        fillcolor: 'rgba(0, 0, 255, 0.2)',
+                        line: { width: 0 },
+                        name: `Integral region ${pair.start.x} to ${pair.end.x}`,
+                    } : null
+                )).filter(Boolean),
             ]}
                 layout={{
                     width: 1000,
@@ -112,6 +125,13 @@ export const InstrumentChannelShow = () => (
             <FunctionField label="Number of values" render={record => record.raw_values.length} />
             <ColoredLine color="grey" height={2} />
             <LinePlotShow />
+            <ArrayField source="integral_results">
+                <Datagrid>
+                    <TextField source="start" />
+                    <TextField source="end" />
+                    <TextField source="area" />
+                </Datagrid>
+            </ArrayField>
 
         </SimpleShowLayout>
     </Show >
