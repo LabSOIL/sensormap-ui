@@ -9,17 +9,29 @@ import {
     usePermissions,
     FunctionField,
     Loading,
+    Button,
+    useRedirect,
 } from "react-admin";
 import Plot from 'react-plotly.js';
 import { Box } from '@mui/system';
 
 const InstrumentChannelShowActions = () => {
     const { permissions } = usePermissions();
+    const redirect = useRedirect();
+    const record = useRecordContext();
+
+    if (!record || !record.id) {
+        return null;
+    }
+    const handleReturn = () => {
+        redirect('show', 'instruments', record.experiment.id);
+    }
+
     return (
         <TopToolbar>
+            <Button variant="contained" onClick={handleReturn} >Return to Experiment</Button>
             {permissions === 'admin' && <>
-                <EditButton />
-                <DeleteButton />
+                <EditButton label="Edit baseline" variant='contained' color="success" />
             </>}
         </TopToolbar>
     );

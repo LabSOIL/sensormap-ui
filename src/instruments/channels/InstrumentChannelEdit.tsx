@@ -180,8 +180,9 @@ const InstrumentChannelEdit = () => {
                         inline
                         disableAdd
                         disableReordering
+                        disableClear
                         removeButton={
-                            <Button onClick={handleClick}>Remove</Button>
+                            <Button onClick={handleClick}>Remove Point</Button>
                         }
                     >
                         <TextInput source="x" readOnly />
