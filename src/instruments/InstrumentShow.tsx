@@ -115,7 +115,10 @@ const ChannelList = () => {
 
     return (
         <ArrayField source="channels">
-            <Datagrid rowClick={handleRowClick}>
+            <Datagrid
+                rowClick={handleRowClick}
+                bulkActionButtons={false}
+            >
                 <TextField source="channel_name" sortable={false} />
                 <BooleanFieldFromList />
             </Datagrid>

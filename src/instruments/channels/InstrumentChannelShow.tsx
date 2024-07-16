@@ -9,15 +9,8 @@ import {
     usePermissions,
     FunctionField,
     Loading,
-    DateField,
-    TabbedShowLayout,
-    Labeled,
-    NumberField,
-    ArrayField,
-    Datagrid,
 } from "react-admin";
 import Plot from 'react-plotly.js';
-import { Grid, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 
 const InstrumentChannelShowActions = () => {
@@ -47,22 +40,47 @@ const LinePlotShow = () => {
         return <Loading />;
     }
 
-    // Sort the list by name
-    // Create a line plot using record.data.x and record.data.y
     return (
         <div><Box>
-            <Plot data={[{
-                x: record.time_values,
-                y: record.raw_values,
-                type: 'scatter',
-                mode: 'lines+markers',
-                marker: { color: 'red' },
-            }]} layout={{
-                width: 800,
-                title: record.channel_name,
-                xaxis: { title: "Time" },
-                yaxis: { title: "Value" }
-            }} />
+            <Plot data={[
+                {
+                    x: record.time_values,
+                    y: record.raw_values,
+                    type: 'scattergl',
+                    mode: 'lines+markers',
+                    marker: { color: 'red' },
+                    name: 'Raw Data',
+                },
+                {
+                    x: record.baseline_chosen_points.map(point => point.x),
+                    y: record.baseline_chosen_points.map(point => point.y),
+                    type: 'scattergl',
+                    mode: 'markers',
+                    marker: { color: '#2F4F4F', size: 10, opacity: 0.8 },
+                    name: 'Selected Points',
+                },
+                // Also the baseline_values
+                {
+                    x: record.time_values,
+                    y: record.baseline_values,
+                    type: 'scattergl',
+                    mode: 'lines',
+                    marker: { color: 'blue' },
+                    name: 'Filtered baseline',
+                },
+                // Set width of plot
+            ]}
+                layout={{
+                    width: 1000,
+                    height: 400,
+                    title: record.channel_name,
+                    xaxis: {
+                        title: 'Time',
+                    },
+                    yaxis: {
+                        title: 'Value',
+                    },
+                }} />
         </Box></div>
     );
 }

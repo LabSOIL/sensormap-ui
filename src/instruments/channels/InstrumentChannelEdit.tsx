@@ -9,6 +9,10 @@ import {
     ArrayInput,
     SimpleFormIterator,
     useDataProvider,
+    useRedirect,
+    useUpdate,
+    useRefresh,
+    useNotify,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -27,10 +31,14 @@ const MyToolbar = () => (
 
 const LinePlotEdit = () => {
     const record = useRecordContext();
+    const [update, { isPending, error }] = useUpdate();
     const { setValue, watch } = useFormContext();
     const baselinePoints = watch('baseline_chosen_points', []);
+    const notify = useNotify();
+    const refresh = useRefresh();
     const [layout, setLayout] = useState({
-        width: 800,
+        width: 1000,
+        height: 400,
         title: record?.channel_name || '',
         xaxis: { title: "Time" },
         yaxis: { title: "Value" }
@@ -62,6 +70,19 @@ const LinePlotEdit = () => {
             }
         });
         setValue('baseline_chosen_points', updatedPoints);
+        update('instrument_channels',
+            {
+                id: record.id,
+                data: {
+                    baseline_chosen_points: updatedPoints
+                }
+            }
+        ).then(() => {
+            refresh();
+        }).catch((error) => {
+            notify('Error: Changes could not be saved', 'error');
+            console.error(error);
+        });
     };
 
     const handleRelayout = useCallback((eventData) => {
@@ -79,7 +100,7 @@ const LinePlotEdit = () => {
                     {
                         x: record.time_values,
                         y: record.raw_values,
-                        type: 'scatter',
+                        type: 'scattergl',
                         mode: 'lines+markers',
                         marker: { color: 'red' },
                         name: 'Raw Data',
@@ -87,11 +108,20 @@ const LinePlotEdit = () => {
                     {
                         x: baselinePoints.map(point => point.x),
                         y: baselinePoints.map(point => point.y),
-                        type: 'scatter',
+                        type: 'scattergl',
                         mode: 'markers',
                         marker: { color: '#2F4F4F', size: 20, opacity: 0.8 },
                         name: 'Selected Points',
-                    }
+                    },
+                    // Also the baseline_values
+                    {
+                        x: record.time_values,
+                        y: record.baseline_values,
+                        type: 'scattergl',
+                        mode: 'lines',
+                        marker: { color: 'blue' },
+                        name: 'Baseline',
+                    },
                 ]}
                 layout={layout}
                 onClick={handlePlotClick}
@@ -101,13 +131,44 @@ const LinePlotEdit = () => {
     );
 };
 
+const UpdateChangesButton = () => {
+    const dataProvider = useDataProvider();
+    const [update, { isPending, error }] = useUpdate();
+    const redirect = useRedirect();
+    const record = useRecordContext();
+    const notify = useNotify();
+    const refresh = useRefresh();
+    if (!record || !record.id) {
+        return null;
+    }
+
+    const handleClick = async () => {
+        const updatedRecord = {
+            baseline_chosen_points: record.baseline_chosen_points
+        };
+        update('instrument_channels',
+            { id: record.id, data: updatedRecord }
+        ).then(() => {
+            refresh();
+        }).catch((error) => {
+            notify('Error: Changes could not be saved', 'error');
+            console.error(error);
+        });
+    };
+
+    return (
+        <Button onClick={handleClick}>Update changes</Button>
+    );
+}
+
+
 const InstrumentChannelEdit = () => {
     return (
-        <Edit redirect="show">
+        <Edit>
             <SimpleForm toolbar={<MyToolbar />}>
                 <TextInput source="id" disabled />
-                {/* <TextInput source="baseline_spline" /> */}
                 <LinePlotEdit />
+                <UpdateChangesButton />
                 <ArrayInput source="baseline_chosen_points" >
                     <SimpleFormIterator
                         getItemLabel={index => `#${index + 1}`}
