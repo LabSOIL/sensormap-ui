@@ -118,13 +118,6 @@ const InstrumentChannelIntegrate = () => {
 
             const updatedPairs = [...IntegralPairs];
 
-            // When adding a point, if the array is empty, it is a new point.
-            // If it is a second clicked point, then that should become the
-            // end point of the current array. Not until there is a start and
-            // end point for an array should another array element be created
-            // SO we need to check if end is valid (it cannot be undefined or
-            // unset) before creating a new array element.
-
             if (
                 updatedPairs.length === 0
                 || (updatedPairs[updatedPairs.length - 1].end && updatedPairs[updatedPairs.length - 1].end !== undefined && updatedPairs[updatedPairs.length - 1].end.x !== undefined && updatedPairs[updatedPairs.length - 1].end.y !== undefined)
@@ -137,7 +130,6 @@ const InstrumentChannelIntegrate = () => {
             console.log('After update:', updatedPairs);
 
             setValue('integral_chosen_pairs', updatedPairs);
-            // Only update when there is a start and end point
             if (updatedPairs[updatedPairs.length - 1].end) {
                 setUpdating(true);
             }
@@ -180,7 +172,7 @@ const InstrumentChannelIntegrate = () => {
                         ...IntegralPairs.map((pair, index) => (
                             pair.end ? {
                                 x: [pair.start.x, pair.end.x, pair.end.x, pair.start.x],
-                                y: [0, 0, Math.max(...record.baseline_values), Math.max(...record.baseline_values)],
+                                y: [Math.min(...record.baseline_values), Math.min(...record.baseline_values), Math.max(...record.baseline_values), Math.max(...record.baseline_values)],
                                 type: 'scatter',
                                 fill: 'toself',
                                 fillcolor: 'rgba(0, 0, 255, 0.2)',
@@ -212,6 +204,7 @@ const InstrumentChannelIntegrate = () => {
             </div>
         );
     };
+
 
     return (
         <Edit actions={<MyTopToolbar />}>
