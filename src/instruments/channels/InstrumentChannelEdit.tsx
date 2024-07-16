@@ -47,7 +47,6 @@ const InstrumentChannelEdit = () => {
 
     const MyToolbar = () => (
         <Toolbar>
-            {/* <SaveButton alwaysEnable /> */}
             <ReturnButton />
         </Toolbar>
     );
@@ -92,13 +91,6 @@ const InstrumentChannelEdit = () => {
         };
 
         useEffect(() => {
-            // Update on any change of the field data, so as to include changes
-            // from removing points in the list
-
-            updatePoints();
-        }, [baselinePoints, updating]);
-
-        useEffect(() => {
             if (updating) {
                 updatePoints();
                 setUpdating(false);
@@ -126,6 +118,7 @@ const InstrumentChannelEdit = () => {
                 }
             });
             setValue('baseline_chosen_points', updatedPoints);
+            setUpdating(true);
         };
 
         const handleRelayout = useCallback((eventData) => {
