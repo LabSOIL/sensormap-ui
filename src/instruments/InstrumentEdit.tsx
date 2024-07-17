@@ -1,24 +1,13 @@
 /* eslint react/jsx-key: off */
 import {
-    DateInput,
     Edit,
-    NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
     TextInput,
-    required,
-    Button,
     Toolbar,
     SaveButton,
-    ImageInput,
-    ImageField,
-    useRecordContext,
 } from 'react-admin';
-import { useFormContext } from 'react-hook-form';
-import { useState } from 'react';
-import { Typography } from '@mui/material';
-import { apiUrl } from '../App';
 
 const MyToolbar = () => (
     <Toolbar>
@@ -33,6 +22,17 @@ const InstrumentEdit = () => {
                 <TextInput source="id" disabled />
                 <TextInput source="name" />
                 <TextInput source="description" multiline />
+                <ReferenceInput
+                    source="project_id"
+                    reference="projects"
+                    sort={{ field: 'name', order: 'ASC' }}
+                >
+                    <SelectInput
+                        label="Associated project (if any)"
+                        source="projects_id"
+                        optionText={(record) => `${record.name}`}
+                    />
+                </ReferenceInput>
             </SimpleForm>
         </Edit>
     )

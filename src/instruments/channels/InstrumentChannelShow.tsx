@@ -109,7 +109,18 @@ const LinePlotShow = () => {
                     yaxis: {
                         title: 'Value',
                     },
-                }} />
+                }}
+                config={{
+                    toImageButtonOptions: {
+                        format: 'png', // one of png, svg, jpeg, webp
+                        filename: `channel_${record.channel_name}_plot`,
+                        height: 800,
+                        width: 2000,
+                        scale: 2 // Multiply title/legend/axis/canvas sizes by this factor
+
+                    }
+                }}
+            />
         </Box></div>
     );
 }

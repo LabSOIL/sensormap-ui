@@ -76,7 +76,13 @@ const InstrumentChannelIntegrate = () => {
             return <Loading />;
         }
         if (!record.baseline_values || !record.time_values || record.baseline_values.length === 0) {
-            return <Typography variant="h6">Filter baseline first</Typography>;
+            return <><Typography variant="h6">Filter the baseline first</Typography>
+                <EditButton
+                    label="Click here to filter the baseline"
+                    icon={false}
+                    variant='contained'
+                    color="success" />
+            </>;
         }
 
         const updatePairs = () => {
@@ -130,8 +136,6 @@ const InstrumentChannelIntegrate = () => {
                 updatedPairs[updatedPairs.length - 1].end = newPoint;
             }
 
-            console.log('After update:', updatedPairs);
-
             setValue('integral_chosen_pairs', updatedPairs);
             if (updatedPairs[updatedPairs.length - 1].end) {
                 setUpdating(true);
@@ -151,9 +155,13 @@ const InstrumentChannelIntegrate = () => {
             setValue('integral_chosen_pairs', updatedPairs);
             setUpdating(true);
         };
-
         return (
             <div>
+                <Typography variant="h6">Baseline Data</Typography>
+                <Typography variant="body">Click a point on the plot to select the start of the integral, then the second click to define the end.</Typography><br />
+                <Typography variant="body">Repeat the same to define further regions.</Typography>
+                <br />
+
                 <Plot
                     data={[
                         {
@@ -180,7 +188,7 @@ const InstrumentChannelIntegrate = () => {
                                 fill: 'toself',
                                 fillcolor: 'rgba(0, 0, 255, 0.2)',
                                 line: { width: 0 },
-                                name: `Integral region ${pair.start.x} to ${pair.end.x}`,
+                                name: pair.sample_name,
 
                             } : null
                         )).filter(Boolean),
@@ -189,7 +197,9 @@ const InstrumentChannelIntegrate = () => {
                     onClick={handlePlotClick}
                     onRelayout={handleRelayout}
                 />
-                <ArrayInput source="integral_chosen_pairs">
+                <Button align="right" variant="contained" onClick={() => setUpdating(true)}>Update sample names</Button><br />
+
+                <ArrayInput source="integral_chosen_pairs" label="Integral Pairs">
                     <SimpleFormIterator
                         inline
                         disableAdd
@@ -203,16 +213,19 @@ const InstrumentChannelIntegrate = () => {
                         <TextInput source="start.y" label="Start Y" readOnly />
                         <TextInput source="end.x" label="End X" readOnly />
                         <TextInput source="end.y" label="End Y" readOnly />
+                        <TextInput source="sample_name" label="Sample Name" defaultValue={`Sample ${record.integral_chosen_pairs.length + 1}`} />
                     </SimpleFormIterator>
                 </ArrayInput>
-                <ArrayField source="integral_results">
+                <Typography variant="h6">Integral Results</Typography>
+                <ArrayField source="integral_results" >
                     <Datagrid isRowSelectable={false} bulkActionButtons={false}>
                         <TextField source="start" />
                         <TextField source="end" />
-                        <TextField source="area" />
+                        <TextField source="area" label="Electrons Transferred [mol]" />
+                        <TextField source="sample_name" />
                     </Datagrid>
                 </ArrayField>
-            </div>
+            </div >
         );
     };
 

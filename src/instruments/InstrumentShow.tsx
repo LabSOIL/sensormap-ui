@@ -18,6 +18,7 @@ import {
     useDataProvider,
     downloadCSV,
     Button,
+    ReferenceField,
 } from "react-admin";
 
 const InstrumentShowActions = () => {
@@ -41,7 +42,10 @@ const InstrumentShowActions = () => {
                     csvContent += row.join(",") + "\n";
                 });
 
-                downloadCSV(csvContent, record.filename + '_raw.csv');
+                // Filename should be split by the extension so file.txt becomes file_raw
+                const outFilename = record.filename.split('.')[0] + '_raw';
+
+                downloadCSV(csvContent, outFilename);
             })
             .catch(error => {
                 console.error("Error getting raw data:", error);
@@ -60,7 +64,10 @@ const InstrumentShowActions = () => {
                     csvContent += row.join(",") + "\n";
                 });
 
-                downloadCSV(csvContent, record.filename + '_baseline_filtered.csv');
+                // Filename should be split by the extension so file.txt becomes file_raw
+                const outFilename = record.filename.split('.')[0] + '_filtered';
+
+                downloadCSV(csvContent, outFilename);
             })
             .catch(error => {
                 console.error("Error getting baseline data:", error);
@@ -79,7 +86,10 @@ const InstrumentShowActions = () => {
                     csvContent += row.join(",") + "\n";
                 });
 
-                downloadCSV(csvContent, record.filename + '_summary.csv');
+                // Filename should be split by the extension so file.txt becomes file_raw
+                const outFilename = record.filename.split('.')[0] + '_summary';
+
+                downloadCSV(csvContent, outFilename);
             })
             .catch(error => {
                 console.error("Error getting summary data:", error);
@@ -117,7 +127,8 @@ const ExpandPanel = () => {
             <Datagrid bulkActionButtons={false}>
                 <TextField source="start" />
                 <TextField source="end" />
-                <TextField source="area" />
+                <TextField source="area" label="Electrons Transferred [mol]" />
+                <TextField source="sample_name" />
             </Datagrid>
         </ArrayField>
     )
@@ -190,6 +201,16 @@ export const InstrumentShow = () => {
     return (
         <Show actions={<InstrumentShowActions />}>
             <SimpleShowLayout >
+                <ReferenceField
+                    label="Project"
+                    source="project_id"
+                    reference="projects"
+                    link="show"
+                    emptyText="N/A"
+                    sortable={false}
+                >
+                    <TextField source="name" />
+                </ReferenceField>
                 <TextField source="name" />
                 <TextField source="description" />
                 <DateField source="last_updated" showTime />

@@ -30,6 +30,17 @@ const InstrumentCreate = () => {
                 <TextField source="id" />
                 <TextInput source="name" />
                 <TextInput source="description" multiline />
+                <ReferenceInput
+                    source="project_id"
+                    reference="projects"
+                    sort={{ field: 'name', order: 'ASC' }}
+                >
+                    <SelectInput
+                        label="Associated project (if any)"
+                        source="projects_id"
+                        optionText={(record) => `${record.name}`}
+                    />
+                </ReferenceInput>
                 <FileInput source="attachments">
                     <FileField source="src" title="title" />
                 </FileInput>
