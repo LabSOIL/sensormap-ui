@@ -95,7 +95,7 @@ const LinePlotShow = () => {
                         fill: 'toself',
                         fillcolor: 'rgba(0, 0, 255, 0.2)',
                         line: { width: 0 },
-                        name: `Integral region ${pair.start.x} to ${pair.end.x}`,
+                        name: pair.sample_name,
                     } : null
                 )).filter(Boolean),
             ]}
@@ -116,7 +116,7 @@ const LinePlotShow = () => {
                         filename: `channel_${record.channel_name}_plot`,
                         height: 800,
                         width: 2000,
-                        scale: 2 // Multiply title/legend/axis/canvas sizes by this factor
+                        scale: 8 // Multiply title/legend/axis/canvas sizes by this factor
 
                     }
                 }}
@@ -140,7 +140,8 @@ export const InstrumentChannelShow = () => (
                 <Datagrid>
                     <TextField source="start" />
                     <TextField source="end" />
-                    <TextField source="area" />
+                    <TextField source="area" label="Electrons Transferred [mol]" />
+                    <TextField source="sample_name" />
                 </Datagrid>
             </ArrayField>
 
