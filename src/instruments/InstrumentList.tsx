@@ -8,7 +8,7 @@ import {
 
 export const InstrumentList = () => {
     return (
-        <List storeKey={false}>
+        <List storeKey={false} >
             <Datagrid rowClick="show">
                 <TextField source="filename" />
                 <TextField source="name" />

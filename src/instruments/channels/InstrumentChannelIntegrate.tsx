@@ -13,6 +13,9 @@ import {
     EditButton,
     useRedirect,
     usePermissions,
+    ArrayField,
+    Datagrid,
+    TextField,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -177,7 +180,8 @@ const InstrumentChannelIntegrate = () => {
                                 fill: 'toself',
                                 fillcolor: 'rgba(0, 0, 255, 0.2)',
                                 line: { width: 0 },
-                                name: `Shaded Region ${index + 1}`,
+                                name: `Integral region ${pair.start.x} to ${pair.end.x}`,
+
                             } : null
                         )).filter(Boolean),
                     ]}
@@ -201,6 +205,13 @@ const InstrumentChannelIntegrate = () => {
                         <TextInput source="end.y" label="End Y" readOnly />
                     </SimpleFormIterator>
                 </ArrayInput>
+                <ArrayField source="integral_results">
+                    <Datagrid isRowSelectable={false} bulkActionButtons={false}>
+                        <TextField source="start" />
+                        <TextField source="end" />
+                        <TextField source="area" />
+                    </Datagrid>
+                </ArrayField>
             </div>
         );
     };

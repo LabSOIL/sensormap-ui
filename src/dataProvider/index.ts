@@ -215,6 +215,18 @@ const dataProvider = (
             body: JSON.stringify(items),
         }).then(({ json }) => ({ data: json }));
     },
+    getInstrumentRawData: async (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}/raw`;
+        return httpClient(url).then(({ json }) => ({ data: json }));
+    },
+    getInstrumentBaselineFilteredData: async (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}/filtered`;
+        return httpClient(url).then(({ json }) => ({ data: json }));
+    },
+    getInstrumentSummaryData: async (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}/summary`;
+        return httpClient(url).then(({ json }) => ({ data: json }));
+    }
 });
 
 

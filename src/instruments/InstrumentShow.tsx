@@ -7,26 +7,91 @@ import {
     EditButton,
     DeleteButton,
     usePermissions,
-    FunctionField,
     Loading,
     DateField,
     TabbedShowLayout,
-    Labeled,
     NumberField,
     ArrayField,
     Datagrid,
     useRedirect,
     BooleanField,
+    useDataProvider,
+    downloadCSV,
+    Button,
 } from "react-admin";
-import Plot from 'react-plotly.js';
-import { Grid, Typography } from '@mui/material';
-import { Box } from '@mui/system';
 
 const InstrumentShowActions = () => {
     const { permissions } = usePermissions();
+    const record = useRecordContext();
+    const dataProvider = useDataProvider();
+
+    if (!record) {
+        return null
+    }
+
+    const handleRawDataClick = () => {
+        dataProvider.getInstrumentRawData('instruments', record)
+            .then(response => {
+                const headers = response.data[0];
+                const data = response.data.slice(1);
+
+                // Create CSV content manually
+                let csvContent = headers.join(",") + "\n";
+                data.forEach(row => {
+                    csvContent += row.join(",") + "\n";
+                });
+
+                downloadCSV(csvContent, record.filename + '_raw.csv');
+            })
+            .catch(error => {
+                console.error("Error getting raw data:", error);
+            });
+    };
+
+    const handleBaselineFilteredDataClick = () => {
+        dataProvider.getInstrumentBaselineFilteredData('instruments', record)
+            .then(response => {
+                const headers = response.data[0];
+                const data = response.data.slice(1);
+
+                // Create CSV content manually
+                let csvContent = headers.join(",") + "\n";
+                data.forEach(row => {
+                    csvContent += row.join(",") + "\n";
+                });
+
+                downloadCSV(csvContent, record.filename + '_baseline_filtered.csv');
+            })
+            .catch(error => {
+                console.error("Error getting baseline data:", error);
+            });
+    };
+
+    const handleSummaryDataClick = () => {
+        dataProvider.getInstrumentSummaryData('instruments', record)
+            .then(response => {
+                const headers = response.data[0];
+                const data = response.data.slice(1);
+
+                // Create CSV content manually
+                let csvContent = headers.join(",") + "\n";
+                data.forEach(row => {
+                    csvContent += row.join(",") + "\n";
+                });
+
+                downloadCSV(csvContent, record.filename + '_summary.csv');
+            })
+            .catch(error => {
+                console.error("Error getting summary data:", error);
+            });
+    }
+
     return (
         <TopToolbar>
             {permissions === 'admin' && <>
+                <Button variant="contained" color="primary" onClick={handleRawDataClick}>Export raw data</Button>
+                <Button variant="contained" color="primary" onClick={handleBaselineFilteredDataClick}>Export baseline filtered data</Button>
+                <Button variant="contained" color="primary" onClick={handleSummaryDataClick}>Export summary data</Button>
                 <EditButton />
                 <DeleteButton />
             </>}
@@ -42,8 +107,28 @@ const ColoredLine = ({ color, height }) => (
         }}
     />
 );
+const ExpandPanel = () => {
+    const record = useRecordContext();
+    if (!record) {
+        return null;
+    }
+    return (
+        <ArrayField source="integral_results">
+            <Datagrid bulkActionButtons={false}>
+                <TextField source="start" />
+                <TextField source="end" />
+                <TextField source="area" />
+            </Datagrid>
+        </ArrayField>
+    )
+};
 
 const ChannelList = () => {
+    const record = useRecordContext();
+    if (!record) {
+        return <Loading />;
+    }
+
     const BooleanFieldFromList = () => {
         const record = useRecordContext();
         if (!record) {
@@ -64,9 +149,9 @@ const ChannelList = () => {
         if (!record) {
             return null;
         }
-        const integral_results = record.integral_results.length > 0;
+        const integral_results = record.integral_results.length;
 
-        return <BooleanField
+        return <NumberField
             label="Integral calculated"
             source="integral_results"
             record={{ integral_results }}
@@ -80,17 +165,16 @@ const ChannelList = () => {
         redirect('show', 'instrument_channels', record);
     };
 
-    const record = useRecordContext();
-    if (!record) {
-        return <Loading />;
-    }
+
     // Sort the channels list by name
     record.channels.sort((a, b) => a.channel_name.localeCompare(b.channel_name));
+
 
     return (
         <ArrayField source="channels">
             <Datagrid
                 rowClick={handleRowClick}
+                expand={<ExpandPanel />}
                 bulkActionButtons={false}
             >
                 <TextField source="channel_name" sortable={false} />
@@ -100,6 +184,7 @@ const ChannelList = () => {
         </ArrayField>
     );
 }
+
 
 export const InstrumentShow = () => {
     return (
