@@ -59,14 +59,32 @@ const InstrumentChannelEdit = () => {
         const baselinePoints = watch('baseline_chosen_points', []);
         const notify = useNotify();
         const refresh = useRefresh();
-
+        const [updating, setUpdating] = useState(false);
         const [layout, setLayout] = useState({
             width: 1000,
             height: 400,
             title: record?.channel_name || '',
             xaxis: { title: "Time" },
-            yaxis: { title: "Value" }
+            yaxis: { title: "Value" },
+            uirevision: 'true',
         });
+        const [rawData, setRawData] = useState({ x: [], y: [] });
+        const [selectedPoints, setSelectedPoints] = useState({ x: [], y: [] });
+        const [baselineData, setBaselineData] = useState({ x: [], y: [] });
+
+        useEffect(() => {
+            if (record) {
+                setRawData({ x: record.time_values, y: record.raw_values });
+                setBaselineData({ x: record.time_values, y: record.baseline_values });
+            }
+        }, [record]);
+
+        useEffect(() => {
+            setSelectedPoints({
+                x: baselinePoints.map(point => point.x),
+                y: baselinePoints.map(point => point.y),
+            });
+        }, [baselinePoints]);
 
         if (!record) {
             return <Loading />;
@@ -74,21 +92,23 @@ const InstrumentChannelEdit = () => {
         if (!record.raw_values || !record.time_values) {
             return <Typography variant="h6">No data to display</Typography>;
         }
+
         const updatePoints = () => {
-            update('instrument_channels',
-                {
-                    id: record.id,
-                    data: {
-                        baseline_chosen_points: baselinePoints
-                    }
-                }
-            ).then(() => {
-                notify('Baseline updated', { autoHideDuration: 500 });
-                refresh();
-            }).catch((error) => {
-                notify('Error: Changes could not be saved');
-                console.error(error);
-            });
+            update('instrument_channels', {
+                id: record.id,
+                data: {
+                    baseline_chosen_points: baselinePoints,
+                },
+            })
+                .then(() => {
+                    notify('Baseline updated', { autoHideDuration: 500 });
+                    refresh();
+                })
+                .catch((error) => {
+                    notify('Error: Changes could not be saved');
+                    refresh();
+                    console.error(error);
+                });
         };
 
         useEffect(() => {
@@ -99,18 +119,12 @@ const InstrumentChannelEdit = () => {
         }, [updating]);
 
         const handlePlotClick = (data) => {
-            // Make sure the clicked point corresponds to a data point in the
-            // raw data of the record. We don't want to add points that are
-            // from the baseline filtered points -- that doesn't make
-            // any sense..!! We can do this by checking if the y value of the
-            // clicked point is the same as the y value of the raw data at
-            // the same x value.
-            data.points = data.points.filter(point => {
+            data.points = data.points.filter((point) => {
                 const x = point.x;
                 const y = point.y;
-                const index = record.time_values.findIndex((value, index) => {
-                    return value === x && record.raw_values[index] === y;
-                });
+                const index = record.time_values.findIndex(
+                    (value, index) => value === x && record.raw_values[index] === y
+                );
                 return index !== -1;
             });
 
@@ -120,17 +134,16 @@ const InstrumentChannelEdit = () => {
             }
 
             const { points } = data;
-            const newPoints = points.map(point => ({
+            const newPoints = points.map((point) => ({
                 x: point.x,
-                y: point.y
+                y: point.y,
             }));
 
             const updatedPoints = [...baselinePoints];
-            newPoints.forEach(newPoint => {
+            newPoints.forEach((newPoint) => {
                 const index = updatedPoints.findIndex(
-                    point => point.x === newPoint.x && point.y === newPoint.y
+                    (point) => point.x === newPoint.x && point.y === newPoint.y
                 );
-                // Sort the points by x value
                 updatedPoints.sort((a, b) => a.x - b.x);
                 if (index === -1) {
                     updatedPoints.push(newPoint);
@@ -145,35 +158,33 @@ const InstrumentChannelEdit = () => {
         const handleRelayout = useCallback((eventData) => {
             setLayout((prevLayout) => ({
                 ...prevLayout,
-                ...eventData
+                ...eventData,
             }));
         }, []);
-
 
         return (
             <div>
                 <Plot
                     data={[
                         {
-                            x: record.time_values,
-                            y: record.raw_values,
+                            x: rawData.x,
+                            y: rawData.y,
                             type: 'scattergl',
                             mode: 'lines+markers',
                             marker: { color: 'red' },
                             name: 'Raw Data',
                         },
                         {
-                            x: baselinePoints.map(point => point.x),
-                            y: baselinePoints.map(point => point.y),
+                            x: selectedPoints.x,
+                            y: selectedPoints.y,
                             type: 'scattergl',
                             mode: 'markers',
                             marker: { color: '#2F4F4F', size: 20, opacity: 0.8 },
                             name: 'Selected Points',
                         },
-                        // Also the baseline_values
                         {
-                            x: record.time_values,
-                            y: record.baseline_values,
+                            x: baselineData.x,
+                            y: baselineData.y,
                             type: 'scattergl',
                             mode: 'lines',
                             marker: { color: 'blue' },
@@ -188,10 +199,10 @@ const InstrumentChannelEdit = () => {
         );
     };
 
+
     const handleClick = (record) => {
         // Remove the point from the list and update the record
         // Trigger update on the new list (the same as updating the plot)
-        console.log("Click");
         setUpdating(true);
     };
 

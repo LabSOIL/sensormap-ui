@@ -69,20 +69,42 @@ const InstrumentChannelIntegrate = () => {
             height: 400,
             title: record?.channel_name || '',
             xaxis: { title: "Time" },
-            yaxis: { title: "Value" }
+            yaxis: { title: "Value" },
+            uirevision: 'true',
         });
+
+        const [baselineData, setBaselineData] = useState({ x: [], y: [] });
+        const [selectedPairs, setSelectedPairs] = useState([]);
+
+        useEffect(() => {
+            if (record) {
+                setBaselineData({ x: record.time_values, y: record.baseline_values });
+            }
+        }, [record]);
+
+        useEffect(() => {
+            setSelectedPairs(
+                IntegralPairs.map(pair => ({
+                    start: { x: pair.start.x, y: pair.start.y },
+                    end: pair.end ? { x: pair.end.x, y: pair.end.y } : undefined
+                }))
+            );
+        }, [IntegralPairs]);
 
         if (!record) {
             return <Loading />;
         }
         if (!record.baseline_values || !record.time_values || record.baseline_values.length === 0) {
-            return <><Typography variant="h6">Filter the baseline first</Typography>
-                <EditButton
-                    label="Click here to filter the baseline"
-                    icon={false}
-                    variant='contained'
-                    color="success" />
-            </>;
+            return (
+                <>
+                    <Typography variant="h6">Filter the baseline first</Typography>
+                    <EditButton
+                        label="Click here to filter the baseline"
+                        icon={false}
+                        variant='contained'
+                        color="success" />
+                </>
+            );
         }
 
         const updatePairs = () => {
@@ -155,6 +177,7 @@ const InstrumentChannelIntegrate = () => {
             setValue('integral_chosen_pairs', updatedPairs);
             setUpdating(true);
         };
+
         return (
             <div>
                 <Typography variant="h6">Baseline Data</Typography>
@@ -165,14 +188,14 @@ const InstrumentChannelIntegrate = () => {
                 <Plot
                     data={[
                         {
-                            x: record.time_values,
-                            y: record.baseline_values,
+                            x: baselineData.x,
+                            y: baselineData.y,
                             type: 'scattergl',
                             mode: 'lines+markers',
                             marker: { color: 'blue' },
                             name: 'Baseline Data',
                         },
-                        ...IntegralPairs.map((pair, index) => ({
+                        ...selectedPairs.map((pair, index) => ({
                             x: [pair.start.x, pair.end?.x].filter(Boolean),
                             y: [pair.start.y, pair.end?.y].filter(Boolean),
                             type: 'scattergl',
@@ -180,7 +203,7 @@ const InstrumentChannelIntegrate = () => {
                             marker: { color: 'blue', size: 20, opacity: 0.8 },
                             name: `Selected Pair ${index + 1}`,
                         })),
-                        ...IntegralPairs.map((pair, index) => (
+                        ...selectedPairs.map((pair, index) => (
                             pair.end ? {
                                 x: [pair.start.x, pair.end.x, pair.end.x, pair.start.x],
                                 y: [Math.min(...record.baseline_values), Math.min(...record.baseline_values), Math.max(...record.baseline_values), Math.max(...record.baseline_values)],
@@ -189,7 +212,6 @@ const InstrumentChannelIntegrate = () => {
                                 fillcolor: 'rgba(0, 0, 255, 0.2)',
                                 line: { width: 0 },
                                 name: pair.sample_name,
-
                             } : null
                         )).filter(Boolean),
                     ]}
@@ -217,7 +239,7 @@ const InstrumentChannelIntegrate = () => {
                     </SimpleFormIterator>
                 </ArrayInput>
                 <Typography variant="h6">Integral Results</Typography>
-                <ArrayField source="integral_results" >
+                <ArrayField source="integral_results">
                     <Datagrid isRowSelectable={false} bulkActionButtons={false}>
                         <TextField source="start" />
                         <TextField source="end" />
@@ -225,10 +247,9 @@ const InstrumentChannelIntegrate = () => {
                         <TextField source="sample_name" />
                     </Datagrid>
                 </ArrayField>
-            </div >
+            </div>
         );
     };
-
 
     return (
         <Edit actions={<MyTopToolbar />}>
