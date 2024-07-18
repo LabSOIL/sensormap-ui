@@ -1,6 +1,7 @@
 {
   "name": "sensormap-frontend",
   "private": true,
+  "version": "1.2.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

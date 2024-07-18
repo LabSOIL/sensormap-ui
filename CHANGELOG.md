@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-07-18
+
+### Added
+- Add basic transect functionality - although still a bit buggy.
+- Migrate the functionality from the [InstrumentProcessing.ipynb](https://github.com/LabSOIL/lab-codes/blob/cfd502f2d46596870033fabb570d79bcf8449fa5/InstrumentProcessing.ipynb)
+notebook in the [lab-codes](https://github.com/LabSOIL/lab-codes) repository
+functionality into the `Instrument Processing` tab.
+- Imagery and description to the README.
+- MIT License.
+
 ## [1.1.3] - 2024-06-28
 
 ### Added
@@ -59,7 +69,8 @@ instead using the `react-admin-import-csv`.
 - Areas are defined by a convex hull with a buffer instead of a drawn
 polygon.
 
-[unreleased]: https://github.com/LabSOIL/sensormap-ui/compare/v1.1.1...HEAD
+[unreleased]: https://github.com/LabSOIL/sensormap-ui/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.3...0.2.0
 [1.1.3]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.2...0.1.3
 [1.1.2]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.1...0.1.2
 [1.1.1]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.0...0.1.1
