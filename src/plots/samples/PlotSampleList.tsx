@@ -11,8 +11,8 @@ import {
     useRecordContext,
     useCreatePath,
     Link,
-    useGetOne,
     downloadCSV,
+    FunctionField,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
@@ -68,12 +68,6 @@ const PlotSampleListActions = (props) => {
     );
 };
 
-const getProjectNameFromAreaID = (area_id) => {
-    const { data, isPending, error } = useGetOne(
-        'areas', { id: area_id }
-    );
-    return data;
-}
 
 const exporter = plots => {
     const samplesForExport = plots.map(sample => {
@@ -124,6 +118,7 @@ const PlotNameField = () => {
         </Link>
     );
 }
+
 export const PlotSampleList = () => {
     const FieldWrapper = ({ children, label }) => children;
 
@@ -149,6 +144,36 @@ export const PlotSampleList = () => {
                 <TextField source="name" />
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
+                <FunctionField label="Microbial fields (filled/total)" render={record => {
+                    const microbialFieldsFilled: number = (
+                        Number(record.fungi_per_g ? 1 : 0) +
+                        Number(record.bacteria_per_g ? 1 : 0) +
+                        Number(record.archea_per_g ? 1 : 0) +
+                        Number(record.methanogens_per_g ? 1 : 0) +
+                        Number(record.methanotrophs_per_g ? 1 : 0)
+                    );
+                    const microbialFieldsTotal: number = 5;
+                    return `${microbialFieldsFilled}/${microbialFieldsTotal}`;
+                }} />
+
+                <FunctionField label="Composition fields (filled/total)" render={record => {
+                    const compositionFieldsFilled: number = (
+                        Number(record.fe_ug_per_g ? 1 : 0) +
+                        Number(record.na_ug_per_g ? 1 : 0) +
+                        Number(record.al_ug_per_g ? 1 : 0) +
+                        Number(record.k_ug_per_g ? 1 : 0) +
+                        Number(record.ca_ug_per_g ? 1 : 0) +
+                        Number(record.mg_ug_per_g ? 1 : 0) +
+                        Number(record.mn_ug_per_g ? 1 : 0) +
+                        Number(record.s_ug_per_g ? 1 : 0) +
+                        Number(record.cl_ug_per_g ? 1 : 0) +
+                        Number(record.p_ug_per_g ? 1 : 0) +
+                        Number(record.si_ug_per_g ? 1 : 0)
+                    );
+                    const compositionFieldsTotal: number = 11;
+                    return `${compositionFieldsFilled}/${compositionFieldsTotal}`;
+                }
+                } />
             </Datagrid>
         </List>
     );
