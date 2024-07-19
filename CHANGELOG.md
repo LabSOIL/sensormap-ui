@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2024-07-19
+
+### Fixed
+
+- The zoom is not reset on the plots after clicking.
+
+
 ## [1.2.0] - 2024-07-18
 
 ### Added
@@ -69,7 +76,8 @@ instead using the `react-admin-import-csv`.
 - Areas are defined by a convex hull with a buffer instead of a drawn
 polygon.
 
-[unreleased]: https://github.com/LabSOIL/sensormap-ui/compare/v1.2.0...HEAD
+[unreleased]: https://github.com/LabSOIL/sensormap-ui/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/LabSOIL/sensormap-ui/compare/0.2.0...0.2.1
 [1.2.0]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.3...0.2.0
 [1.1.3]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.2...0.1.3
 [1.1.2]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.1...0.1.2
