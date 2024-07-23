@@ -27,14 +27,12 @@ const TransectCreate = () => {
         <Create redirect="show">
             <SimpleForm >
                 <TextField source="id" />
-                {/* <NumberInput
-                    source="plot_iterator"
-                    label="ID"
-                    validate={[required(), minValue(0)]}
-                    helperText={<>A numeric ID given to the plot<br />that is unique within the area. <br />Example: 1 will become BF01 in Binntal Flat</>}
-                /> */}
                 <ReferenceInput source="area_id" reference="areas" >
-                    <SelectInput optionText="name" validate={[required()]} onChange={(record) => { setSelectedArea(record.target.value) }} />
+                    <SelectInput
+                        optionText="name"
+                        optionText={(record) => `${record.name} (${record.plots.length} plots)`}
+                        validate={[required()]}
+                        onChange={(record) => { setSelectedArea(record.target.value) }} />
                 </ReferenceInput>
                 {selectedArea ? <TransectCreateMap area_id={selectedArea} /> : null}
                 <ArrayInput source="nodes" >

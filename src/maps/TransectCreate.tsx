@@ -1,6 +1,7 @@
 import {
     useGetOne,
     Loading,
+    useNotify,
 } from 'react-admin';
 import {
     MapContainer,
@@ -48,32 +49,60 @@ const flipPolygonCoordinates = (polygon) => {
 };
 
 export const TransectCreateMap = ({ area_id }) => {
+    const formContext = useFormContext();
+    const notify = useNotify();
     const { data: record, isLoading, error } = useGetOne(
         'areas', { id: area_id }
     );
-
     if (isLoading) return <Loading />;
-    const formContext = useFormContext();
 
-
-    if (record && !record.plots) {
-        return (<><Typography variant="h6">No location data available</Typography><br />
-            <Typography variant="caption">Map of points will show when data is assigned to Area</Typography></>)
+    if (record.plots.length === 0) {
+        notify('No plots available. Choose another area.');
     }
+    const [polygonCoordinates, setPolygonCoordinates] = useState(
+        flipPolygonCoordinates(record.geom.coordinates)
+    );
+    const [plots, setPlots] = useState(record.plots);
 
-    const polygonCoordinates = flipPolygonCoordinates(record["geom"]["coordinates"]);
-    const plotData = record.plots;
-    const MapRecenter = ({ lat, lng, zoomLevel }) => {
+    const [mapCenter, setMapCenter] = useState({
+        lat: polygonCoordinates[0][0][0],
+        lng: polygonCoordinates[0][0][1],
+        zoomLevel: 15
+    });
+    const [updateMap, setUpdateMap] = useState(false);
+
+    useEffect(() => {
+        if (!record || !record.plots || !record.geom) return;
+        console.log(record)
+        setPlots(record.plots);
+        const coords = flipPolygonCoordinates(record.geom.coordinates);
+        setPolygonCoordinates(coords);
+        setMapCenter({
+            lat: coords[0][0][0],
+            lng: coords[0][0][1],
+            zoomLevel: 15
+        });
+        setUpdateMap(true);
+    }, [record]);
+
+    const MapRecenter = () => {
         const map = useMap();
+        if (!mapCenter || !map) return;
 
         useEffect(() => {
-            // Fly to that coordinates and set new zoom level
+            console.log("Centering triggered");
 
-            map.flyTo([lat, lng], zoomLevel);
-        }, [record]);
+            // Only fly to center if it has changed from the previous center
+            const { lat, lng, zoomLevel } = mapCenter;
+            if (updateMap) {
+                console.log("Updating map center", lat, lng, zoomLevel);
+                map.flyTo([lat, lng], zoomLevel);
+                setUpdateMap(false);
+            }
+        }, [record, updateMap]);
+
         return null;
     };
-
 
     const addNode = (plot) => {
         const transectNodes = formContext.getValues('nodes') || [];
@@ -92,7 +121,6 @@ export const TransectCreateMap = ({ area_id }) => {
         transectNodes = formContext.getValues('nodes') || [];
     }, [transectNodes]);
 
-
     return (
         <MapContainer
             style={{ width: '100%', height: '500px' }}
@@ -107,10 +135,9 @@ export const TransectCreateMap = ({ area_id }) => {
                 interactive={false}
             />
             <MarkerClusterGroup maxClusterRadius={40} chunkedLoading >
-
-                {plotData ? plotData.map((plot, index) => {
+                {plots && plots.length > 0 ? plots.map((plot, index) => {
                     return (
-                        < Marker
+                        <Marker
                             key={index}
                             position={[plot["latitude"], plot["longitude"]]}
                             icon={plotIcon}
@@ -128,9 +155,8 @@ export const TransectCreateMap = ({ area_id }) => {
                     )
                 }) : null}
             </MarkerClusterGroup>
-            // Draw a polyline from all the nodes
             {nodePolyLine}
-            <MapRecenter lat={polygonCoordinates[0][0][0]} lng={polygonCoordinates[0][0][1]} zoomLevel={15} />
+            <MapRecenter />
             <Legend />
         </MapContainer>
     );
