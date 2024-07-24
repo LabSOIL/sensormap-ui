@@ -6,6 +6,7 @@ import {
     NumberField,
     useRecordContext,
     useRedirect,
+    useNotify,
 } from "react-admin";
 import { IconButton } from '@mui/material';
 import plots from '../plots';
@@ -15,11 +16,18 @@ import soil from '../soil';
 const CreatePlotButton = () => {
     const record = useRecordContext();
     const redirect = useRedirect();
+    const notify = useNotify();
 
     return <IconButton
         color="success"
         title="Create plot"
         onClick={(event) => {
+            if (navigator.clipboard) {
+                const clipboardText = `${record.name}: ${record.comment}`;
+                navigator.clipboard.writeText(clipboardText).then(() => {
+                    notify(`Copied "${clipboardText}" to clipboard`);
+                });
+            }
             redirect('create', 'plots', null, {}, {
                 record: {
                     coord_x: record.x,
@@ -38,11 +46,18 @@ const CreatePlotButton = () => {
 const CreateSoilProfileButton = () => {
     const record = useRecordContext();
     const redirect = useRedirect();
+    const notify = useNotify();
 
     return <IconButton
         color="success"
         title="Create soil profile"
         onClick={(event) => {
+            if (navigator.clipboard) {
+                const clipboardText = `${record.name}: ${record.comment}`;
+                navigator.clipboard.writeText(clipboardText).then(() => {
+                    notify(`Copied "${clipboardText}" to clipboard`);
+                });
+            }
             redirect('create', 'soil_profiles', null, {}, {
                 record: {
                     coord_x: record.x,

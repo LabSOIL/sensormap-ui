@@ -12,11 +12,8 @@ import {
     useMap,
     Polyline,
 } from 'react-leaflet';
-import { Link } from 'react-router-dom';
 import { BaseLayers } from './Layers';
 import * as L from 'leaflet';
-import ParkIcon from '@mui/icons-material/Park';
-import { Typography } from '@mui/material';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
@@ -24,14 +21,8 @@ import Legend from './Legend'; // Import the Legend component
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Layout } from 'react-admin';
 
-const sensorIcon = L.AwesomeMarkers.icon({
-    icon: 'temperature-low',
-    iconColor: 'yellow',
-    prefix: 'fa',
-    markerColor: 'blue'
-});
+const DEFAULT_ZOOM_LEVEL = 15;
 
 const plotIcon = L.AwesomeMarkers.icon({
     icon: 'trowel',
@@ -47,9 +38,31 @@ const flipCoordinates = (coords) => {
 const flipPolygonCoordinates = (polygon) => {
     return polygon.map(ring => flipCoordinates(ring));
 };
+const calculateCentroid = (polygon) => {
+    let totalArea = 0;
+    let centroidX = 0;
+    let centroidY = 0;
+
+    for (let i = 0; i < polygon.length - 1; i++) {
+        const x0 = polygon[i][0];
+        const y0 = polygon[i][1];
+        const x1 = polygon[i + 1][0];
+        const y1 = polygon[i + 1][1];
+        const area = (x0 * y1 - x1 * y0);
+        totalArea += area;
+        centroidX += (x0 + x1) * area;
+        centroidY += (y0 + y1) * area;
+    }
+
+    totalArea *= 0.5;
+    centroidX /= (6 * totalArea);
+    centroidY /= (6 * totalArea);
+
+    return { lat: centroidX, lng: centroidY };
+};
 
 export const TransectCreateMap = ({ area_id }) => {
-    const formContext = useFormContext();
+    const { setValue, getValues, watch } = useFormContext();
     const notify = useNotify();
     const { data: record, isLoading, error } = useGetOne(
         'areas', { id: area_id }
@@ -59,43 +72,48 @@ export const TransectCreateMap = ({ area_id }) => {
     if (record.plots.length === 0) {
         notify('No plots available. Choose another area.');
     }
-    const [polygonCoordinates, setPolygonCoordinates] = useState(
-        flipPolygonCoordinates(record.geom.coordinates)
-    );
-    const [plots, setPlots] = useState(record.plots);
 
+    const flippedPolygonCoordinates = flipPolygonCoordinates(record.geom.coordinates);
+    const polygonCentroid = calculateCentroid(flippedPolygonCoordinates[0]);
+
+    // Define state variables
+    const [polygonCoordinates, setPolygonCoordinates] = useState(flippedPolygonCoordinates);
+    const [plots, setPlots] = useState(record.plots);
     const [mapCenter, setMapCenter] = useState({
-        lat: polygonCoordinates[0][0][0],
-        lng: polygonCoordinates[0][0][1],
-        zoomLevel: 15
+        lat: polygonCentroid.lat,
+        lng: polygonCentroid.lng,
+        zoomLevel: DEFAULT_ZOOM_LEVEL
     });
     const [updateMap, setUpdateMap] = useState(false);
+    const [nodePolyLine, setNodePolyLine] = useState(null);
 
+    // If the user changes the area, zoom to new area and remove chosen nodes
     useEffect(() => {
-        if (!record || !record.plots || !record.geom) return;
-        console.log(record)
+        if (!record || !record.plots || !record.geom || record.plots.length === 0) return;
         setPlots(record.plots);
         const coords = flipPolygonCoordinates(record.geom.coordinates);
+        const centroid = calculateCentroid(coords[0]);
+        // Define state variables
         setPolygonCoordinates(coords);
         setMapCenter({
-            lat: coords[0][0][0],
-            lng: coords[0][0][1],
-            zoomLevel: 15
+            lat: centroid.lat,
+            lng: centroid.lng,
+            zoomLevel: DEFAULT_ZOOM_LEVEL
         });
         setUpdateMap(true);
+        clearNodes();
     }, [record]);
 
     const MapRecenter = () => {
+        // Takes control of moving the map to the new coordinates
+        // component state of setUpdateMap is used to prevent an infinite loop
         const map = useMap();
         if (!mapCenter || !map) return;
 
         useEffect(() => {
-            console.log("Centering triggered");
-
-            // Only fly to center if it has changed from the previous center
+            // Only fly to center if updating is permitted by variable
             const { lat, lng, zoomLevel } = mapCenter;
             if (updateMap) {
-                console.log("Updating map center", lat, lng, zoomLevel);
                 map.flyTo([lat, lng], zoomLevel);
                 setUpdateMap(false);
             }
@@ -104,22 +122,26 @@ export const TransectCreateMap = ({ area_id }) => {
         return null;
     };
 
+
     const addNode = (plot) => {
-        const transectNodes = formContext.getValues('nodes') || [];
-        const newNodes = [...transectNodes, plot];
-        formContext.setValue('nodes', newNodes);
+        // Adds a node to the form context state
+        const newNodes = [...getValues('nodes'), plot];
+        setValue('nodes', newNodes);
     }
 
-    let transectNodes = formContext.getValues('nodes') || [];
-    const [nodePolyLine, setNodePolyLine] = useState(null);
+    const clearNodes = () => {
+        // Clears all nodes from the form context state
+        setValue('nodes', []);
+        setNodePolyLine(null);
+    };
 
     useEffect(() => {
-        if (transectNodes.length > 1) {
-            const nodeCoords = transectNodes.map(node => [node["latitude"], node["longitude"]]);
-            setNodePolyLine(<Polyline positions={nodeCoords} pathOptions={{ color: 'red' }} />);
+        if (record.plots.length > 0 && getValues('nodes').length > 1) {
+            setNodePolyLine(getValues('nodes').map(
+                node => [node["latitude"], node["longitude"]]
+            ));
         }
-        transectNodes = formContext.getValues('nodes') || [];
-    }, [transectNodes]);
+    }, [watch('nodes')]);
 
     return (
         <MapContainer
@@ -155,7 +177,7 @@ export const TransectCreateMap = ({ area_id }) => {
                     )
                 }) : null}
             </MarkerClusterGroup>
-            {nodePolyLine}
+            {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'red' }} />}
             <MapRecenter />
             <Legend />
         </MapContainer>
