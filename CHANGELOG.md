@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2024-07-24
+
+### Added
+
+- Dashboard on start
+- Map to Transect show page.
+
+### Fixed
+
+- Adding transect. Map is stable aswell as zooming to other sites
+- Unauthorised users do not see broken components, they now see a dashboard
+- Show proper message when wrong file is uploaded to instrument processing
+
 ## [1.2.1] - 2024-07-19
 
 ### Fixed
@@ -77,9 +90,10 @@ instead using the `react-admin-import-csv`.
 polygon.
 
 [unreleased]: https://github.com/LabSOIL/sensormap-ui/compare/v1.2.1...HEAD
-[1.2.1]: https://github.com/LabSOIL/sensormap-ui/compare/0.2.0...0.2.1
-[1.2.0]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.3...0.2.0
-[1.1.3]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.2...0.1.3
-[1.1.2]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.1...0.1.2
-[1.1.1]: https://github.com/LabSOIL/sensormap-ui/compare/0.1.0...0.1.1
+[1.2.2]: https://github.com/LabSOIL/sensormap-ui/compare/1.2.1...0.2.2
+[1.2.1]: https://github.com/LabSOIL/sensormap-ui/compare/1.2.0...0.2.1
+[1.2.0]: https://github.com/LabSOIL/sensormap-ui/compare/1.1.3...0.2.0
+[1.1.3]: https://github.com/LabSOIL/sensormap-ui/compare/1.1.2...0.1.3
+[1.1.2]: https://github.com/LabSOIL/sensormap-ui/compare/1.1.1...0.1.2
+[1.1.1]: https://github.com/LabSOIL/sensormap-ui/compare/1.1.0...0.1.1
 [1.1.0]: https://github.com/LabSOIL/sensormap-ui/compare/0.0.1...0.1.0
