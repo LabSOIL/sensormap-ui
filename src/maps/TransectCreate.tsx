@@ -2,6 +2,7 @@ import {
     useGetOne,
     Loading,
     useNotify,
+    useRecordContext,
 } from 'react-admin';
 import {
     MapContainer,
@@ -182,6 +183,60 @@ export const TransectCreateMap = ({ area_id }) => {
             <Legend />
         </MapContainer>
     );
+};
+
+export const TransectShowMap = () => {
+    const record = useRecordContext();
+
+    if (!record) {
+        return <Loading />;
+    }
+    const nodePolyLine = record.nodes.map(
+        node => [node["latitude"], node["longitude"]]
+    );
+    // Get map bounds from the bounding box of all nodes in the record
+    const mapBounds = record.nodes.reduce((acc, node) => {
+        return acc.extend([node["latitude"], node["longitude"]]);
+    }, L.latLngBounds());
+
+
+    // We want a similar map to create, but just the plots from the record now
+    // instead as it is resembling a show view
+
+    return (
+        <MapContainer
+            style={{ width: '100%', height: '500px' }}
+            bounds={mapBounds}
+            scrollWheelZoom={true}
+            maxZoom={18}
+        >
+            <BaseLayers />
+            {/* <Polygon
+                positions={polygonCoordinates}
+                pathOptions={{ color: record.project.color, opacity: 1, fillOpacity: 0.2 }}
+                interactive={false}
+            /> */}
+
+            {record.nodes && record.nodes.length > 0 ? record.nodes.map((plot, index) => {
+                return (
+                    <Marker
+                        key={index}
+                        position={[plot["latitude"], plot["longitude"]]}
+                        icon={plotIcon}
+                    >
+                        <Tooltip permanent>{plot["name"]}</Tooltip>
+                        <Popup>
+                            <b>{plot["name"]}</b>
+                        </Popup>
+                    </Marker>
+                )
+            }) : null}
+
+            {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'red' }} />}
+            {/* <MapRecenter /> */}
+            <Legend />
+        </MapContainer>
+    )
 };
 
 export default TransectCreateMap;

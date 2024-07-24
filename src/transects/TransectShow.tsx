@@ -22,7 +22,8 @@ import {
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
-
+import { TransectShowMap } from "../maps/TransectCreate";
+import { Box } from '@mui/system';
 
 const PlotShowTitle = () => {
     const record = useRecordContext();
@@ -52,82 +53,40 @@ const ColoredLine = ({ color, height }) => (
     />
 );
 
-
-const CreateManyButton = () => {
+export const TransectShow = () => {
     const redirect = useRedirect();
-    const record = useRecordContext();
 
+    const handleRowClick = (id, basePath, record) => {
+        redirect('show', 'plots', id);
+    }
     return (
-        <Button
-            label="Add Many"
-            onClick={(event) => {
-                redirect(
-                    '/plot_samples/createMany',
-                    undefined,
-                    undefined,
-                    undefined,
-                    { record: { plot_id: record.id } }
-                );
-            }}
-            startIcon={< LibraryAddIcon fontSize='inherit' />}
-        />
+        <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
+            <SimpleShowLayout>
+                <TextField source="id" label="Transect ID" />
+                <DateField source="last_updated" label="Last updated" showTime />
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <Box>
+                            <ArrayField source="nodes">
+                                <Datagrid rowClick={handleRowClick} bulkActionButtons={false}>
+                                    <TextField source="id" label="Plot ID" />
+                                    <TextField source="name" label="Plot name" />
+                                    <TextField label="X" source="coord_x" />
+                                    <TextField label="Y" source="coord_y" />
+                                    <TextField label="Elevation" source="coord_z" />
+                                </Datagrid>
+                            </ArrayField>
+                        </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Box>
+                            <TransectShowMap />
+                        </Box>
+                    </Grid>
+                </Grid>
+            </SimpleShowLayout>
+        </Show>
     )
-}
-
-const CreateSampleButton = () => {
-    const record = useRecordContext();
-
-    return (
-        <CreateButton
-            label="Add"
-            resource="plot_samples"
-            state={{
-                record: {
-                    plot_id: record.id,
-                }
-            }}
-        />
-    );
-
-}
-
-const ImageField = ({ source }) => {
-    const record = useRecordContext();
-    if (!record) {
-        return <Loading />;
-    }
-
-    if (!record[source]) {
-
-        return <>
-            <br />
-            <Typography align="center">No image available</Typography>
-        </>;
-    }
-    const base64Image = record[source];
-    return (
-        <div style={{ textAlign: 'center', margin: '0 10px' }}>
-            <img src={`${base64Image}`} style={{ maxWidth: '80%', height: 'auto' }} />
-        </div>
-    );
 };
 
-export const PlotShow = () => (
-    <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
-        <SimpleShowLayout >
-
-            <TextField source="id" label="Transect ID" />
-
-            <ColoredLine color="grey" height={2} />
-            <Typography variant="h6" textAlign="center" gutterBottom>Nodes</Typography>
-            <ArrayField source="nodes">
-                <Datagrid rowClick="show" bulkActionButtons={false}>
-                    <TextField source="id" label="Plot ID" />
-                    <TextField source="name" label="Plot name" />
-                </Datagrid>
-            </ArrayField>
-        </SimpleShowLayout>
-    </Show >
-);
-
-export default PlotShow;
+export default TransectShow;
