@@ -25,6 +25,8 @@ import transects from './transects';
 import gnss from './gnss';
 import axios from 'axios';
 import instruments from './instruments';
+import dashboard from './Dashboard';
+import Dashboard from './Dashboard';
 
 
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required' };
@@ -84,27 +86,30 @@ const App = () => {
         <Admin
             authProvider={authProvider.current}
             dataProvider={dataProvider.current}
+            dashboard={Dashboard}
             title="SOIL Sensor Map"
             layout={Layout}
         >
             {permissions => (
                 <>
-                    <Resource name="projects" {...projects} />
-                    <Resource name="areas" {...areas} />
-                    <Resource name="plots" {...plots.plot} />
-                    <Resource name="plot_samples" {...plots.sample} />
-                    <Resource name="sensors" {...sensors.sensor} />
-                    <Resource name="sensordata" {...sensors.sensordata} />
-                    <Resource name="soil_profiles" {...soil.profile} />
-                    <Resource name="soil_types" {...soil.type} />
-                    <Resource name="transects" {...transects} />
-                    <Resource name="gnss" {...gnss} />
-                    <Resource name="instruments" {...instruments.instrument} />
-                    <Resource name="instrument_channels" {...instruments.channels} >
-                        <Route path=":id/integrate" element={<instruments.channels.integrate />} />
-                    </Resource>
+
                     {permissions ? (
                         <>
+                            <Resource name="projects" {...projects} />
+                            <Resource name="areas" {...areas} />
+                            <Resource name="plots" {...plots.plot} />
+                            <Resource name="plot_samples" {...plots.sample} />
+                            <Resource name="sensors" {...sensors.sensor} />
+                            <Resource name="sensordata" {...sensors.sensordata} />
+                            <Resource name="soil_profiles" {...soil.profile} />
+                            <Resource name="soil_types" {...soil.type} />
+                            <Resource name="transects" {...transects} />
+                            <Resource name="gnss" {...gnss} />
+                            <Resource name="instruments" {...instruments.instrument} />
+                            <Resource name="instrument_channels" {...instruments.channels} >
+                                <Route path=":id/integrate" element={<instruments.channels.integrate />} />
+                            </Resource>
+
                             {permissions === 'admin' ? (
                                 <Resource name="users" {...users} />
                             ) : null}
