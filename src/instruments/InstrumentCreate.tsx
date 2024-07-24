@@ -1,31 +1,31 @@
-/* eslint react/jsx-key: off */
 import {
     Create,
-    DateInput,
-    minValue,
-    NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
     TextField,
-    required,
-    ArrayInput,
-    SimpleFormIterator,
     TextInput,
-    ChipField,
     FileInput,
     FileField,
-    FunctionField,
-    useRecordContext,
+    useNotify,
 } from 'react-admin';
-import { useState, useEffect } from 'react';
-import { Typography } from '@mui/material';
+
 
 const InstrumentCreate = () => {
-    const [selectedArea, setSelectedArea] = useState(null);
-    const record = useRecordContext();
+    const notify = useNotify();
+    const onError = (error) => {
+        if (error.status === 415) {
+            notify(`The file uploaded is unsupported`);
+            return;
+        }
+        notify(`Error: ${error}`);
+    };
+
     return (
-        <Create redirect="show">
+        <Create
+            mutationOptions={{ onError }}
+            redirect="show"
+        >
             <SimpleForm >
                 <TextField source="id" />
                 <TextInput source="name" />
