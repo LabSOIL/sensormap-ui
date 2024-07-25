@@ -127,6 +127,7 @@ export const TransectCreateMap = ({ area_id }) => {
     const addNode = (plot) => {
         // Adds a node to the form context state
         const newNodes = [...getValues('nodes'), plot];
+
         setValue('nodes', newNodes);
     }
 
@@ -149,7 +150,7 @@ export const TransectCreateMap = ({ area_id }) => {
             style={{ width: '100%', height: '500px' }}
             bounds={polygonCoordinates}
             scrollWheelZoom={true}
-            maxZoom={18}
+            maxZoom={20}
         >
             <BaseLayers />
             <Polygon
@@ -177,6 +178,19 @@ export const TransectCreateMap = ({ area_id }) => {
                         </Marker>
                     )
                 }) : null}
+                {record.transects.map((transect, index) => (
+                    <>
+                        <Polyline
+                            key={index}
+                            positions={
+                                transect.nodes.map(node => [node.latitude, node.longitude])
+                            }
+                            color="black"
+                            weight={5}
+                        />
+
+                    </>
+                ))}
             </MarkerClusterGroup>
             {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'red' }} />}
             <MapRecenter />
@@ -208,7 +222,7 @@ export const TransectShowMap = () => {
             style={{ width: '100%', height: '500px' }}
             bounds={mapBounds}
             scrollWheelZoom={true}
-            maxZoom={18}
+            maxZoom={20}
         >
             <BaseLayers />
 
@@ -227,7 +241,7 @@ export const TransectShowMap = () => {
                 )
             }) : null}
 
-            {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'red' }} />}
+            {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'black' }} />}
             <Legend />
         </MapContainer>
     )

@@ -185,7 +185,7 @@ export const LocationFieldPoints = () => {
                             positions={
                                 transect.nodes.map(node => [node.latitude, node.longitude])
                             }
-                            color="red"
+                            color="black"
                             weight={5}
                         />
                         {transect.nodes.length > 1 && (
