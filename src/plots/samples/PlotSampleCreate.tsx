@@ -1,10 +1,7 @@
+import React, { useState, useEffect } from 'react';
 import { Typography } from '@mui/material';
-/* eslint react/jsx-key: off */
 import {
     Create,
-    DateInput,
-    NumberField,
-    minValue,
     NumberInput,
     ReferenceInput,
     SelectInput,
@@ -12,46 +9,120 @@ import {
     TextField,
     TextInput,
     required,
+    minValue,
+    useGetOne,
+    useNotify,
+    Toolbar,
+    SaveButton,
+    useRefresh,
 } from 'react-admin';
+import { useFormContext } from 'react-hook-form';
+import { Grid } from '@mui/material';
+
+
+const SampleToolbar = () => {
+    const notify = useNotify();
+    const { reset } = useFormContext();
+    const refresh = useRefresh();
+    return (
+        <Toolbar>
+            <SaveButton
+                type="button"
+                label="Save and add another"
+                variant="contained"
+                mutationOptions={{
+                    onSuccess: () => {
+                        reset();
+                        window.scrollTo(0, 0);
+                        notify('ra.notification.created', {
+                            type: 'info',
+                            messageArgs: { smart_count: 1 },
+                        });
+                        refresh();
+                    },
+                }}
+            />
+            <SaveButton label="Save and return" />
+        </Toolbar>
+    );
+};
+
+const SampleDetails = () => {
+    // Provides some sample information about the selected plot
+    const { getValues, watch } = useFormContext();
+    const [selectedPlotId, setSelectedPlotId] = useState(null);
+
+    useEffect(() => {
+        const plotId = getValues('plot_id');
+        if (plotId) setSelectedPlotId(plotId);
+    }, [watch('plot_id'),]);
+
+    const { data: plot, isLoading, error } = useGetOne('plots', { id: selectedPlotId });
+
+    if (isLoading) return <Typography>Loading plot details...</Typography>;
+    if (error) return <Typography>Error loading plot details</Typography>;
+    if (!plot) return null;
+
+    return (
+        <div>
+            <Typography variant="body1">Plot Samples for {plot.name}:</Typography>
+            {plot.samples.map(sample => (
+                <Typography key={sample.id} variant="body2">
+                    {sample.name} (Depth: {sample.upper_depth_cm} - {sample.lower_depth_cm} cm, replicate: {sample.replicate})
+                </Typography>
+            ))}
+        </div>
+    );
+};
 
 const PlotSampleCreate = () => {
+    const notify = useNotify();
+    const onError = (error) => {
+        if (error.status === 409) {
+            notify("Either the sample name is not unique, or a sample with the same replicate, upper and lower depth already exists.");
+            window.scrollTo(0, 0);
+            return;
+        }
+        notify(`Error: ${error}`);
+    };
     return (
-        <Create redirect="show">
-            <SimpleForm >
+        <Create redirect="show" mutationOptions={{ onError }}>
+            <SimpleForm toolbar={<SampleToolbar />}>
                 <TextField source="id" />
-                <SelectInput source="name" choices={[
-                    { id: 'A', name: 'A' },
-                    { id: 'B', name: 'B' },
-                    { id: 'C', name: 'C' }
-                ]}
-                    defaultValue={'A'}
-                    helperText="Sample Name"
-                    validate={[required()]}
-                />
-                <ReferenceInput
-                    source="plot_id"
-                    reference="plots"
-                    sort={{ field: 'name', order: 'ASC' }}
-                >
-                    <SelectInput
-                        label="Plot"
-                        source="plot_id"
-                        optionText={(record) => `${record.name}`}
-                        validate={required()}
-                    />
-                </ReferenceInput>
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <ReferenceInput
+                            source="plot_id"
+                            reference="plots"
+                            sort={{ field: 'name', order: 'ASC' }}
+                        >
+                            <SelectInput
+                                label="Plot"
+                                source="plot_id"
+                                optionText="name"
+                                validate={required()}
+                                readOnly
+                            />
+                        </ReferenceInput>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <SampleDetails />
+                    </Grid>
+                </Grid>
 
+                <TextInput source="name" validate={[required()]} />
+                <NumberInput source="replicate" label="Replicate" validate={[required()]} defaultValue={1} />
                 <NumberInput
                     source="upper_depth_cm"
                     label="Upper Depth (cm)"
                     validate={[required(), minValue(0)]}
-                    helperText={<>Upper depth in centimeters from the surface where the sample was taken</>}
+                    helperText={<>Upper-most depth in centimeters relative to the surface where the sample was taken</>}
                 />
                 <NumberInput
                     source="lower_depth_cm"
                     label="Lower Depth (cm)"
                     validate={[required(), minValue(0)]}
-                    helperText={<>Lower depth in centimeters from the surface where the sample was taken</>}
+                    helperText={<>Lower-most depth in centimeters relative to the surface where the sample was taken</>}
                 />
                 <NumberInput source="sample_weight" label="Sample Weight (g)" validate={[required()]} />
                 <NumberInput source="subsample_weight" label="Subsample Weight" />
@@ -84,8 +155,7 @@ const PlotSampleCreate = () => {
                 <NumberInput source="methanogens_per_g" helperText="Methanogens (mcrA gene copy number per g of soil)" />
                 <NumberInput source="methanotrophs_per_g" helperText="Methanotrophs (pmoA gene copy number per g of soil)" />
             </SimpleForm>
-        </Create >
-
+        </Create>
     )
 };
 

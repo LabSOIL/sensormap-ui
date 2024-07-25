@@ -11,18 +11,33 @@ import {
     required,
     NumberField,
     minValue,
+    useGetOne,
+    useNotify,
+    useRefresh,
+    useRedirect,
+    useMutation,
+    usePermissions,
+    TextField,
 } from 'react-admin';
+import { useFormContext } from 'react-hook-form';
+import { Grid } from '@mui/material';
+import { useState, useEffect } from 'react';
+
 
 const PlotSampleEdit = () => {
+    const notify = useNotify();
+    const onError = (error) => {
+        if (error.status === 409) {
+            notify("Either the sample name is not unique, or a sample with the same replicate, upper and lower depth already exists.");
+            window.scrollTo(0, 0);
+            return;
+        }
+        notify(`Error: ${error}`);
+    };
     return (
-        <Edit redirect="show">
+        <Edit redirect="show" mutationOptions={{ onError }}>
             <SimpleForm>
-                <TextInput source="id" disabled />
-                <SelectInput source="name" choices={[
-                    { id: 'A', name: 'A' },
-                    { id: 'B', name: 'B' },
-                    { id: 'C', name: 'C' }
-                ]} defaultValue={'A'} helperText="Sample Name" validate={[required()]} />
+
                 <ReferenceInput
                     source="plot_id"
                     reference="plots"
@@ -31,22 +46,26 @@ const PlotSampleEdit = () => {
                     <SelectInput
                         label="Plot"
                         source="plot_id"
-                        optionText={(record) => `${record.name}`}
+                        optionText="name"
                         validate={required()}
+                        readOnly
                     />
                 </ReferenceInput>
 
+
+                <TextInput source="name" validate={[required()]} />
+                <NumberInput source="replicate" label="Replicate" validate={[required()]} defaultValue={1} />
                 <NumberInput
                     source="upper_depth_cm"
                     label="Upper Depth (cm)"
                     validate={[required(), minValue(0)]}
-                    helperText={<>Upper depth in centimeters from the surface where the sample was taken</>}
+                    helperText={<>Upper-most depth in centimeters relative to the surface where the sample was taken</>}
                 />
                 <NumberInput
                     source="lower_depth_cm"
                     label="Lower Depth (cm)"
                     validate={[required(), minValue(0)]}
-                    helperText={<>Lower depth in centimeters from the surface where the sample was taken</>}
+                    helperText={<>Lower-most depth in centimeters relative to the surface where the sample was taken</>}
                 />
                 <NumberInput source="sample_weight" label="Sample Weight (g)" validate={[required()]} />
                 <NumberInput source="subsample_weight" label="Subsample Weight" />

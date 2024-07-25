@@ -8,7 +8,6 @@ import {
     DeleteButton,
     usePermissions,
     DateField,
-    ReferenceField,
     Labeled,
     NumberField,
     FunctionField,
@@ -16,9 +15,8 @@ import {
     useRedirect,
     useGetOne,
     Button,
-    PrevNextButtons,
 } from "react-admin";
-import { Grid } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import { SedimentChart, MicrobialPieChart } from './Charts';
 import { Link } from 'react-router-dom';
 
@@ -34,7 +32,6 @@ const PlotSampleShowActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
-            <PrevNextButtons />
             {permissions === 'admin' && <>
                 <EditButton />
                 <DeleteButton />
@@ -91,6 +88,7 @@ const ProjectLinkedLabel = () => {
         <><Button onClick={handleClick} style={{ textDecoration: 'none' }}> {record.plot.area.project.name}</Button ></>
     );
 }
+
 const NavigationButton = ({ sample, name, activeSample }) => {
     const record = useRecordContext();
     if (!record) return null;
@@ -112,68 +110,167 @@ const NavigationButton = ({ sample, name, activeSample }) => {
             );
         }
     }
+
+    const buttonStyle = {
+        minWidth: '50px', // Adjust the width as needed for 4-character names
+        padding: '4px 6px',
+        margin: '0 2px',
+    };
+
     return (
         <Button
+            style={buttonStyle}
             color={sample ? 'primary' : 'error'}
             disabled={disabled}
             onClick={handleClick}
-        >{sample ? sample.name : name}</Button>
+        >
+            {sample ? sample.name : name}
+        </Button>
     );
 }
+
+
+
 const PlotSampleArrowNavation = () => {
     // Create a back and forward button if samples A and B exist in the same
     // plot. There are three samples, A B and C. If A and B exist, then we
     // can navigate between them. The current sample is emboldened and there is
     // no link to it. If there is no other sample, fade the text and no link
+
+    // Build a 2D matrix of choices instead of the 1D array of A B C to be
+    // grouped by depths. Each object has an upper_depth_cm, lower_depth_cm,
+    // replicate, and name keys.The two depth keys are to be grouped together,
+    // for example they can be 10 and 0, and 30 and 10, for example, with at
+    // least a replicate of 1 in each, but any number of replicates.
+
+    // The sample representation is the names of the replicates. For example,
+    // if there are
+    // lower, upper, replicate, name
+    // 0,10,1,A1
+    // 10,30,1,B1
+    // 30,50,1,C1
+    // 0,10,2,A2
+    // 0,10,3,A3
+
+    // There should be three rows visibly in the UI:
+    //  0-10 cm A1 A2 A4
+    // 10-30 cm B1
+    // 30-50 cm C1
+
     const record = useRecordContext();
     if (!record) return null;
+    console.log("RECORD", record);
 
-    // Get the related plot, it has samples embedded as a list of objects
     const { data: plot, isPending } = useGetOne('plots', { id: record.plot.id });
     if (isPending) return null;
     if (!plot) return null;
-    const samples = plot.samples;
-    // Go through array of samples and look for name: A and B and C
-    let sampleA = null;
-    let sampleB = null;
-    let sampleC = null;
-    for (let i = 0; i < samples.length; i++) {
-        if (samples[i].name === 'A') {
-            sampleA = samples[i];
-        }
-        if (samples[i].name === 'B') {
-            sampleB = samples[i];
-        }
-        if (samples[i].name === 'C') {
-            sampleC = samples[i];
-        }
-    }
-    const activeSample = record;
 
+    console.log("RELATED SAMPLES", plot.samples);
+
+    // Group samples by their depth range
+    const groupedSamples = plot.samples.reduce((acc, sample) => {
+        const depthKey = `${sample.upper_depth_cm}-${sample.lower_depth_cm} cm`;
+        if (!acc[depthKey]) {
+            acc[depthKey] = [];
+        }
+        acc[depthKey].push(sample);
+        return acc;
+    }, {});
+    console.log("GROUPED SAMPLES", groupedSamples);
 
     return (
-        <div>
-            <NavigationButton sample={sampleA} name="A" activeSample={activeSample} />
-            <NavigationButton sample={sampleB} name="B" activeSample={activeSample} />
-            <NavigationButton sample={sampleC} name="C" activeSample={activeSample} />
-        </div >
+        <Grid container spacing={0}>
+            {Object.keys(groupedSamples).map(depthKey => (
+                <Grid item xs={12} key={depthKey} container alignItems="center">
+                    <Typography variant='body2' align='right' style={{ width: '80px' }}>{depthKey}</Typography>
+                    {groupedSamples[depthKey].map((sample) => (
+                        <NavigationButton
+                            key={sample.replicate}
+                            sample={sample}
+                            name={sample.name}
+                            activeSample={record}
+                        />
+                    ))}
+                </Grid>
+            ))}
+        </Grid>
     );
 }
+
+
+
+// }
+//     const record = useRecordContext();
+//     if (!record) return null;
+//     console.log("RECORD", record);
+//     // Need to get the full document of plot, as the samples.plot.samples
+//     // would be a recursive loop and the other full sample documents are not
+//     // available
+//     const { data: plot, isPending } = useGetOne('plots', { id: record.plot.id });
+//     if (isPending) return null;
+//     if (!plot) return null;
+//     // const { data: relatedSamples, isPending, error } = useGetMany(
+//     //     "plot_samples",
+//     //     { plot_id: record.id }
+//     // );
+
+//     console.log("RELATED SAMPLES", plot.samples);
+
+//     // Using the upper_depth_cm and lower_depth_cm, group all plot.samples
+//     // objects by their depth pair, create an array of the replicate samples
+//     // (replicate, depth and plot_id are uniquely constrained in the DB)
+
+//     const uniqueDepths
+
+
+//     return
+//     // Get the related plot, it has samples embedded as a list of objects
+//     const samples = plot.samples;
+//     // Go through array of samples and look for name: A and B and C
+//     let sampleA = null;
+//     let sampleB = null;
+//     let sampleC = null;
+//     for (let i = 0; i < samples.length; i++) {
+//         if (samples[i].name === 'A') {
+//             sampleA = samples[i];
+//         }
+//         if (samples[i].name === 'B') {
+//             sampleB = samples[i];
+//         }
+//         if (samples[i].name === 'C') {
+//             sampleC = samples[i];
+//         }
+//     }
+//     const activeSample = record;
+
+
+//     return (
+//         <div>
+//             <NavigationButton sample={sampleA} name="A" activeSample={activeSample} />
+//             <NavigationButton sample={sampleB} name="B" activeSample={activeSample} />
+//             <NavigationButton sample={sampleC} name="C" activeSample={activeSample} />
+//         </div >
+//     );
+// }
 
 export const PlotSampleShow = () => (
     <Show title={<PlotSampleShowTitle />} actions={<PlotSampleShowActions />}>
         <SimpleShowLayout>
-            <Grid container spacing={2}>
-                <Grid item xs={3}>
+            <Grid container spacing={0}>
+                <Grid item xs={4} align='center'>
+                    <Typography variant="body2" >Samples</Typography>
                     <PlotSampleArrowNavation />
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={2} align='center'>
+                    <Typography variant="body2" >Plot</Typography>
                     <PlotLinkedLabel />
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={2} align='center'>
+                    <Typography variant="body2" >Area</Typography>
                     <AreaLinkedLabel />
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={2} align='center'>
+                    <Typography variant="body2" >Project</Typography>
                     <ProjectLinkedLabel />
                 </Grid>
                 <Grid item xs={12}>
@@ -194,7 +291,11 @@ export const PlotSampleShow = () => (
                     <Labeled label="Depth (cm)">
                         <FunctionField render={record => `${record.upper_depth_cm} - ${record.lower_depth_cm} cm`} />
                     </Labeled>
-
+                </Grid>
+                <Grid item xs={3}>
+                    <Labeled label="Replicate">
+                        <NumberField source="replicate" />
+                    </Labeled>
                 </Grid>
                 <Grid item xs={3}>
                     <Labeled label="Created On">

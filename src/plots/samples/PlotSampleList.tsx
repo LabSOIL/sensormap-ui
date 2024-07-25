@@ -18,6 +18,8 @@ import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
 import { CreateButton, ExportButton } from "ra-ui-materialui";
 import jsonExport from 'jsonexport/dist';
+import { Tooltip } from 'react-leaflet';
+import { Typography } from '@mui/material';
 
 const postFilters = [
     <TextInput label="Search" source="q" alwaysOn />,
@@ -40,7 +42,8 @@ const PlotSampleListActions = (props) => {
     return (
         <TopToolbar className={className}>
             {permissions === 'admin' && <>
-                <CreateButton basePath={basePath} />
+                <Typography variant="body2">Create new samples from within the Plot view</Typography>
+                <CreateButton disabled />
                 <ImportButton
                     parseConig={{ dynamicTyping: true }}
                     postCommitCallback={(response) => {
@@ -138,12 +141,13 @@ export const PlotSampleList = () => {
             exporter={exporter}
         >
             <Datagrid rowClick="show">
-                <TextField source="plot.area.project.name" label="Project" />
+                <TextField source="plot.area.project.name" label="Project" sortable={false} />
                 <FieldWrapper label="Plot"><PlotNameField /></FieldWrapper>
-                <TextField source="plot.area.name" label="Area" />
+                <TextField source="plot.area.name" label="Area" sortable={false} />
                 <TextField source="name" />
                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
+                <NumberField source="replicate" label="Replicate" />
                 <FunctionField label="Microbial fields (filled/total)" render={record => {
                     const microbialFieldsFilled: number = (
                         Number(record.fungi_per_g ? 1 : 0) +

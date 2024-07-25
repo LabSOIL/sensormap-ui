@@ -14,7 +14,6 @@ import {
 } from "react-admin";
 import { Grid, } from '@mui/material';
 import { TransectShowMap } from "../maps/Transects";
-import { Box } from '@mui/system';
 
 const TransectTitle = () => {
     const record = useRecordContext();
@@ -48,7 +47,6 @@ export const TransectShow = () => {
                 <DateField source="last_updated" label="Last updated" showTime />
                 <Grid container spacing={2}>
                     <Grid item xs={6}>
-
                         <ArrayField source="nodes">
                             <Datagrid rowClick={handleRowClick} bulkActionButtons={false}>
                                 <TextField source="id" label="Plot ID" />
@@ -58,12 +56,9 @@ export const TransectShow = () => {
                                 <TextField label="Elevation" source="coord_z" />
                             </Datagrid>
                         </ArrayField>
-
                     </Grid>
                     <Grid item xs={6}>
-
                         <TransectShowMap />
-
                     </Grid>
                 </Grid>
             </SimpleShowLayout>

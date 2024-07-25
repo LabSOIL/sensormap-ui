@@ -53,27 +53,6 @@ const ColoredLine = ({ color, height }) => (
 );
 
 
-const CreateManyButton = () => {
-    const redirect = useRedirect();
-    const record = useRecordContext();
-
-    return (
-        <Button
-            label="Add Many"
-            onClick={(event) => {
-                redirect(
-                    '/plot_samples/createMany',
-                    undefined,
-                    undefined,
-                    undefined,
-                    { record: { plot_id: record.id } }
-                );
-            }}
-            startIcon={< LibraryAddIcon fontSize='inherit' />}
-        />
-    )
-}
-
 const CreateSampleButton = () => {
     const record = useRecordContext();
 
@@ -182,8 +161,8 @@ export const PlotShow = () => {
                                 <TextField source="name" />
                                 <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
                                 <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
-                                <NumberField source="sample_weight" label="Weight (g)" />
-                                <DateField source="sampled_on" />
+                                <NumberField source="replicate" label="Replicate" />
+                                <DateField source="last_updated" />
                             </Datagrid>
                         </ReferenceManyField>
 
