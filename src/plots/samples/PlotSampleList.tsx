@@ -13,6 +13,8 @@ import {
     Link,
     downloadCSV,
     FunctionField,
+    FilterButton,
+    NumberInput,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
@@ -22,7 +24,11 @@ import { Tooltip } from 'react-leaflet';
 import { Typography } from '@mui/material';
 
 const postFilters = [
-    <TextInput label="Search" source="q" alwaysOn />,
+    <TextInput label="Project/Plot/Area" source="q" alwaysOn />,
+    <TextInput label="Name" source="name" alwaysOn />,
+    <NumberInput label="Replicate" source="replicate" transform={v => Math.floor(v / 100)} />,
+    <NumberInput label="Upper Depth (cm)" source="upper_depth_cm" transform={v => Math.floor(v / 100)} />,
+    <NumberInput label="Lower Depth (cm)" source="lower_depth_cm" transform={v => Math.floor(v / 100)} />,
 ];
 
 
@@ -42,7 +48,8 @@ const PlotSampleListActions = (props) => {
     return (
         <TopToolbar className={className}>
             {permissions === 'admin' && <>
-                <Typography variant="body2">Create new samples from within the Plot view</Typography>
+                <FilterButton filters={postFilters} />
+                <Typography variant="body2">Create from within Plot view</Typography>
                 <CreateButton disabled />
                 <ImportButton
                     parseConig={{ dynamicTyping: true }}

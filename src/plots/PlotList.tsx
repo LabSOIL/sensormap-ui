@@ -15,6 +15,7 @@ import {
     Loading,
     useCreatePath,
     useNotify,
+    NumberInput,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
@@ -22,7 +23,8 @@ import { CreateButton, ExportButton } from "ra-ui-materialui";
 import jsonExport from 'jsonexport/dist';
 
 const postFilters = [
-    <TextInput label="Search" source="q" alwaysOn />,
+    <TextInput label="Name" source="name" alwaysOn />,
+    <TextInput label="Area/Gradient" source="q" alwaysOn />,
 ];
 
 const PlotListActions = (props) => {
@@ -142,15 +144,9 @@ export const PlotList = () => {
                 <TextField source="name" />
                 <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
                 <FunctionField render={record => `${toTitleCase(record.gradient)}`} label="Gradient" />
-                <TextField source="coord_x" label="X (m)" sortable={false} />
-                <TextField source="coord_y" label="Y (m)" sortable={false} />
-                <TextField source="coord_z" label="Elevation (m)" sortable={false} />
                 <DateField source="created_on" />
                 <DateField source="last_updated" />
                 <FunctionField render={record => `${record.samples.length}`} label="Samples" />
-                <ReferenceField label="Soil Type" source="soil_type_id" reference="soil_types" sortable={false} >
-                    <TextField source="name" />
-                </ReferenceField>
             </Datagrid>
         </List >
     );
