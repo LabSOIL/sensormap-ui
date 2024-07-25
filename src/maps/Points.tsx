@@ -10,7 +10,8 @@ import {
     Marker,
     Popup,
     Polygon,
-    Tooltip
+    Tooltip,
+    Polyline
 } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import { BaseLayers } from './Layers';
@@ -44,34 +45,18 @@ const soilProfileIcon = L.AwesomeMarkers.icon({
     markerColor: 'red'
 });
 
+const transectIcon = L.AwesomeMarkers.icon({
+    icon: 'road',
+    iconColor: 'white',
+    prefix: 'fa',
+    markerColor: 'black'
+});
+
 export const LocationFieldPoints = () => {
     const record = useRecordContext();
-    if (!record) return <Loading />;
-
     const createPath = useCreatePath();
-    const {
-        data: plotData,
-        isLoading: plotLoading,
-        error: plotError
-    } = useGetManyReference(
-        'plots', { target: 'area_id', id: record.id }
-    );
-    const {
-        data: sensorData,
-        isLoading: sensorLoading,
-        error: sensorError
-    } = useGetManyReference(
-        'sensors', { target: 'area_id', id: record.id }
-    );
-    const {
-        data: soilProfileData,
-        isLoading: soilProfileLoading,
-        error: soilProfileError
-    } = useGetManyReference(
-        'soil_profiles', { target: 'area_id', id: record.id }
-    );
 
-    if (!record || plotLoading || sensorLoading || soilProfileLoading) return <Loading />;
+    if (!record) return <Loading />;
 
     const flipCoordinates = (coords) => {
         return coords.map(coord => [coord[1], coord[0]]);
@@ -89,9 +74,10 @@ export const LocationFieldPoints = () => {
     const polygonCoordinates = flipPolygonCoordinates(record["geom"]["coordinates"]);
 
     const getLowestSampleText = (point) => {
-        if (point.samples.length === 0) {
+        if (!point.samples || point.samples.length === 0) {
             return null;
         }
+
         // For all of the samples in the array, find the sample that has the highest upper_depth_cm
         const lowest_sample = point.samples.reduce((prev, current) => {
             return (prev.upper_depth_cm > current.upper_depth_cm) ? prev : current;
@@ -112,12 +98,18 @@ export const LocationFieldPoints = () => {
         )
     }
 
+    const calculateMiddlePosition = (coord1, coord2) => {
+        const lat = (coord1[0] + coord2[0]) / 2;
+        const lng = (coord1[1] + coord2[1]) / 2;
+        return [lat, lng];
+    };
+
     return (
         <MapContainer
             style={{ width: '100%', height: '500px' }}
             bounds={polygonCoordinates}
             scrollWheelZoom={true}
-            maxZoom={18}
+            maxZoom={20}
         >
             <BaseLayers />
             <Polygon
@@ -126,7 +118,7 @@ export const LocationFieldPoints = () => {
                 interactive={false}
             />
             <MarkerClusterGroup maxClusterRadius={40} chunkedLoading >
-                {sensorData.map((sensor, index) => (
+                {record.sensors.map((sensor, index) => (
                     <Marker
                         key={index}
                         position={[sensor["latitude"], sensor["longitude"]]}
@@ -144,7 +136,7 @@ export const LocationFieldPoints = () => {
                         </Popup>
                     </Marker>
                 ))}
-                {plotData ? plotData.map((plot, index) => {
+                {record.plots ? record.plots.map((plot, index) => {
                     return (
                         < Marker
                             key={index}
@@ -166,8 +158,8 @@ export const LocationFieldPoints = () => {
                     )
                 }) : null}
 
-                {soilProfileData.map((soilProfile, index) => (
-                    < Marker
+                {record.soil_profiles.map((soilProfile, index) => (
+                    <Marker
                         key={index}
                         position={[soilProfile["latitude"], soilProfile["longitude"]]}
                         icon={soilProfileIcon}
@@ -184,8 +176,52 @@ export const LocationFieldPoints = () => {
                         </Popup>
                     </Marker>
                 ))}
+
+
+                {record.transects.map((transect, index) => (
+                    <>
+                        <Polyline
+                            key={index}
+                            positions={
+                                transect.nodes.map(node => [node.latitude, node.longitude])
+                            }
+                            color="red"
+                            weight={5}
+                        />
+                        {transect.nodes.length > 1 && (
+                            <Marker
+                                position={
+                                    calculateMiddlePosition(
+                                        [transect.nodes[0].latitude, transect.nodes[0].longitude],
+                                        [transect.nodes[1].latitude, transect.nodes[1].longitude]
+                                    )
+                                }
+                                icon={transectIcon}
+                            >
+                                <Tooltip permanent>
+                                    {transect.name}
+                                </Tooltip>
+                                <Popup>
+                                    <b>Name</b>: {transect["name"]}
+                                    <br />
+                                    <b>Description</b>: {transect["description"]}
+                                    <br />
+                                    Nodes:
+                                    <ul>
+                                        {transect.nodes.map((node, index) => (
+                                            <li key={index}>{node.name}</li>
+                                        ))}
+                                    </ul>
+                                    <Link to={createPath({ type: 'show', resource: 'transects', id: transect['id'] })}>
+                                        Go to Transect
+                                    </Link>
+                                </Popup>
+                            </Marker>
+                        )}
+                    </>
+                ))}
             </MarkerClusterGroup>
-            <Legend /> {/* Add the Legend component */}
-        </MapContainer>
+            <Legend />
+        </MapContainer >
     );
-};
+}

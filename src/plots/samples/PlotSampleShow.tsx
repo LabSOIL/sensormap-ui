@@ -16,7 +16,7 @@ import {
     useRedirect,
     useGetOne,
     Button,
-    useCreate,
+    PrevNextButtons,
 } from "react-admin";
 import { Grid } from '@mui/material';
 import { SedimentChart, MicrobialPieChart } from './Charts';
@@ -34,6 +34,7 @@ const PlotSampleShowActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
+            <PrevNextButtons />
             {permissions === 'admin' && <>
                 <EditButton />
                 <DeleteButton />

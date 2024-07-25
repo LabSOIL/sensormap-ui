@@ -34,6 +34,10 @@ const Legend = () => {
                         <i class="fa fa-clipboard" style="color: yellow; background: red; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
                         Soil Profile
                     </div>
+                    <div style="display: flex; align-items: center;">
+                        <i class="fa fa-road" style="color: white; background: black; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
+                        Transect
+                        </div>
                 </div>
             `;
             return div;

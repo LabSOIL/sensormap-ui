@@ -9,17 +9,22 @@ import {
     usePermissions,
     ReferenceField,
     DateField,
+    Labeled
 } from "react-admin";
 import { LocationFieldPoints } from '../maps/Points';
+import { Grid } from '@mui/material';
+import { Box } from '@mui/system';
 
 const AreaShowActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
-            {permissions === 'admin' && <>
-                <EditButton />
-                <DeleteButton />
-            </>}
+            {permissions === 'admin' && (
+                <>
+                    <EditButton />
+                    <DeleteButton />
+                </>
+            )}
         </TopToolbar>
     );
 }
@@ -28,42 +33,89 @@ export const AreaShow = () => {
     return (
         <Show actions={<AreaShowActions />} >
             <SimpleShowLayout>
-                <TextField source="name" />
-                <TextField source="description" />
-                <DateField source="last_updated" showTime/>
-                <ReferenceField
-                    label="Project"
-                    source="project_id"
-                    reference="projects"
-                    link="show"
-                    emptyText="N/A"
-                    sortable={false}
-                >
-                    <TextField source="name" />
-                </ReferenceField>
-                <ReferenceManyCount
-                    label="Sensors"
-                    reference="sensors"
-                    target="area_id"
-                    link
-                />
-                <ReferenceManyCount
-                    label="Plots"
-                    reference="plots"
-                    target="area_id"
-                    link
-                />
-                <ReferenceManyCount
-                    label="Soil Profiles"
-                    reference="soil_profiles"
-                    target="area_id"
-                    link
-                />
-                
-                <LocationFieldPoints />
+                <Grid container spacing={2}>
+                    <Grid item xs={3}>
+                        <Grid item xs={6}>
+                            <Labeled label="Name">
+                                <TextField source="name" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Description">
+                                <TextField source="description" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Last Updated">
+                                <DateField source="last_updated" showTime />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Project">
+                                <ReferenceField
+                                    label="Project"
+                                    source="project_id"
+                                    reference="projects"
+                                    link
+                                />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Sensors">
+                                <ReferenceManyCount
+                                    label="Sensors"
+                                    reference="sensors"
+                                    target="area_id"
+                                    link
+                                />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Plots">
+                                <ReferenceManyCount
+                                    label="Plots"
+                                    reference="plots"
+                                    target="area_id"
+                                    link
+                                />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Soil Profiles">
+                                <ReferenceManyCount
+                                    label="Soil Profiles"
+                                    reference="soil_profiles"
+                                    target="area_id"
+                                    link
+                                />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Transects">
+                                <ReferenceManyCount
+                                    label="Transects"
+                                    reference="transects"
+                                    target="area_id"
+                                    link
+                                />
+                            </Labeled>
+                        </Grid>
+                    </Grid>
+
+                    <Grid item xs={9}>
+                        <LocationFieldPoints />
+                    </Grid>
+                </Grid>
             </SimpleShowLayout>
         </Show>
-    )
+    );
 };
 
 export default AreaShow;

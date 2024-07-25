@@ -211,11 +211,6 @@ export const TransectShowMap = () => {
             maxZoom={18}
         >
             <BaseLayers />
-            {/* <Polygon
-                positions={polygonCoordinates}
-                pathOptions={{ color: record.project.color, opacity: 1, fillOpacity: 0.2 }}
-                interactive={false}
-            /> */}
 
             {record.nodes && record.nodes.length > 0 ? record.nodes.map((plot, index) => {
                 return (
@@ -233,7 +228,6 @@ export const TransectShowMap = () => {
             }) : null}
 
             {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'red' }} />}
-            {/* <MapRecenter /> */}
             <Legend />
         </MapContainer>
     )

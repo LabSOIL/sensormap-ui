@@ -16,7 +16,7 @@ import {
     FunctionField,
     useRecordContext,
 } from 'react-admin';
-import TransectCreateMap from '../maps/TransectCreate';
+import TransectCreateMap from '../maps/Transects';
 import { useState, useEffect } from 'react';
 import { Typography } from '@mui/material';
 
