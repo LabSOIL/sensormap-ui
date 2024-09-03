@@ -2,29 +2,19 @@ import {
     Show,
     SimpleShowLayout,
     TextField,
-    NumberField,
     ReferenceField,
-    TabbedShowLayout,
-    Datagrid,
-    List,
     useRecordContext,
-    ArrayField,
     EditButton,
     TopToolbar,
     DeleteButton,
     usePermissions,
     DateField,
+    Labeled,
+    FunctionField,
+    useTheme,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
-import {
-    LineChart,
-    Line,
-    Label,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-} from 'recharts';
+import { Grid } from '@mui/material';
+import Plot from 'react-plotly.js';
 
 
 const SensorShowActions = () => {
@@ -36,105 +26,147 @@ const SensorShowActions = () => {
     );
 }
 
+export const SensorPlot = () => {
+    const record = useRecordContext();
+    const [theme, setTheme] = useTheme();
+    if (!record) return null;
+
+    const x = record.data.map((d) => d.time_utc);
+    const traces = [
+        {
+            x: x,
+            y: record.data.map((d) => d.temperature_1),
+            name: 'Temperature 1',
+        },
+        {
+            x: x,
+            y: record.data.map((d) => d.temperature_2),
+            name: 'Temperature 2',
+        },
+        {
+            x: x,
+            y: record.data.map((d) => d.temperature_3),
+            name: 'Temperature 3',
+        },
+        {
+            x: x,
+            y: record.data.map((d) => d.temperature_average),
+            name: 'Temperature Average',
+        },
+        {
+            x: x,
+            y: record.data.map((d) => d.soil_moisture_count),
+            yaxis: 'y2',
+            name: 'Soil Moisture'
+        },
+    ];
+
+    return (
+        <Plot
+            data={traces}
+            layout={{
+                width: 800,
+                autosize: true,
+                paper_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
+                plot_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
+
+                font: {
+                    color: theme === 'dark' ? 'white' : 'black',
+                    size: 12,
+                },
+                margin: {
+                    l: 50,  // Left margin
+                    r: 50,  // Right margin
+                    t: 50,  // Top margin
+                    b: 50,  // Bottom margin
+                },
+                yaxis: {
+                    title: 'Temperature (°C)',
+                    titlefont: { color: 'rgb(31, 119, 180)' },
+                    tickfont: { color: 'rgb(31, 119, 180)' },
+                    gridcolor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                },
+                yaxis2: {
+                    title: 'Soil Moisture',
+                    titlefont: { color: 'rgb(148, 103, 189)' },
+                    tickfont: { color: 'rgb(148, 103, 189)' },
+                    overlaying: 'y',
+                    side: 'right'
+                },
+            }}
+        />
+    );
+};
+
 const SensorShow = () => (
     <Show actions={<SensorShowActions />}>
         <SimpleShowLayout>
-            <TextField source="id" />
-            <TextField source="name" />
-            <DateField source="last_updated" showTime/>
-            <TextField source="description" />
-            <TextField source="comment" />
-            <TextField source="elevation" />
-            <NumberField source="latitude" />
-            <NumberField source="longitude" />
-            <ReferenceField
-                source='area_id'
-                reference='areas'
-                link="show"
-            >
-                <TextField source='name' />
-            </ReferenceField>
-            <TextField
-                label="Records"
-                source="data.qty_records"
-                sortable={false}
-            />
-            <DateField
-                label="Data start"
-                source="data.start_date"
-                sortable={false}
-                showTime={true}
-            />
-            <DateField
-                label="Data end"
-                source="data.end_date"
-                sortable={false}
-                showTime={true}
-            />
+            <Grid container spacing={2}>
+                <Grid item xs={2}>
+                    <Grid item xs={6}>
+                        <Labeled label="Name">
+                            <TextField source="name" />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Area">
+                            <ReferenceField
+                                source='area_id'
+                                reference='areas'
+                                link="show"
+                            >
+                                <TextField source='name' />
+                            </ReferenceField>
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6} />
+                    <Grid item xs={6}>
+                        <Labeled label="Last Updated">
+                            <DateField source="last_updated" showTime />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6} />
+                    <Grid item xs={6}>
+                        <Labeled label="XY Coordinates (m)">
+                            <FunctionField render={record =>
+                                `${record.coord_x}, ${record.coord_y}`}
+                                label="Coordinates"
+                            />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6} />
+                    <Grid item xs={6}>
+                        <Labeled label="Elevation (m)">
+                            <TextField source="coord_z" />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Description">
+                            <TextField source="description" />
 
-            <TabbedShowLayout>
-                <TabbedShowLayout.Tab label="Plot">
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6} />
+                    <Grid item xs={6}>
+                        <Labeled label="Notes/Comments">
+                            <TextField source="comment" />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6} />
+                    <Grid item xs={6}>
+                        <Labeled label="Serial Number">
+                            <TextField source="serial_number" />
+                        </Labeled>
+                    </Grid>
+                </Grid>
+
+                <Grid item xs={10}>
                     <SensorPlot source="temperature_plot" />
-                </TabbedShowLayout.Tab>
-                {/* <TabbedShowLayout.Tab label="summary">
-                    <List storeKey={false}>
-                        <ArrayField source="data">
-                            <Datagrid isRowSelectable={false}>
-                                <TextField source="time" />
-                                <TextField source="temperature_1" />
-                                <TextField source="temperature_2" />
-                                <TextField source="temperature_3" />
-                                <TextField source="soil_moisture_count" />
-                            </Datagrid>
-                        </ArrayField>
-                    </List>
-                </TabbedShowLayout.Tab> */}
-                <TabbedShowLayout.Tab label="Upload instrument data">
-
-                </TabbedShowLayout.Tab>
-
-            </TabbedShowLayout>
+                </Grid>
+            </Grid>
         </SimpleShowLayout>
+
     </Show >
 );
 
 export default SensorShow;
-
-
-export const SensorPlot = ({ source }) => {
-    const record = useRecordContext();
-    const data = record[source]
-
-    return (
-        <LineChart
-            width={800}
-            height={400}
-            data={data}
-            margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-            }}
-        >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" >
-                <Label value="Time" offset={-5} position="insideBottom" />
-            </XAxis>
-            <YAxis domain={['dataMin', 'dataMax']}>
-                <Label value="Temperature (°C)" angle={-90} offset={5} position="insideLeft" />
-            </YAxis>
-            <Tooltip />
-            <Legend />
-
-            <Line type="monotone" dataKey="temperature_1" stroke="#8884d8" activeDot={{ r: 8 }} />
-            <Line type="monotone" dataKey="temperature_2" stroke="#82ca9d" activeDot={{ r: 8 }} />
-            <Line type="monotone" dataKey="temperature_3" stroke="#ffc658" activeDot={{ r: 8 }} />
-
-
-
-        </LineChart >
-
-    );
-
-};

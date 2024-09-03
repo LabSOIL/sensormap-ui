@@ -15,15 +15,15 @@ import {
     FunctionField,
     FilterButton,
     NumberInput,
+    CreateButton,
+    ExportButton,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
-import { CreateButton, ExportButton } from "ra-ui-materialui";
 import jsonExport from 'jsonexport/dist';
-import { Tooltip } from 'react-leaflet';
 import { Typography } from '@mui/material';
 
-const postFilters = [
+const filterOptions = [
     <TextInput label="Project/Plot/Area" source="q" alwaysOn />,
     <TextInput label="Name" source="name" alwaysOn />,
     <NumberInput label="Replicate" source="replicate" transform={v => Math.floor(v / 100)} />,
@@ -48,7 +48,7 @@ const PlotSampleListActions = (props) => {
     return (
         <TopToolbar className={className}>
             {permissions === 'admin' && <>
-                <FilterButton filters={postFilters} />
+                <FilterButton filters={filterOptions} />
                 <Typography variant="body2">Create from within Plot view</Typography>
                 <CreateButton disabled />
                 <ImportButton
@@ -140,7 +140,7 @@ export const PlotSampleList = () => {
 
     return (
         <List
-            filters={postFilters}
+            filters={filterOptions}
             actions={<PlotSampleListActions />}
             storeKey={false}
             empty={false}

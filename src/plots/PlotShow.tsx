@@ -19,6 +19,7 @@ import {
     ReferenceManyField,
     Loading,
     ArrayField,
+    useCreatePath,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
@@ -93,9 +94,13 @@ const ImageField = ({ source }) => {
 
 export const PlotShow = () => {
     const redirect = useRedirect();
+    const createPath = useCreatePath();
 
     const handleRowClick = (id, basePath, record) => {
-        redirect('show', 'transects', id);
+        return createPath({ type: 'show', resource: 'transects', id: id });
+    }
+    const handleRowClickSensor = (id, basePath, record) => {
+        return createPath({ type: 'show', resource: 'sensors', id: id });
     }
     return (
         <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
@@ -176,6 +181,13 @@ export const PlotShow = () => {
                 <ArrayField source="transects">
                     <Datagrid rowClick={handleRowClick} bulkActionButtons={false}>
                         <TextField source="id" label="Transect ID" />
+                    </Datagrid>
+                </ArrayField>
+                <ArrayField source="sensors" label="Nearest sensors">
+                    <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
+                        <TextField source="name" label="Name" />
+                        <NumberField source="distance" label="Distance (m)" />
+                        <NumberField source="elevation_difference" label="Elevation difference (m)" />
                     </Datagrid>
                 </ArrayField>
             </SimpleShowLayout>

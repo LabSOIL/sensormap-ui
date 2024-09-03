@@ -29,7 +29,6 @@ const TransectCreate = () => {
                 <TextField source="id" />
                 <ReferenceInput source="area_id" reference="areas" >
                     <SelectInput
-                        optionText="name"
                         optionText={(record) => `${record.name} (${record.plots.length} plots)`}
                         validate={[required()]}
                         onChange={(record) => { setSelectedArea(record.target.value) }} />

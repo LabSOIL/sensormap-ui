@@ -58,9 +58,7 @@ export const AreaShow = () => {
                                 <ReferenceField
                                     label="Project"
                                     source="project_id"
-                                    reference="projects"
-                                    link
-                                />
+                                    reference="projects" />
                             </Labeled>
                         </Grid>
                         <Grid item xs={6} />

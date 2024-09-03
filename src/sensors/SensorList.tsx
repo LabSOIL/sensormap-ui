@@ -2,23 +2,11 @@ import {
     List,
     Datagrid,
     TextField,
-    ReferenceField,
     usePermissions,
     TopToolbar,
     CreateButton,
     ExportButton,
-    NumberField,
-    DateField,
-    ReferenceManyCount,
-    ArrayField,
-    SavedQueriesList,
-    FilterLiveSearch,
-    FilterList,
-    FilterListItem
 } from "react-admin";
-import { Card, CardContent } from '@mui/material';
-import MailIcon from '@mui/icons-material/MailOutline';
-import CategoryIcon from '@mui/icons-material/LocalOffer';
 
 const SensorListActions = () => {
     const { permissions } = usePermissions();
@@ -45,36 +33,9 @@ const SensorList = () => {
                 <TextField source="name" />
                 <TextField source="description" />
                 <TextField source="comment" />
-                <NumberField source="elevation" />
-                <NumberField source="latitude" />
-                <NumberField source="longitude" />
-                <TextField
-                    label="Records"
-                    source="data.qty_records"
-                    sortable={false}
-                />
-                <DateField
-                    label="Data start"
-                    source="data.start_date"
-                    sortable={false}
-                    showTime={true}
-                />
-                <DateField
-                    label="Data end"
-                    source="data.end_date"
-                    sortable={false}
-                    showTime={true}
-                />
-                <ReferenceField
-                    source='area_id'
-                    reference='areas'
-                    link="show"
-                >
-                    <TextField source='name' />
-                </ReferenceField>
+                <TextField source='area.name' />
             </Datagrid>
         </List >
-
     )
 };
 

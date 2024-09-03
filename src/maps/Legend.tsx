@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
+import { useTheme } from 'react-admin';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
@@ -7,6 +8,7 @@ import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 
 const Legend = () => {
     const map = useMap(); // Get the map instance
+    const [theme, setTheme] = useTheme();
 
     useEffect(() => {
         const legend = L.control({ position: 'bottomright' });
@@ -15,11 +17,12 @@ const Legend = () => {
             const div = L.DomUtil.create('div', 'info legend');
             div.innerHTML = `
                 <div style="
-                    background: rgba(255, 255, 255, 0.5);
+                    background: rgba(255, 255, 255, 0.9);
                     padding: 10px;
                     border: 2px solid black;
                     border-radius: 5px;
                     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                    color: black;
                 ">
                     <h4 style="margin-top: 0;">Legend</h4>
                     <div style="display: flex; align-items: center; margin-bottom: 5px;">

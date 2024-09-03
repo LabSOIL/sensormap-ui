@@ -6,7 +6,6 @@ import {
     useGetList,
     usePermissions,
     TopToolbar,
-    ReferenceField,
     DateField,
     FunctionField,
     downloadCSV,
@@ -15,11 +14,11 @@ import {
     Loading,
     useCreatePath,
     useNotify,
-    NumberInput,
+    CreateButton,
+    ExportButton,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
-import { CreateButton, ExportButton } from "ra-ui-materialui";
 import jsonExport from 'jsonexport/dist';
 
 const postFilters = [
