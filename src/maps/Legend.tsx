@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import { useTheme } from 'react-admin';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 
-const Legend = () => {
+const Legend = ({ layers, toggleLayer }) => {
     const map = useMap(); // Get the map instance
-    const [theme, setTheme] = useTheme();
 
     useEffect(() => {
         const legend = L.control({ position: 'bottomright' });
@@ -25,32 +23,48 @@ const Legend = () => {
                     color: black;
                 ">
                     <h4 style="margin-top: 0;">Legend</h4>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div id="sensor-layer" style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer; ${!layers.sensors.visible ? 'opacity: 0.5;' : ''
+                }">
                         <i class="fa fa-temperature-low" style="color: yellow; background: blue; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
-                        Sensor
+                        <span>Sensor</span>
                     </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <div id="plot-layer" style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer; ${!layers.plots.visible ? 'opacity: 0.5;' : ''
+                }">
                         <i class="fa fa-trowel" style="color: black; background: green; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
-                        Plot
+                        <span>Plot</span>
                     </div>
-                    <div style="display: flex; align-items: center;">
+                    <div id="soil-profile-layer" style="display: flex; align-items: center; cursor: pointer; ${!layers.soil_profiles.visible ? 'opacity: 0.5;' : ''
+                }">
                         <i class="fa fa-clipboard" style="color: yellow; background: red; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
-                        Soil Profile
+                        <span>Soil Profile</span>
                     </div>
-                    <div style="display: flex; align-items: center;">
+                    <div id="transect-layer" style="display: flex; align-items: center; cursor: pointer; ${!layers.transects.visible ? 'opacity: 0.5;' : ''
+                }">
                         <i class="fa fa-road" style="color: white; background: black; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
-                        Transect
-                        </div>
+                        <span>Transect</span>
+                    </div>
                 </div>
             `;
             return div;
         };
 
         legend.addTo(map);
+
+        // Add event listeners to handle clicking
+        const sensorLayer = document.getElementById('sensor-layer');
+        const plotLayer = document.getElementById('plot-layer');
+        const soilProfileLayer = document.getElementById('soil-profile-layer');
+        const transectLayer = document.getElementById('transect-layer');
+
+        sensorLayer.addEventListener('click', () => toggleLayer('sensors'));
+        plotLayer.addEventListener('click', () => toggleLayer('plots'));
+        soilProfileLayer.addEventListener('click', () => toggleLayer('soil_profiles'));
+        transectLayer.addEventListener('click', () => toggleLayer('transects'));
+
         return () => {
             legend.remove();
         };
-    }, [map]);
+    }, [map, layers, toggleLayer]);
 
     return null;
 };

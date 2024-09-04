@@ -23,6 +23,7 @@ import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 import Legend from './Legend'; // Import the Legend component
 import MarkerClusterGroup from 'react-leaflet-cluster'
+import React, { useState } from 'react';
 
 const sensorIcon = L.AwesomeMarkers.icon({
     icon: 'temperature-low',
@@ -58,52 +59,31 @@ export const LocationFieldPoints = () => {
 
     if (!record) return <Loading />;
 
-    const flipCoordinates = (coords) => {
-        return coords.map(coord => [coord[1], coord[0]]);
-    };
-
-    const flipPolygonCoordinates = (polygon) => {
-        return polygon.map(ring => flipCoordinates(ring));
-    };
-
-    if (record && !record.geom) {
-        return (<><Typography variant="h6">No location data available</Typography><br />
-            <Typography variant="caption">Map of points will show when data is assigned to Area</Typography></>)
-    }
+    const flipCoordinates = (coords) => coords.map(coord => [coord[1], coord[0]]);
+    const flipPolygonCoordinates = (polygon) => polygon.map(ring => flipCoordinates(ring));
 
     const polygonCoordinates = flipPolygonCoordinates(record["geom"]["coordinates"]);
 
-    const getLowestSampleText = (point) => {
-        if (!point.samples || point.samples.length === 0) {
-            return null;
-        }
+    // Define the state to track visibility of layers
+    const [layersVisibility, setLayersVisibility] = useState({
+        sensors: { visible: true, label: 'Sensors' },
+        plots: { visible: true, label: 'Plots' },
+        soil_profiles: { visible: true, label: 'Soil Profiles' },
+        transects: { visible: true, label: 'Transects' }
+    });
 
-        // For all of the samples in the array, find the sample that has the highest upper_depth_cm
-        const lowest_sample = point.samples.reduce((prev, current) => {
-            return (prev.upper_depth_cm > current.upper_depth_cm) ? prev : current;
-        });
-        return (
-            <div><br />
-                <b>Samples:</b> {point.samples.length}
-                <br />
-                <b>Lowest sample:</b> {lowest_sample.name}
-                <br />
-                <b>Depth:</b> {lowest_sample.upper_depth_cm} - {lowest_sample.lower_depth_cm} cm
-                <br />
-                <b>Weight:</b> {lowest_sample.sample_weight} g
-                <br />
-                {lowest_sample.sampled_on ? <b>Sampled on:</b> : null}
-                <br />
-            </div>
-        )
-    }
-
+    // Function to toggle the visibility of layers
+    const toggleLayer = (layerKey) => {
+        setLayersVisibility((prevState) => ({
+            ...prevState,
+            [layerKey]: { ...prevState[layerKey], visible: !prevState[layerKey].visible }
+        }));
+    };
     const calculateMiddlePosition = (coord1, coord2) => {
         const lat = (coord1[0] + coord2[0]) / 2;
         const lng = (coord1[1] + coord2[1]) / 2;
         return [lat, lng];
     };
-
     return (
         <MapContainer
             style={{ width: '100%', height: '500px' }}
@@ -111,18 +91,22 @@ export const LocationFieldPoints = () => {
             scrollWheelZoom={true}
             maxZoom={20}
         >
-            <BaseLayers />
             <Polygon
                 positions={polygonCoordinates}
                 pathOptions={{ color: record.project.color, opacity: 1, fillOpacity: 0.2 }}
                 interactive={false}
             />
             <MarkerClusterGroup maxClusterRadius={40} chunkedLoading >
-                {record.sensors.map((sensor, index) => (
+                {layersVisibility.sensors.visible && record.sensors.map((sensor, index) => (
                     <Marker
                         key={index}
                         position={[sensor["latitude"], sensor["longitude"]]}
-                        icon={sensorIcon}
+                        icon={L.AwesomeMarkers.icon({
+                            icon: 'temperature-low',
+                            iconColor: 'yellow',
+                            prefix: 'fa',
+                            markerColor: 'blue'
+                        })}
                     >
                         <Tooltip permanent>{sensor["name"]}</Tooltip>
                         <Popup>
@@ -136,33 +120,39 @@ export const LocationFieldPoints = () => {
                         </Popup>
                     </Marker>
                 ))}
-                {record.plots ? record.plots.map((plot, index) => {
-                    return (
-                        < Marker
-                            key={index}
-                            position={[plot["latitude"], plot["longitude"]]}
-                            icon={plotIcon}
-                        >
-                            <Tooltip permanent>{plot["name"]}</Tooltip>
-                            <Popup>
-                                <b>{plot["name"]}</b>
-                                <br />
-                                {plot["description"]}
-                                {getLowestSampleText(plot)}
-                                <br /><br />
-                                <Link to={createPath({ type: 'show', resource: 'plots', id: plot['id'] })}>
-                                    Go to Plot
-                                </Link>
-                            </Popup>
-                        </Marker>
-                    )
-                }) : null}
-
-                {record.soil_profiles.map((soilProfile, index) => (
+                {layersVisibility.plots.visible && record.plots.map((plot, index) => (
+                    <Marker
+                        key={index}
+                        position={[plot["latitude"], plot["longitude"]]}
+                        icon={L.AwesomeMarkers.icon({
+                            icon: 'trowel',
+                            iconColor: 'black',
+                            prefix: 'fa',
+                            markerColor: 'green'
+                        })}
+                    >
+                        <Tooltip permanent>{plot["name"]}</Tooltip>
+                        <Popup>
+                            <b>{plot["name"]}</b>
+                            <br />
+                            {plot["description"]}
+                            <br /><br />
+                            <Link to={createPath({ type: 'show', resource: 'plots', id: plot['id'] })}>
+                                Go to Plot
+                            </Link>
+                        </Popup>
+                    </Marker>
+                ))}
+                {layersVisibility.soil_profiles.visible && record.soil_profiles.map((soilProfile, index) => (
                     <Marker
                         key={index}
                         position={[soilProfile["latitude"], soilProfile["longitude"]]}
-                        icon={soilProfileIcon}
+                        icon={L.AwesomeMarkers.icon({
+                            icon: 'clipboard',
+                            iconColor: 'yellow',
+                            prefix: 'fa',
+                            markerColor: 'red'
+                        })}
                     >
                         <Tooltip permanent>{soilProfile["name"]}</Tooltip>
                         <Popup>
@@ -176,15 +166,11 @@ export const LocationFieldPoints = () => {
                         </Popup>
                     </Marker>
                 ))}
-
-
-                {record.transects.map((transect, index) => (
+                {layersVisibility.transects.visible && record.transects.map((transect, index) => (
                     <>
                         <Polyline
                             key={index}
-                            positions={
-                                transect.nodes.map(node => [node.latitude, node.longitude])
-                            }
+                            positions={transect.nodes.map(node => [node.latitude, node.longitude])}
                             color="black"
                             weight={5}
                         />
@@ -196,7 +182,12 @@ export const LocationFieldPoints = () => {
                                         [transect.nodes[1].latitude, transect.nodes[1].longitude]
                                     )
                                 }
-                                icon={transectIcon}
+                                icon={L.AwesomeMarkers.icon({
+                                    icon: 'road',
+                                    iconColor: 'white',
+                                    prefix: 'fa',
+                                    markerColor: 'black'
+                                })}
                             >
                                 <Tooltip permanent>
                                     {transect.name}
@@ -221,10 +212,11 @@ export const LocationFieldPoints = () => {
                     </>
                 ))}
             </MarkerClusterGroup>
-            <Legend />
+            <BaseLayers />
+            <Legend layers={layersVisibility} toggleLayer={toggleLayer} />
         </MapContainer >
     );
-}
+};
 
 // Define an icon for the GNSS point
 const gnssIcon = L.AwesomeMarkers.icon({

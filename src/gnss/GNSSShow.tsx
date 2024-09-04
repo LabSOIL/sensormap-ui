@@ -5,6 +5,7 @@ import {
     DateField,
     NumberField,
     Labeled,
+    FunctionField,
 } from "react-admin";
 import {
     CreatePlotButton,
@@ -31,25 +32,16 @@ export const GNSSShow = () => (
                             </Labeled>
                         </Grid>
                         <Grid item xs={12}>
-                            <Labeled label="Latitude">
-                                <NumberField source="latitude" />
+                            <Labeled label="Coordinates Lat, Lon (°)">
+                                <FunctionField render={record => `${record.latitude}, ${record.longitude}`} />
                             </Labeled>
                         </Grid>
                         <Grid item xs={12}>
-                            <Labeled label="Longitude">
-                                <NumberField source="longitude" />
+                            <Labeled label="Coordinate X, Y (m: SRID: 2056)">
+                                <FunctionField render={record => `${record.x}, ${record.y}`} />
                             </Labeled>
                         </Grid>
-                        <Grid item xs={12}>
-                            <Labeled label="X (SRID: 2056)">
-                                <TextField source="x" />
-                            </Labeled>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Labeled label="Y (SRID: 2056)">
-                                <TextField source="y" />
-                            </Labeled>
-                        </Grid>
+
                         <Grid item xs={12}>
                             <Labeled label="Elevation (GPS)">
                                 <NumberField source="elevation_gps" />
