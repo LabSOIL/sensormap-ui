@@ -143,9 +143,7 @@ export const PlotList = () => {
                 <TextField source="name" />
                 <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
                 <FunctionField render={record => `${toTitleCase(record.gradient)}`} label="Gradient" />
-                <DateField source="created_on" />
                 <DateField source="last_updated" />
-                <FunctionField render={record => `${record.samples.length}`} label="Samples" />
             </Datagrid>
         </List >
     );

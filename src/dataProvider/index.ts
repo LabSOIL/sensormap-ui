@@ -95,10 +95,18 @@ const dataProvider = (
         });
     },
 
-    getOne: (resource, params) =>
-        httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
-            data: json,
-        })),
+    getOne: (resource, params) => {
+        console.log("PARAMS", params);
+        if (params.meta) { // If meta params exist, pass as query strings
+            const query = {
+                ...params.meta,
+            };
+            const url = `${apiUrl}/${resource}/${params.id}?${stringify(query)}`;
+            return httpClient(url).then(({ json }) => ({ data: json }));
+        } else {
+            return httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({ data: json }));
+        }
+    },
 
     getMany: (resource, params) => {
         const query = {

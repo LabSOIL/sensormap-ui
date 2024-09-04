@@ -99,7 +99,10 @@ export const SensorPlot = () => {
 };
 
 const SensorShow = () => (
-    <Show actions={<SensorShowActions />}>
+    <Show
+        actions={<SensorShowActions />}
+        queryOptions={{ meta: { low_resolution: true } }}
+    >
         <SimpleShowLayout>
             <Grid container spacing={2}>
                 <Grid item xs={2}>
