@@ -2,29 +2,24 @@
 import {
     Create,
     DateInput,
-    NumberField,
-    minValue,
     NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
-    TextField,
     TextInput,
     required,
     Button,
     ImageField,
     ImageInput,
-    Labeled,
 } from 'react-admin';
-import { BaseLayers } from '../maps/Layers';
 import { useEffect, useState } from 'react';
-import { Typography } from '@mui/material';
-import { useFormContext, Controller } from 'react-hook-form';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { Typography, Grid } from '@mui/material';
+import { useFormContext } from 'react-hook-form';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import proj4 from 'proj4';
-import { Grid } from '@mui/material';
+import { BaseLayers } from '../maps/Layers';
 
 // Fix leaflet's default icon issue with webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -43,14 +38,11 @@ const ElevationInput = () => {
     const [successResponse, setSuccessResponse] = useState(false);
 
     const updateElevation = () => {
-
         const x = formContext.getValues('coord_x');
         const y = formContext.getValues('coord_y');
         const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;
         fetch(url)
-            .then(response => {
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.success === false) {
                     setErrorMessage(`Error fetching elevation: ${data.error.message}`);
@@ -59,45 +51,33 @@ const ElevationInput = () => {
                     setSuccessResponse(true);
                     formContext.setValue('coord_z', data.height);
                 }
-            })
-    }
+            });
+    };
 
-    return (<>
-        <Button
-            label="Get from Digital Elevation Model"
-            variant="outlined"
-            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
-            onClick={(event) => {
-                updateElevation();
-            }}
-        />
-        <Typography
-            variant="caption"
-            color={'error'}
-        >
-            {errorMessage ? errorMessage : null}
-        </Typography>
-        <NumberInput source="coord_z" label="Elevation (m)" />
-    </>
-    )
-}
-
-
-const LocationMarker = ({ setCoords }) => {
-    useMapEvents({
-        click(e) {
-            setCoords(e.latlng);
-        },
-    });
-    return null;
+    return (
+        <>
+            <Button
+                label="Get elevation from SwissTopo"
+                variant="outlined"
+                color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
+                onClick={updateElevation}
+            />
+            <Typography variant="caption" color={'error'}>
+                {errorMessage ? errorMessage : null}
+            </Typography>
+            <NumberInput source="coord_z" label="Elevation (m)" />
+        </>
+    );
 };
 
 const MapInput = () => {
-    const { setValue, watch, getValues } = useFormContext();
+    const { setValue, watch } = useFormContext();
+
     const coord_x = watch('coord_x');
     const coord_y = watch('coord_y');
+    const latitude = watch('latitude');
+    const longitude = watch('longitude');
 
-    // Default coordinates for Sion, Switzerland
     const defaultCoordinates = [46.224413762594594, 7.359968915183943];
     const [position, setPosition] = useState(defaultCoordinates);
 
@@ -105,53 +85,92 @@ const MapInput = () => {
         return typeof value === 'number' && isFinite(value);
     };
 
-    useEffect(() => {
-        // Only set the position when the coordinates are valid
-        if (isValidCoordinate(coord_x) && isValidCoordinate(coord_y)) {
-            const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', [coord_x, coord_y]);
-            setPosition([lat, lng]);
-        } else {
-            // Set the default coordinates if the values are invalid
-            setPosition(defaultCoordinates);
-        }
-    }, [coord_x, coord_y]);
-
-    const handleSetCoords = ({ lat, lng }) => {
-        const [x, y] = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
-
-        // Update form values only if the new coordinates are valid numbers
+    // Handle XY to LatLon conversion
+    const updateLatLonFromXY = (x, y) => {
         if (isValidCoordinate(x) && isValidCoordinate(y)) {
-            setValue('coord_x', x, { shouldValidate: true });
-            setValue('coord_y', y, { shouldValidate: true });
+            const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', [x, y]);
+            setValue('latitude', lat, { shouldValidate: true });
+            setValue('longitude', lng, { shouldValidate: true });
             setPosition([lat, lng]);
         }
     };
 
+    // Handle LatLon to XY conversion
+    const updateXYFromLatLon = (lat, lng) => {
+        if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
+            const [x, y] = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
+            setValue('coord_x', Math.round(x), { shouldValidate: true });
+            setValue('coord_y', Math.round(y), { shouldValidate: true });
+            setPosition([lat, lng]);
+        }
+    };
+
+    // Update Lat/Lon when coord_x/coord_y change
+    useEffect(() => {
+        if (isValidCoordinate(coord_x) && isValidCoordinate(coord_y)) {
+            updateLatLonFromXY(coord_x, coord_y);
+        }
+    }, [coord_x, coord_y]);
+
+    // Update coord_x/coord_y when latitude/longitude change
+    useEffect(() => {
+        if (isValidCoordinate(latitude) && isValidCoordinate(longitude)) {
+            updateXYFromLatLon(latitude, longitude);
+        }
+    }, [latitude, longitude]);
+
+    const handleSetCoords = (lat, lng) => {
+        updateXYFromLatLon(lat, lng); // Update XY and LatLon when dragging on map
+    };
+
     return (
         <>
-            <MapContainer
-                center={position}
-                zoom={13}
-                style={{ height: '400px', width: '100%' }}
-            >
-                <BaseLayers />
-                <Marker
-                    position={position}
-                    draggable={true}
-                    eventHandlers={{
-                        dragend(e) {
-                            const latlng = e.target.getLatLng();
-                            handleSetCoords(latlng);
-                        },
-                    }}
-                />
-                <LocationMarker setCoords={handleSetCoords} />
-            </MapContainer>
+            <Grid container spacing={2} alignItems='center'>
+                {/* Left side: X/Y and Latitude/Longitude in a 2x2 grid */}
+                <Grid item xs={5}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <NumberInput source="coord_x" label="X Coordinate (m: SRID 2056)" validate={[required()]} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <NumberInput source="coord_y" label="Y Coordinate (m: SRID 2056)" validate={[required()]} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <NumberInput source="latitude" label="Latitude (°)" />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <NumberInput source="longitude" label="Longitude (°)" />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <ElevationInput />
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                {/* Right side: Map taking up the full column */}
+                <Grid item xs={7}>
+                    <MapContainer
+                        center={position}
+                        zoom={13}
+                        style={{ height: '400px', width: '100%' }}
+                    >
+                        <BaseLayers />
+                        <Marker
+                            position={position}
+                            draggable={true}
+                            eventHandlers={{
+                                dragend(e) {
+                                    const { lat, lng } = e.target.getLatLng();
+                                    handleSetCoords(lat, lng);
+                                },
+                            }}
+                        />
+                    </MapContainer>
+                </Grid>
+            </Grid>
         </>
     );
 };
-
-
 
 const PlotCreate = () => {
     return (
@@ -180,29 +199,13 @@ const PlotCreate = () => {
                     validate={[required()]}
                 />
                 <DateInput source="created_on" label="Description Date" />
-                <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                        <Grid item xs={12}>
-                            <NumberInput source="coord_x" label="X Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <NumberInput source="coord_y" label="Y Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <ElevationInput />
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={8}>
-                        <MapInput />
-                    </Grid>
-                </Grid>
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
+                <MapInput />
             </SimpleForm>
         </Create>
     );
 };
-
 
 export default PlotCreate;
