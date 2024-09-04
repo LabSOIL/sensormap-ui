@@ -94,51 +94,41 @@ const LocationMarker = ({ setCoords }) => {
 
 const MapInput = () => {
     const { setValue, watch, getValues } = useFormContext();
-    let coord_x = watch('coord_x');
-    let coord_y = watch('coord_y');
+    const coord_x = watch('coord_x');
+    const coord_y = watch('coord_y');
 
     // Default coordinates for Sion, Switzerland
     const defaultCoordinates = [46.224413762594594, 7.359968915183943];
-    const handleSetCoords = ({ lat, lng }) => {
-        const [x, y] = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
-        console.log(x, y); // Debugging output
-        setValue('coord_x', x, { shouldValidate: true });
-        setValue('coord_y', y, { shouldValidate: true });
-        setPosition([lat, lng]);
-        console.log('New position:', [lat, lng]); // Debugging output
+    const [position, setPosition] = useState(defaultCoordinates);
+
+    const isValidCoordinate = (value) => {
+        return typeof value === 'number' && isFinite(value);
     };
 
-    const [position, setPosition] = useState(defaultCoordinates);
-    const [x, y] = proj4('EPSG:4326', 'EPSG:2056', defaultCoordinates);
-    setValue('coord_x', x);
-    setValue('coord_y', y);
-
-    // setValue('coord_x',
-    // useEffect(() => {
-    //     console.log('coord_x:', coord_x, 'coord_y:', coord_y); // Debugging output
-
-    //     if (coord_x === undefined || coord_x === null || coord_y === undefined || coord_y === null) {
-    //         const [x, y] = proj4('EPSG:4326', 'EPSG:2056', defaultCoordinates);
-    //         setValue('coord_x', x);
-    //         setValue('coord_y', y);
-    //     } else {
-    //         const [lat, lng] = proj4('EPSG:2056', 'EPSG:4326', [coord_x, coord_y]);
-    //         console.log('Converted position:', [lat, lng]); // Debugging output
-    //         setPosition([lat, lng]);
-    //     }
-    // }, [coord_x, coord_y]);
-
     useEffect(() => {
-        // Update map if coord_x or coord_y changes
-        console.log(coord_x, coord_y); // Debugging output
-        const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', [getValues('coord_x'), getValues('coord_y')]);
-        setPosition([lat, lng]);
+        // Only set the position when the coordinates are valid
+        if (isValidCoordinate(coord_x) && isValidCoordinate(coord_y)) {
+            const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', [coord_x, coord_y]);
+            setPosition([lat, lng]);
+        } else {
+            // Set the default coordinates if the values are invalid
+            setPosition(defaultCoordinates);
+        }
     }, [coord_x, coord_y]);
 
+    const handleSetCoords = ({ lat, lng }) => {
+        const [x, y] = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
+
+        // Update form values only if the new coordinates are valid numbers
+        if (isValidCoordinate(x) && isValidCoordinate(y)) {
+            setValue('coord_x', x, { shouldValidate: true });
+            setValue('coord_y', y, { shouldValidate: true });
+            setPosition([lat, lng]);
+        }
+    };
 
     return (
         <>
-
             <MapContainer
                 center={position}
                 zoom={13}
@@ -160,6 +150,7 @@ const MapInput = () => {
         </>
     );
 };
+
 
 
 const PlotCreate = () => {
