@@ -1,10 +1,57 @@
-import * as React from 'react';
-import { Layout } from 'react-admin';
-import { CssBaseline } from '@mui/material';
+import {
+    Layout,
+    AppBar,
+    TitlePortal,
+} from 'react-admin';
+import { CssBaseline, Typography } from '@mui/material';
 
-export default props => (
-    <>
-        <CssBaseline />
-        <Layout {...props} />
-    </>
-);
+const MyAppBar = (props) => {
+    // const [theme, setTheme] = useTheme();
+    // console.log("THEME", theme);
+    // const [appBarText, setAppBarText] = useState(undefined);
+    console.log("PROPS", props);
+    const appBarText = () => {
+        console.log("Calling appBarText");
+        if (props.deployment) {
+            if (props.deployment == 'local') {
+                return "⭐Local Development⭐"
+            }
+            if (props.deployment == 'dev') {
+                return "⭐Development⭐"
+            }
+            if (props.deployment == 'stage') {
+                return "⭐Staging⭐"
+            }
+        }
+    }
+
+    return (
+        <AppBar>
+            <TitlePortal />
+            <Typography
+                variant="h6"
+                color='#FF69B4'
+                id="react-admin-title"
+            >
+                {props.deployment ? appBarText() : ""}
+            </Typography>
+
+        </AppBar >
+    )
+};
+
+
+const MyLayout = ({ children, deployment }) => {
+    return (
+        <>
+            <CssBaseline />
+            <Layout
+                appBar={() => <MyAppBar deployment={deployment} />}
+            >
+                {children}
+            </Layout>
+        </>
+    )
+};
+
+export default MyLayout;

@@ -14,7 +14,7 @@ import Keycloak, {
 } from 'keycloak-js';
 import { httpClient } from 'ra-keycloak';
 import { keycloakAuthProvider } from './authProvider';
-import Layout from './Layout';
+import MyLayout from './Layout';
 import users from './users';
 import sensors from './sensors';
 import areas from "./areas";
@@ -42,7 +42,7 @@ const getPermissions = (decoded: KeycloakTokenParsed) => {
 };
 
 
-const apiKeycloakConfigUrl = '/api/config/keycloak';
+const apiKeycloakConfigUrl = '/api/config';
 export const apiUrl = '/api';
 
 const App = () => {
@@ -50,12 +50,14 @@ const App = () => {
     const [loading, setLoading] = useState(true);
     const authProvider = useRef<AuthProvider>();
     const dataProvider = useRef<DataProvider>();
+    const [deployment, setDeployment] = useState(undefined);
 
     useEffect(() => {
         async function fetchData() {
             try {
                 const response = await axios.get(apiKeycloakConfigUrl);
                 const keycloakConfig = response.data;
+                setDeployment(keycloakConfig.deployment);
 
                 // Initialize Keycloak here, once you have the configuration
                 const keycloakClient = new Keycloak(keycloakConfig);
@@ -88,7 +90,7 @@ const App = () => {
             dataProvider={dataProvider.current}
             dashboard={Dashboard}
             title="SOIL Sensor Map"
-            layout={Layout}
+            layout={(props) => <MyLayout {...props} deployment={deployment} />}
         >
             {permissions => (
                 <>
