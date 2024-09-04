@@ -43,6 +43,7 @@ services:
       - KEYCLOAK_REALM=${KEYCLOAK_REALM}
       - KEYCLOAK_URL=${KEYCLOAK_URL}
       - SOIL_API_URL=http://soil-api:8000
+      - DEPLOYMENT=local
     labels:
       - "traefik.http.routers.sensormap-bff.rule=Host(`soil`) && PathPrefix(`/api`)"
       - "traefik.http.services.sensormap-bff.loadbalancer.server.port=8000"
