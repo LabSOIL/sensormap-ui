@@ -159,13 +159,10 @@ const PlotSampleArrowNavation = () => {
 
     const record = useRecordContext();
     if (!record) return null;
-    console.log("RECORD", record);
 
     const { data: plot, isPending } = useGetOne('plots', { id: record.plot.id });
     if (isPending) return null;
     if (!plot) return null;
-
-    console.log("RELATED SAMPLES", plot.samples);
 
     // Group samples by their depth range
     const groupedSamples = plot.samples.reduce((acc, sample) => {
@@ -176,7 +173,6 @@ const PlotSampleArrowNavation = () => {
         acc[depthKey].push(sample);
         return acc;
     }, {});
-    console.log("GROUPED SAMPLES", groupedSamples);
 
     return (
         <Grid container spacing={0}>
@@ -196,62 +192,6 @@ const PlotSampleArrowNavation = () => {
         </Grid>
     );
 }
-
-
-
-// }
-//     const record = useRecordContext();
-//     if (!record) return null;
-//     console.log("RECORD", record);
-//     // Need to get the full document of plot, as the samples.plot.samples
-//     // would be a recursive loop and the other full sample documents are not
-//     // available
-//     const { data: plot, isPending } = useGetOne('plots', { id: record.plot.id });
-//     if (isPending) return null;
-//     if (!plot) return null;
-//     // const { data: relatedSamples, isPending, error } = useGetMany(
-//     //     "plot_samples",
-//     //     { plot_id: record.id }
-//     // );
-
-//     console.log("RELATED SAMPLES", plot.samples);
-
-//     // Using the upper_depth_cm and lower_depth_cm, group all plot.samples
-//     // objects by their depth pair, create an array of the replicate samples
-//     // (replicate, depth and plot_id are uniquely constrained in the DB)
-
-//     const uniqueDepths
-
-
-//     return
-//     // Get the related plot, it has samples embedded as a list of objects
-//     const samples = plot.samples;
-//     // Go through array of samples and look for name: A and B and C
-//     let sampleA = null;
-//     let sampleB = null;
-//     let sampleC = null;
-//     for (let i = 0; i < samples.length; i++) {
-//         if (samples[i].name === 'A') {
-//             sampleA = samples[i];
-//         }
-//         if (samples[i].name === 'B') {
-//             sampleB = samples[i];
-//         }
-//         if (samples[i].name === 'C') {
-//             sampleC = samples[i];
-//         }
-//     }
-//     const activeSample = record;
-
-
-//     return (
-//         <div>
-//             <NavigationButton sample={sampleA} name="A" activeSample={activeSample} />
-//             <NavigationButton sample={sampleB} name="B" activeSample={activeSample} />
-//             <NavigationButton sample={sampleC} name="C" activeSample={activeSample} />
-//         </div >
-//     );
-// }
 
 export const PlotSampleShow = () => (
     <Show title={<PlotSampleShowTitle />} actions={<PlotSampleShowActions />}>

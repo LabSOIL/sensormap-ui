@@ -6,12 +6,7 @@ import {
 import { CssBaseline, Typography } from '@mui/material';
 
 const MyAppBar = (props) => {
-    // const [theme, setTheme] = useTheme();
-    // console.log("THEME", theme);
-    // const [appBarText, setAppBarText] = useState(undefined);
-    console.log("PROPS", props);
     const appBarText = () => {
-        console.log("Calling appBarText");
         if (props.deployment) {
             if (props.deployment == 'local') {
                 return "⭐Local Development⭐"

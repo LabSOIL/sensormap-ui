@@ -177,7 +177,7 @@ const ChannelList = () => {
         if (!record) {
             return null;
         }
-        console.log("Record:", record);
+
         return createPath({
             resource: 'instrument_channels',
             type: 'show',
