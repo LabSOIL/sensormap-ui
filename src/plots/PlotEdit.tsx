@@ -19,6 +19,7 @@ import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { Typography } from '@mui/material';
 import { apiUrl } from '../App';
+import CoordinateInput from '../maps/CoordinateEntry';
 
 const MyToolbar = () => (
     <Toolbar>
@@ -111,9 +112,7 @@ const PlotEdit = () => {
                     { id: 'slope', name: 'Slope' },
                 ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
                 <DateInput source="created_on" label="Description Date" />
-                <NumberInput source="coord_x" label="X Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
-                <NumberInput source="coord_y" label="Y Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
-                <ElevationInput />
+                <CoordinateInput />
                 <TextInput source="description_horizon" label="Horizon description" multiline />
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
