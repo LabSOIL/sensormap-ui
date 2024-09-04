@@ -225,3 +225,41 @@ export const LocationFieldPoints = () => {
         </MapContainer >
     );
 }
+
+// Define an icon for the GNSS point
+const gnssIcon = L.AwesomeMarkers.icon({
+    icon: 'map-marker',
+    iconColor: 'white',
+    prefix: 'fa',
+    markerColor: 'blue',
+});
+
+export const GNSSMap = () => {
+    const record = useRecordContext();
+
+    if (!record) {
+        return <Typography variant="h6">Loading GNSS point...</Typography>;
+    }
+
+    if (!record.latitude || !record.longitude) {
+        return (
+            <Typography variant="h6">No GNSS location data available</Typography>
+        );
+    }
+
+    const position = [record.latitude, record.longitude];
+
+    return (
+        <MapContainer
+            style={{ width: '100%', height: '500px' }}
+            center={position}
+            zoom={15}
+            scrollWheelZoom={true}
+        >
+            <BaseLayers />
+            <Marker position={position} icon={gnssIcon}>
+                <Tooltip permanent>{record.name}</Tooltip>
+            </Marker>
+        </MapContainer>
+    );
+};

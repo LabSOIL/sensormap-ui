@@ -4,6 +4,7 @@ import {
     TextField,
     DateField,
     NumberField,
+    Labeled,
 } from "react-admin";
 import {
     CreatePlotButton,
@@ -11,50 +12,99 @@ import {
     CreateSensorButton
 } from "./Buttons";
 import { Grid, Typography, Box } from "@mui/material";
+import { GNSSMap } from '../maps/Points';
 
-export const PlotShow = () => (
+export const GNSSShow = () => (
     <Show>
         <SimpleShowLayout>
-            <DateField source="time" label="Time (UTC)" showTime />
-            <TextField source="name" />
-            <NumberField source="latitude" />
-            <NumberField source="longitude" />
-            <TextField source="x" label="X (SRID: 2056)" />
-            <TextField source="y" label="Y (SRID: 2056)" />
-            <NumberField source="elevation_gps" />
-            <TextField source="comment" />
-            <TextField source="original_filename" />
+            <Grid container spacing={2}>
+                <Grid item xs={4}>
+                    <Grid container spacing={0}>
+                        <Grid item xs={12}>
+                            <Labeled label="Time (UTC)">
+                                <DateField source="time" showTime />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Name">
+                                <TextField source="name" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Latitude">
+                                <NumberField source="latitude" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Longitude">
+                                <NumberField source="longitude" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="X (SRID: 2056)">
+                                <TextField source="x" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Y (SRID: 2056)">
+                                <TextField source="y" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Elevation (GPS)">
+                                <NumberField source="elevation_gps" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Comment">
+                                <TextField source="comment" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Labeled label="Original Filename">
+                                <TextField source="original_filename" />
+                            </Labeled>
+                        </Grid>
 
-            <Box mt={2}>
-                <Typography variant="h6" gutterBottom>Actions</Typography>
-                <Grid container spacing={2} alignItems="center">
-                    {/* First Action - Create Plot */}
-                    <Grid item xs={2}>
-                        <Typography variant="body1">Create Plot</Typography>
-                    </Grid>
-                    <Grid item xs={10}>
-                        <CreatePlotButton />
-                    </Grid>
 
-                    {/* Second Action - Create Soil Profile */}
-                    <Grid item xs={2}>
-                        <Typography variant="body1">Create Soil Profile</Typography>
-                    </Grid>
-                    <Grid item xs={10}>
-                        <CreateSoilProfileButton />
-                    </Grid>
+                        <Grid item xs={12}>
+                            <Box mt={2}>
+                                <Typography variant="h6" gutterBottom>Actions</Typography>
+                                <Grid container spacing={0} alignItems="center">
+                                    <Grid item xs={5}>
+                                        <Typography variant="body1">Create Plot</Typography>
+                                    </Grid>
+                                    <Grid item xs={7}>
+                                        <CreatePlotButton />
+                                    </Grid>
 
-                    {/* Third Action - Create Sensor */}
-                    <Grid item xs={2}>
-                        <Typography variant="body1">Create Sensor</Typography>
-                    </Grid>
-                    <Grid item xs={10}>
-                        <CreateSensorButton />
+                                    <Grid item xs={5}>
+                                        <Typography variant="body1">Create Soil Profile</Typography>
+                                    </Grid>
+                                    <Grid item xs={7}>
+                                        <CreateSoilProfileButton />
+                                    </Grid>
+
+                                    <Grid item xs={5}>
+                                        <Typography variant="body1">Create Sensor</Typography>
+                                    </Grid>
+                                    <Grid item xs={7}>
+                                        <CreateSensorButton />
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        </Grid>
                     </Grid>
                 </Grid>
-            </Box>
+
+
+                <Grid item xs={8}>
+                    <Typography variant="h6" gutterBottom>GNSS Location</Typography>
+                    <GNSSMap />
+                </Grid>
+            </Grid>
         </SimpleShowLayout>
-    </Show>
+    </Show >
 );
 
-export default PlotShow;
+export default GNSSShow;
