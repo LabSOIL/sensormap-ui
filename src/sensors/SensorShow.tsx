@@ -13,9 +13,10 @@ import {
     FunctionField,
     useTheme,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
-import { Grid } from '@mui/material';
+import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
-
+import { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 
 const SensorShowActions = () => {
     const { permissions } = usePermissions();
@@ -98,78 +99,115 @@ export const SensorPlot = () => {
     );
 };
 
-const SensorShow = () => (
-    <Show
-        actions={<SensorShowActions />}
-        queryOptions={{ meta: { low_resolution: true } }}
-    >
-        <SimpleShowLayout>
-            <Grid container spacing={2}>
-                <Grid item xs={2}>
-                    <Grid item xs={6}>
-                        <Labeled label="Name">
-                            <TextField source="name" />
-                        </Labeled>
+const SensorShow = () => {
+    const [lowResolution, setLowResolution] = useState(true);
+
+    // Function to toggle lowResolution
+    const handleToggle = () => {
+        setLowResolution(!lowResolution);
+    };
+
+    // Rerender data when lowResolution state changes
+    useEffect(() => {
+        // You could add logic here if you want to fetch data or perform actions when lowResolution changes
+    }, [lowResolution]);
+
+    return (
+        <Show
+            actions={<SensorShowActions />}
+            queryOptions={{ meta: { low_resolution: lowResolution } }}
+        >
+            <SimpleShowLayout>
+                <Grid container spacing={2}>
+                    <Grid item xs={2}>
+                        <Grid item xs={6}>
+                            <Labeled label="Name">
+                                <TextField source="name" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Labeled label="Area">
+                                <ReferenceField
+                                    source='area_id'
+                                    reference='areas'
+                                    link="show"
+                                >
+                                    <TextField source='name' />
+                                </ReferenceField>
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Last Updated">
+                                <DateField source="last_updated" showTime />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="XY Coordinates (m)">
+                                <FunctionField render={record =>
+                                    `${record.coord_x}, ${record.coord_y}`}
+                                    label="Coordinates"
+                                />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Elevation (m)">
+                                <TextField source="coord_z" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Labeled label="Description">
+                                <TextField source="description" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Notes/Comments">
+                                <TextField source="comment" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6} />
+                        <Grid item xs={6}>
+                            <Labeled label="Serial Number">
+                                <TextField source="serial_number" />
+                            </Labeled>
+                        </Grid>
+
                     </Grid>
-                    <Grid item xs={6}>
-                        <Labeled label="Area">
-                            <ReferenceField
-                                source='area_id'
-                                reference='areas'
-                                link="show"
-                            >
-                                <TextField source='name' />
-                            </ReferenceField>
-                        </Labeled>
-                    </Grid>
-                    <Grid item xs={6} />
-                    <Grid item xs={6}>
-                        <Labeled label="Last Updated">
-                            <DateField source="last_updated" showTime />
-                        </Labeled>
-                    </Grid>
-                    <Grid item xs={6} />
-                    <Grid item xs={6}>
-                        <Labeled label="XY Coordinates (m)">
-                            <FunctionField render={record =>
-                                `${record.coord_x}, ${record.coord_y}`}
-                                label="Coordinates"
+
+                    <Grid item xs={10}>
+                        <SensorPlot source="temperature_plot" />
+                        <Grid container justifyContent="flex-start">
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={lowResolution}
+                                        onChange={handleToggle}
+                                        name="lowResolution"
+                                        color="primary"
+                                    />
+                                }
+                                label={
+                                    <Typography variant="body2"> {/* Decrease the label text size */}
+                                        Low Resolution
+                                    </Typography>
+                                }
                             />
-                        </Labeled>
-                    </Grid>
-                    <Grid item xs={6} />
-                    <Grid item xs={6}>
-                        <Labeled label="Elevation (m)">
-                            <TextField source="coord_z" />
-                        </Labeled>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Labeled label="Description">
-                            <TextField source="description" />
-
-                        </Labeled>
-                    </Grid>
-                    <Grid item xs={6} />
-                    <Grid item xs={6}>
-                        <Labeled label="Notes/Comments">
-                            <TextField source="comment" />
-                        </Labeled>
-                    </Grid>
-                    <Grid item xs={6} />
-                    <Grid item xs={6}>
-                        <Labeled label="Serial Number">
-                            <TextField source="serial_number" />
-                        </Labeled>
+                            <Box width="400px" mb={1}>
+                                <Typography variant="caption">
+                                    The sensor data is large, by default the plot is downsampled with
+                                    the <i>Largest-Triangle-Three-Buckets</i> algorithm for memory efficiency.<br />
+                                    Disable to load high-resolution data.
+                                </Typography>
+                            </Box>
+                        </Grid>
                     </Grid>
                 </Grid>
-
-                <Grid item xs={10}>
-                    <SensorPlot source="temperature_plot" />
-                </Grid>
-            </Grid>
-        </SimpleShowLayout>
-
-    </Show >
-);
+            </SimpleShowLayout>
+        </Show>
+    );
+};
 
 export default SensorShow;
