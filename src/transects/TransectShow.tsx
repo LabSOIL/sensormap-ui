@@ -11,6 +11,7 @@ import {
     DateField,
     Datagrid,
     ArrayField,
+    useCreatePath,
 } from "react-admin";
 import { Grid, } from '@mui/material';
 import { TransectShowMap } from "../maps/Transects";
@@ -36,9 +37,10 @@ const TransectActions = () => {
 
 export const TransectShow = () => {
     const redirect = useRedirect();
+    const createPath = useCreatePath();
 
     const handleRowClick = (id, basePath, record) => {
-        redirect('show', 'plots', id);
+        return createPath({ type: 'show', resource: 'plots', id: record.id });
     }
     return (
         <Show title={<TransectTitle />} actions={<TransectActions />}>

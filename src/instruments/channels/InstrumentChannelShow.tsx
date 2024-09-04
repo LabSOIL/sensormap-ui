@@ -13,6 +13,7 @@ import {
     useRedirect,
     ArrayField,
     Datagrid,
+    useCreatePath,
 } from "react-admin";
 import Plot from 'react-plotly.js';
 import { Box } from '@mui/system';
@@ -20,13 +21,18 @@ import { Box } from '@mui/system';
 const InstrumentChannelShowActions = () => {
     const { permissions } = usePermissions();
     const redirect = useRedirect();
+    const createPath = useCreatePath();
     const record = useRecordContext();
 
     if (!record || !record.id) {
         return null;
     };
     const handleReturn = () => {
-        redirect('show', 'instruments', record.experiment.id);
+        return createPath({
+            type: 'show',
+            resource: 'instruments',
+            id: record.experiment.id
+        });
     };
     const handleRedirectToIntegrate = () => {
         redirect(`/instrument_channels/${record.id}/integrate`);

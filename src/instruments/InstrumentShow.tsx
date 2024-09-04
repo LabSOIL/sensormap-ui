@@ -19,6 +19,7 @@ import {
     downloadCSV,
     Button,
     ReferenceField,
+    useCreatePath,
 } from "react-admin";
 
 const InstrumentShowActions = () => {
@@ -170,10 +171,18 @@ const ChannelList = () => {
     }
     BooleanIntegralResults.defaultProps = { label: "Integrals Calculated" };
 
-    const redirect = useRedirect();
+    // const redirect = useRedirect();
+    const createPath = useCreatePath();
     const handleRowClick = (record) => {
-        if (!record) return;
-        redirect('show', 'instrument_channels', record);
+        if (!record) {
+            return null;
+        }
+        console.log("Record:", record);
+        return createPath({
+            resource: 'instrument_channels',
+            type: 'show',
+            id: record,
+        });
     };
 
 

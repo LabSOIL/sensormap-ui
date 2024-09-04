@@ -4,13 +4,18 @@ import {
     TextField,
     DateField,
     FunctionField,
+    useRecordContext,
 } from "react-admin";
 
-const SampleListPanel = (props) => {
+const SampleListPanel = () => {
     // Get the samples from the integral results such that it can be used in a
     // dot point list * <channel name> : <concatenated list of samples>
+    const record = useRecordContext();
+    if (!record) {
+        return null;
+    }
     let samples = [];
-    props.record.channels.forEach(channel => {
+    record.channels.forEach(channel => {
         let sampleList = "";
         channel.integral_results.forEach(integral => {
             sampleList += integral.sample_name + ", ";
