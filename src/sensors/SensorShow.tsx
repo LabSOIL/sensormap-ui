@@ -108,9 +108,7 @@ const SensorShow = () => {
     };
 
     // Rerender data when lowResolution state changes
-    useEffect(() => {
-        // You could add logic here if you want to fetch data or perform actions when lowResolution changes
-    }, [lowResolution]);
+    useEffect(() => { }, [lowResolution]);
 
     return (
         <Show
