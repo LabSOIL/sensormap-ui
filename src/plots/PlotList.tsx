@@ -118,15 +118,11 @@ const AreaNameField = () => {
 
 export const PlotList = () => {
     const FieldWrapper = ({ children, label }) => children;
-    const { data, total, isLoading, error } = useGetList(
-        'areas', {}
-    );
     function toTitleCase(text) {
         return text.toLowerCase().replace(
             /(?<![^\s\p{Pd}])[^\s\p{Pd}]/ug, match => match.toUpperCase()
         );
     }
-    if (isLoading) return <Loading />;
 
     return (
         <List

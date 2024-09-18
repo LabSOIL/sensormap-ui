@@ -8,6 +8,10 @@ import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 const Legend = ({ layers, toggleLayer }) => {
     const map = useMap(); // Get the map instance
 
+    if (!layers) {
+        return null;
+    }
+
     useEffect(() => {
         const legend = L.control({ position: 'bottomright' });
 

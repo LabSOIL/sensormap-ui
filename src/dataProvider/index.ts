@@ -96,7 +96,6 @@ const dataProvider = (
     },
 
     getOne: (resource, params) => {
-        console.log("PARAMS", params);
         if (params.meta) { // If meta params exist, pass as query strings
             const query = {
                 ...params.meta,

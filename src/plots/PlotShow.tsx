@@ -20,6 +20,7 @@ import {
     Loading,
     ArrayField,
     useCreatePath,
+    TabbedShowLayout,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
@@ -183,13 +184,29 @@ export const PlotShow = () => {
                         <TextField source="id" label="Transect ID" />
                     </Datagrid>
                 </ArrayField>
-                <ArrayField source="sensors" label="Nearest sensors">
-                    <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
-                        <TextField source="name" label="Name" />
-                        <NumberField source="distance" label="Distance (m)" />
-                        <NumberField source="elevation_difference" label="Elevation difference (m)" />
-                    </Datagrid>
-                </ArrayField>
+                <TabbedShowLayout>
+                    <TabbedShowLayout.Tab label="Assigned Sensors">
+                        <ArrayField source="sensor_link" label="Sensors associated to this plot">
+                            <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
+                                <TextField source="name" label="Name" />
+                                <NumberField source="distance" label="Distance (m)" />
+                                <NumberField source="elevation_difference" label="Elevation difference (m)" />
+                            </Datagrid>
+                        </ArrayField>
+
+
+                    </TabbedShowLayout.Tab>
+                    <TabbedShowLayout.Tab label="Nearest sensors">
+                        <ArrayField source="sensors" label="Nearest sensors">
+                            <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
+                                <TextField source="name" label="Name" />
+                                <NumberField source="distance" label="Distance (m)" />
+                                <NumberField source="elevation_difference" label="Elevation difference (m)" />
+                            </Datagrid>
+                        </ArrayField>
+                    </TabbedShowLayout.Tab>
+                </TabbedShowLayout>
+
             </SimpleShowLayout>
         </Show >
     )

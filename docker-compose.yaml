@@ -33,6 +33,27 @@ services:
     volumes:
       - ../soil-api/app:/app/app
 
+  soil-api-rust:
+    build:
+      context: ../soil-api-rust
+      dockerfile: Dockerfile.dev  # Uses the dockerfile containing cargo-watch
+    environment:
+      - DB_HOST=sensormap-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=psql
+      - DB_NAME=postgres
+      - DB_PREFIX=postgresql
+    ports:
+      - 3005:3000
+    depends_on:
+        - sensormap-db
+    volumes:
+      - ../soil-api-rust/src:/app/src
+      - soil-api-rust-data:/app/target  # Store builds in docker volume
+      - ../soil-api-rust/Cargo.toml:/app/Cargo.toml
+      - ../soil-api-rust/Cargo.lock:/app/Cargo.lock
+
   sensormap-bff:
     build:
       context: ../sensormap-bff
@@ -43,6 +64,7 @@ services:
       - KEYCLOAK_REALM=${KEYCLOAK_REALM}
       - KEYCLOAK_URL=${KEYCLOAK_URL}
       - SOIL_API_URL=http://soil-api:8000
+      - SOIL_API_SECONDARY_URL=http://soil-api-rust:3000
       - DEPLOYMENT=local
     labels:
       - "traefik.http.routers.sensormap-bff.rule=Host(`soil`) && PathPrefix(`/api`)"
@@ -73,5 +95,11 @@ services:
     volumes:
       - sensormap-db-data:/var/lib/postgresql/data
 
+  api-cache:
+    image: redis:7.4.0
+    ports:
+      - 6379:6379
+
 volumes:
   sensormap-db-data:
+  soil-api-rust-data:

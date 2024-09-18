@@ -12,11 +12,19 @@ import {
     Labeled,
     FunctionField,
     useTheme,
+    ArrayField,
+    NumberField,
+    Datagrid,
+    useCreatePath,
+    useNotify,
+    useRedirect,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
 import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
 import { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
+import { IconButton } from '@mui/material';
+import plots from '../plots';
 
 const SensorShowActions = () => {
     const { permissions } = usePermissions();
@@ -99,14 +107,60 @@ export const SensorPlot = () => {
     );
 };
 
+
+export const CreatePlotRelationship = () => {
+    const record = useRecordContext();
+    const redirect = useRedirect();
+    const notify = useNotify();
+    if (!record) return null;
+
+    // Only show button if plot as we can only create sensor:plot relationships
+    if (record.type !== 'plot') return null;
+
+    return <IconButton
+        color="success"
+        title="Create sensor"
+    // onClick={(event) => {
+    //     if (navigator.clipboard) {
+    //         const clipboardText = `${record.name}: ${record.comment}`;
+    //         navigator.clipboard.writeText(clipboardText).then(() => {
+    //             notify(`Copied "${clipboardText}" to clipboard`);
+    //         });
+    //     }
+    //     redirect('create', 'plot_sensor', null, {}, {
+    //         record: {
+    //             coord_x: record.x,
+    //             coord_y: record.y,
+    //             coord_z: record.elevation_gps,
+    //             name: record.name,
+    //             description: record.comment,
+    //             created_on: record.time
+    //         }
+    //     })
+    //     event.stopPropagation();
+    // }}
+    >
+        <plots.plot.icon />
+    </IconButton>;
+};
+
 const SensorShow = () => {
     const [lowResolution, setLowResolution] = useState(true);
-
+    const createPath = useCreatePath();
     // Function to toggle lowResolution
     const handleToggle = () => {
         setLowResolution(!lowResolution);
     };
 
+    const handleRowClick = (id, basePath, record) => {
+        if (record.type === 'plot') {
+            return createPath({ type: 'show', resource: 'plots', id: id });
+        }
+        if (record.type === 'soil_profile') {
+            return createPath({ type: 'show', resource: 'soil_profiles', id: id });
+        }
+        return null;
+    }
     // Rerender data when lowResolution state changes
     useEffect(() => { }, [lowResolution]);
 
@@ -203,6 +257,18 @@ const SensorShow = () => {
                         </Grid>
                     </Grid>
                 </Grid>
+                <ArrayField source="closest_features">
+                    <Datagrid
+                        rowClick={handleRowClick}
+                        bulkActionButtons={false}>
+                        <FunctionField source="type" render={record => record.type === 'soil_profile' ? "Soil Profile" : "Plot"} />
+                        <TextField source="name" label="Name" />
+                        <NumberField source="distance" label="Distance (m)" />
+                        <NumberField source="elevation_difference" label="Elevation difference (m)" />
+                        <CreatePlotRelationship label="Add to Plot" />
+
+                    </Datagrid>
+                </ArrayField>
             </SimpleShowLayout>
         </Show>
     );
