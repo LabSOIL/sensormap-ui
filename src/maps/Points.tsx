@@ -62,6 +62,11 @@ export const LocationFieldPoints = () => {
     const flipCoordinates = (coords) => coords.map(coord => [coord[1], coord[0]]);
     const flipPolygonCoordinates = (polygon) => polygon.map(ring => flipCoordinates(ring));
 
+    if (!record.geom || !record.geom.coordinates) {
+        return (
+            <Typography variant="h6">No location data available</Typography>
+        );
+    }
     const polygonCoordinates = flipPolygonCoordinates(record["geom"]["coordinates"]);
 
     // Define the state to track visibility of layers

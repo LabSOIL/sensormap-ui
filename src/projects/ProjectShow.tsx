@@ -2,13 +2,7 @@ import {
     Show,
     SimpleShowLayout,
     TextField,
-    NumberField,
-    ReferenceField,
-    TabbedShowLayout,
     Datagrid,
-    List,
-    useRecordContext,
-    ArrayField,
     EditButton,
     TopToolbar,
     DeleteButton,
@@ -16,19 +10,10 @@ import {
     DateField,
     ReferenceManyField,
     ReferenceManyCount,
-} from 'react-admin'; // eslint-disable-line import/no-unresolved
-import {
-    LineChart,
-    Line,
-    Label,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-} from 'recharts';
-import { ColorField } from 'react-admin-color-picker';
+    FunctionField,
+} from 'react-admin';
 
+import { ColorBox } from './ProjectList';
 
 const ProjectShowActions = () => {
     const { permissions } = usePermissions();
@@ -46,7 +31,8 @@ const ProjectShow = () => (
             <TextField source="name" />
             <TextField source="description" />
             <DateField source="last_updated" showTime />
-            <ColorField source="color" />
+            <FunctionField render={() => <ColorBox />} label="Color" />
+
             <ReferenceManyField reference="areas" target="project_id" label="Areas">
                 <Datagrid rowClick="show">
                     <TextField source="name" />

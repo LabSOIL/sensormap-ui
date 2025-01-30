@@ -8,9 +8,8 @@ import {
 } from 'react-admin';
 import { ColorInput } from 'react-admin-color-picker';
 
+
 const ProjectCreate = () => {
-
-
     return (
         <Create redirect="list">
             <SimpleForm >

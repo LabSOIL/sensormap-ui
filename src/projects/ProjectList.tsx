@@ -2,24 +2,15 @@ import {
     List,
     Datagrid,
     TextField,
-    ReferenceField,
+    useRecordContext,
     usePermissions,
     TopToolbar,
     CreateButton,
     ExportButton,
-    NumberField,
-    DateField,
     ReferenceManyCount,
-    ArrayField,
-    SavedQueriesList,
-    FilterLiveSearch,
-    FilterList,
-    FilterListItem
+    FunctionField,
 } from "react-admin";
-import { Card, CardContent } from '@mui/material';
-import MailIcon from '@mui/icons-material/MailOutline';
-import CategoryIcon from '@mui/icons-material/LocalOffer';
-import { ColorField, ColorInput } from 'react-admin-color-picker';
+
 const ProjectListActions = () => {
     const { permissions } = usePermissions();
     return (
@@ -29,7 +20,25 @@ const ProjectListActions = () => {
         </TopToolbar>
     );
 }
+export const ColorBox = () => {
+    const record = useRecordContext();
+    if (!record) return null;
 
+    return (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+                style={{
+                    width: '20px', // Size of the box
+                    height: '20px', // Size of the box
+                    backgroundColor: record.color, // Use the record color
+                    border: '1px solid #ccc', // Optional border for visibility
+                    marginRight: '10px', // Space between box and text
+                }}
+            />
+            <TextField source="color" />
+        </div>
+    );
+};
 const ProjectList = () => {
     const { permissions } = usePermissions();
 
@@ -39,12 +48,12 @@ const ProjectList = () => {
             perPage={25}
         >
             <Datagrid
-                bulkActionButtons={permissions === 'admin' ? true : false}
+                bulkActionButtons={permissions === 'admin' ? undefined : false}
                 rowClick="show"
             >
                 <TextField source="name" />
                 <TextField source="description" />
-                <ColorField source="color" />
+                <FunctionField render={() => <ColorBox />} label="Color" />
                 <ReferenceManyCount
                     label="Assigned Areas"
                     reference="areas"

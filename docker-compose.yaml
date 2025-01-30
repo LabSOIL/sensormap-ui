@@ -16,22 +16,22 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  soil-api:
-    build:
-      context: ../soil-api
-    environment:
-      - DB_HOST=sensormap-db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=psql
-      - DB_NAME=postgres
-      - DB_PREFIX=postgresql+asyncpg
-    ports:
-      - 8005:8000
-    depends_on:
-        - sensormap-db
-    volumes:
-      - ../soil-api/app:/app/app
+  # soil-api:
+  #   build:
+  #     context: ../soil-api
+  #   environment:
+  #     - DB_HOST=sensormap-db
+  #     - DB_PORT=5432
+  #     - DB_USER=postgres
+  #     - DB_PASSWORD=psql
+  #     - DB_NAME=postgres
+  #     - DB_PREFIX=postgresql+asyncpg
+  #   ports:
+  #     - 8005:8000
+  #   depends_on:
+  #       - sensormap-db
+  #   volumes:
+  #     - ../soil-api/app:/app/app
 
   soil-api-rust:
     build:
@@ -44,6 +44,13 @@ services:
       - DB_PASSWORD=psql
       - DB_NAME=postgres
       - DB_PREFIX=postgresql
+      - KEYCLOAK_UI_ID=${KEYCLOAK_CLIENT_ID}
+      - KEYCLOAK_BFF_ID=${KEYCLOAK_BFF_ID}
+      - KEYCLOAK_BFF_SECRET=${KEYCLOAK_BFF_SECRET}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - DEPLOYMENT=local
+      - APP_NAME=soil-api
     ports:
       - 3005:3000
     depends_on:
@@ -53,26 +60,29 @@ services:
       - soil-api-rust-data:/app/target  # Store builds in docker volume
       - ../soil-api-rust/Cargo.toml:/app/Cargo.toml
       - ../soil-api-rust/Cargo.lock:/app/Cargo.lock
-
-  sensormap-bff:
-    build:
-      context: ../sensormap-bff
-    environment:
-      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-      - KEYCLOAK_BFF_ID=${KEYCLOAK_BFF_ID}
-      - KEYCLOAK_BFF_SECRET=${KEYCLOAK_BFF_SECRET}
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-      - KEYCLOAK_URL=${KEYCLOAK_URL}
-      - SOIL_API_URL=http://soil-api:8000
-      - SOIL_API_SECONDARY_URL=http://soil-api-rust:3000
-      - DEPLOYMENT=local
     labels:
-      - "traefik.http.routers.sensormap-bff.rule=Host(`soil`) && PathPrefix(`/api`)"
-      - "traefik.http.services.sensormap-bff.loadbalancer.server.port=8000"
-    volumes:
-      - ../sensormap-bff/app:/app/app
-    entrypoint: ["uvicorn", "--host=0.0.0.0",
-              "--timeout-keep-alive=0", "app.main:app", "--reload"]
+      - "traefik.http.routers.soil-api-rust.rule=Host(`soil`) && PathPrefix(`/api`)"
+      - "traefik.http.services.soil-api-rust.loadbalancer.server.port=3000"
+
+  # sensormap-bff:
+  #   build:
+  #     context: ../sensormap-bff
+  #   environment:
+  #     - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+  #     - KEYCLOAK_BFF_ID=${KEYCLOAK_BFF_ID}
+  #     - KEYCLOAK_BFF_SECRET=${KEYCLOAK_BFF_SECRET}
+  #     - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+  #     - KEYCLOAK_URL=${KEYCLOAK_URL}
+  #     - SOIL_API_URL=http://soil-api:8000
+  #     - SOIL_API_SECONDARY_URL=http://soil-api-rust:3000
+  #     - DEPLOYMENT=local
+  #   labels:
+  #     - "traefik.http.routers.sensormap-bff.rule=Host(`soil`) && PathPrefix(`/api`)"
+  #     - "traefik.http.services.sensormap-bff.loadbalancer.server.port=8000"
+  #   volumes:
+  #     - ../sensormap-bff/app:/app/app
+  #   entrypoint: ["uvicorn", "--host=0.0.0.0",
+  #             "--timeout-keep-alive=0", "app.main:app", "--reload"]
 
   sensormap-ui:
     build:
