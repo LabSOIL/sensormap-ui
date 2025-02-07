@@ -25,7 +25,6 @@ import transects from './transects';
 import gnss from './gnss';
 import axios from 'axios';
 import instruments from './instruments';
-import dashboard from './Dashboard';
 import Dashboard from './Dashboard';
 
 
@@ -62,7 +61,7 @@ const App = () => {
             const keycloakClient = new Keycloak({
                 url: keycloakConfig.url,
                 realm: keycloakConfig.realm,
-                clientId: keycloakConfig.client_id,
+                clientId: keycloakConfig.clientId,
             });
             await keycloakClient.init(initOptions);
 
