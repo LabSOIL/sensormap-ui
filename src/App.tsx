@@ -54,7 +54,7 @@ const App = () => {
     useEffect(() => {
         const initKeyCloakClient = async () => {
             const response = await axios.get(UIConfigUrl);
-            const keycloakConfig = response.data.keycloak;
+            const keycloakConfig = response.data;
             setDeployment(response.data.deployment);
 
             // Initialize Keycloak here, once you have the configuration
