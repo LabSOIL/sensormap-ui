@@ -29,7 +29,7 @@ import dashboard from './Dashboard';
 import Dashboard from './Dashboard';
 
 
-const initOptions: KeycloakInitOptions = { onLoad: 'login-required' };
+const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false };
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
     const roles = decoded?.realm_access?.roles;
