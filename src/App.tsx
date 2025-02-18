@@ -114,9 +114,9 @@ const App = () => {
                                 <Route path=":id/integrate" element={<instruments.channels.integrate />} />
                             </Resource>
 
-                            {permissions === 'admin' ? (
+                            {/* {permissions === 'admin' ? (
                                 <Resource name="users" {...users} />
-                            ) : null}
+                            ) : null} */}
                         </>
                     ) : null}
                 </>
