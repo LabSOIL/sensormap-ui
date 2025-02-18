@@ -15,6 +15,7 @@ import {
     useRedirect,
     useGetOne,
     Button,
+    useGetManyReference,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import { SedimentChart, MicrobialPieChart } from './Charts';
@@ -160,12 +161,20 @@ const PlotSampleArrowNavation = () => {
     const record = useRecordContext();
     if (!record) return null;
 
-    const { data: plot, isPending } = useGetOne('plots', { id: record.plot.id });
-    if (isPending) return null;
-    if (!plot) return null;
+    const { data: samples, isPending: isPendingSamples, error } = useGetManyReference(
+        'plot_samples',
+        {
+            target: 'plot_id',
+            id: record.plot_id,
+            // pagination: { page: 1, perPage: 10 },
+            sort: { field: 'upper_depth_cm', order: 'ASC' }
+        }
+    );
+
+    if (isPendingSamples || !samples) return null;
 
     // Group samples by their depth range
-    const groupedSamples = plot.samples.reduce((acc, sample) => {
+    const groupedSamples = samples.reduce((acc, sample) => {
         const depthKey = `${sample.upper_depth_cm}-${sample.lower_depth_cm} cm`;
         if (!acc[depthKey]) {
             acc[depthKey] = [];
@@ -179,7 +188,7 @@ const PlotSampleArrowNavation = () => {
             {Object.keys(groupedSamples).map(depthKey => (
                 <Grid item xs={12} key={depthKey} container alignItems="center">
                     <Typography variant='body2' align='right' style={{ width: '80px' }}>{depthKey}</Typography>
-                    {groupedSamples[depthKey].map((sample) => (
+                    {groupedSamples[depthKey].map((sample: any) => (
                         <NavigationButton
                             key={sample.replicate}
                             sample={sample}

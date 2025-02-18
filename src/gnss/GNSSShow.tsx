@@ -37,8 +37,8 @@ export const GNSSShow = () => (
                             </Labeled>
                         </Grid>
                         <Grid item xs={12}>
-                            <Labeled label="Coordinate X, Y (m: SRID: 2056)">
-                                <FunctionField render={record => `${record.x}, ${record.y}`} />
+                            <Labeled label="Coordinate X, Y (m)">
+                                <FunctionField render={record => `${record.coord_x}, ${record.coord_y} (SRID: ${record.coord_srid})`} />
                             </Labeled>
                         </Grid>
 

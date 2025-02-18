@@ -40,7 +40,7 @@ const ElevationInput = () => {
                 } else {
                     setErrorMessage(null);
                     setSuccessResponse(true);
-                    formContext.setValue('coord_z', data.height);
+                    formContext.setValue('coord_z', parseFloat(data.height));
                 }
             });
     };

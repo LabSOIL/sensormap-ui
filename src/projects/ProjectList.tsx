@@ -10,6 +10,7 @@ import {
     ReferenceManyCount,
     FunctionField,
 } from "react-admin";
+import { postFilters } from "../filters/list";
 
 const ProjectListActions = () => {
     const { permissions } = usePermissions();
@@ -44,6 +45,8 @@ const ProjectList = () => {
 
     return (
         <List storeKey={false}
+            filters={postFilters}
+
             actions={<ProjectListActions />}
             perPage={25}
         >

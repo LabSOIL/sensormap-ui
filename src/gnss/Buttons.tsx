@@ -26,8 +26,8 @@ export const CreatePlotButton = (label) => {
             }
             redirect('create', 'plots', null, {}, {
                 record: {
-                    coord_x: record.x,
-                    coord_y: record.y,
+                    coord_x: record.coord_x,
+                    coord_y: record.coord_y,
                     coord_z: record.elevation_gps,
                     created_on: record.time
                 }
@@ -56,8 +56,8 @@ export const CreateSoilProfileButton = () => {
             }
             redirect('create', 'soil_profiles', null, {}, {
                 record: {
-                    coord_x: record.x,
-                    coord_y: record.y,
+                    coord_x: record.coord_x,
+                    coord_y: record.coord_y,
                     coord_z: record.elevation_gps,
                     created_on: record.time
                 }
@@ -86,8 +86,8 @@ export const CreateSensorButton = () => {
             }
             redirect('create', 'sensors', null, {}, {
                 record: {
-                    coord_x: record.x,
-                    coord_y: record.y,
+                    coord_x: record.coord_x,
+                    coord_y: record.coord_y,
                     coord_z: record.elevation_gps,
                     name: record.name,
                     description: record.comment,

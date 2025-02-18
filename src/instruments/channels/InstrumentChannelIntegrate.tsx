@@ -16,6 +16,7 @@ import {
     ArrayField,
     Datagrid,
     TextField,
+    ButtonProps,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -23,46 +24,48 @@ import { Loading } from 'react-admin';
 import { useState, useCallback, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+const MyTopToolbar = () => {
+    const { permissions } = usePermissions();
+    const redirect = useRedirect();
+    const record = useRecordContext();
+
+    if (!record || !record.id) {
+        return null;
+    }
+    const handleExperimentReturn = () => {
+        redirect('show', 'instruments', record.experiment.id);
+    };
+    const handleChannelReturn = () => {
+        redirect('show', 'instrument_channels', record.id);
+    };
+
+    return (
+        <TopToolbar>
+            <Button variant="contained" onClick={handleExperimentReturn}>Return to Experiment</Button>
+            <Button variant="contained" onClick={handleChannelReturn}>Return to Channel</Button>
+            {permissions === 'admin' && <>
+                <EditButton
+                    label="Edit baseline"
+                    icon={false}
+                    variant='contained'
+                    color="success" />
+            </>}
+        </TopToolbar>
+    );
+};
+
 const InstrumentChannelIntegrate = () => {
     const [updating, setUpdating] = useState(false);
+    const notify = useNotify();
+    const refresh = useRefresh();
 
-    const MyTopToolbar = () => {
-        const { permissions } = usePermissions();
-        const redirect = useRedirect();
-        const record = useRecordContext();
-
-        if (!record || !record.id) {
-            return null;
-        }
-        const handleExperimentReturn = () => {
-            redirect('show', 'instruments', record.experiment.id);
-        };
-        const handleChannelReturn = () => {
-            redirect('show', 'instrument_channels', record.id);
-        };
-
-        return (
-            <TopToolbar>
-                <Button variant="contained" onClick={handleExperimentReturn}>Return to Experiment</Button>
-                <Button variant="contained" onClick={handleChannelReturn}>Return to Channel</Button>
-                {permissions === 'admin' && <>
-                    <EditButton
-                        label="Edit baseline"
-                        icon={false}
-                        variant='contained'
-                        color="success" />
-                </>}
-            </TopToolbar>
-        );
-    };
 
     const LinePlotEdit = () => {
         const record = useRecordContext();
         const [update] = useUpdate();
-        const { setValue, watch } = useFormContext();
+        const { getValues, setValue, watch } = useFormContext();
+
         const IntegralPairs = watch('integral_chosen_pairs', []);
-        const notify = useNotify();
-        const refresh = useRefresh();
 
         const [layout, setLayout] = useState({
             width: 1000,
@@ -91,27 +94,12 @@ const InstrumentChannelIntegrate = () => {
             );
         }, [IntegralPairs]);
 
-        if (!record) {
-            return <Loading />;
-        }
-        if (!record.baseline_values || !record.time_values || record.baseline_values.length === 0) {
-            return (
-                <>
-                    <Typography variant="h6">Filter the baseline first</Typography>
-                    <EditButton
-                        label="Click here to filter the baseline"
-                        icon={false}
-                        variant='contained'
-                        color="success" />
-                </>
-            );
-        }
-
         const updatePairs = () => {
+            const updatedPairs = getValues('integral_chosen_pairs');
             update('instrument_channels', {
                 id: record.id,
                 data: {
-                    integral_chosen_pairs: IntegralPairs
+                    integral_chosen_pairs: updatedPairs
                 }
             }).then(() => {
                 notify('Baseline updated', { autoHideDuration: 500 });
@@ -128,6 +116,41 @@ const InstrumentChannelIntegrate = () => {
                 setUpdating(false);
             }
         }, [updating]);
+
+        if (!record) {
+            return <Loading />;
+        }
+        if (!record.baseline_values || !record.time_values || record.baseline_values.length === 0) {
+            return (
+                <>
+                    <Typography variant="h6">Filter the baseline first</Typography>
+                    <EditButton
+                        label="Click here to filter the baseline"
+                        icon={false}
+                        variant='contained'
+                        color="success" />
+                </>
+            );
+        }
+
+        const MyRemoveButton = (props: Omit<ButtonProps, 'onClick'>) => {
+            const handleClick = (index: any) => {
+                const updatedPairs = [...IntegralPairs];
+                updatedPairs.splice(index, 1);
+                setValue('integral_chosen_pairs', updatedPairs);
+                setUpdating(true);
+            };
+            return (
+                <Button
+                    onClick={(index: any) => handleClick(index)}
+                    color="warning"
+                    {...props}
+                >
+                    <Typography>Remove</Typography>
+                </Button>
+            );
+        };
+
 
         const handlePlotClick = useCallback((data) => {
             data.points = data.points.filter(point => {
@@ -171,12 +194,7 @@ const InstrumentChannelIntegrate = () => {
             }));
         }, []);
 
-        const handleClick = (index) => {
-            const updatedPairs = [...IntegralPairs];
-            updatedPairs.splice(index, 1);
-            setValue('integral_chosen_pairs', updatedPairs);
-            setUpdating(true);
-        };
+
 
         return (
             <div>
@@ -227,9 +245,7 @@ const InstrumentChannelIntegrate = () => {
                         disableAdd
                         disableReordering
                         disableClear
-                        removeButton={
-                            <Button onClick={() => handleClick(index)}>Remove Pair</Button>
-                        }
+                        removeButton={<MyRemoveButton />}
                     >
                         <TextInput source="start.x" label="Start X" readOnly />
                         <TextInput source="start.y" label="Start Y" readOnly />

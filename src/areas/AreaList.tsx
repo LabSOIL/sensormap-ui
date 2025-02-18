@@ -10,6 +10,7 @@ import {
     FunctionField,
 } from "react-admin";
 import { LocationFieldAreas } from '../maps/Areas';
+import { postFilters } from "../filters/list";
 
 const AreaListActions = () => {
     const { permissions } = usePermissions();
@@ -42,7 +43,8 @@ export const ColorBox = () => {
 
 export const AreaList = () => {
     return (
-        <List actions={<AreaListActions />} storeKey={false}>
+        <List actions={<AreaListActions />} storeKey={false} filters={postFilters}
+        >
             <Datagrid rowClick="show" >
                 <TextField source="name" />
                 <TextField source="description" />

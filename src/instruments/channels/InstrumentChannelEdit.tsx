@@ -21,6 +21,7 @@ import Plot from 'react-plotly.js';
 import { Loading } from 'react-admin';
 import { useState, useCallback, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { ButtonProps } from 'react-admin';
 
 const InstrumentChannelEdit = () => {
     const [updating, setUpdating] = useState(false);
@@ -199,11 +200,42 @@ const InstrumentChannelEdit = () => {
         );
     };
 
+    const MyRemoveButton = (props: Omit<ButtonProps, 'onClick'> & { index: number }) => {
+        const { getValues, setValue } = useFormContext();
+        const record = useRecordContext();
+        const [update] = useUpdate();
+        const notify = useNotify();
+        const refresh = useRefresh();
 
-    const handleClick = (record) => {
-        // Remove the point from the list and update the record
-        // Trigger update on the new list (the same as updating the plot)
-        setUpdating(true);
+        const handleClick = () => {
+            const baselinePoints = getValues('baseline_chosen_points');
+            const updatedPoints = [...baselinePoints];
+            updatedPoints.splice(props.index, 1);
+            // Immediately update the form state with the new value.
+            setValue('baseline_chosen_points', updatedPoints, { shouldValidate: true, shouldDirty: true });
+            update('instrument_channels', {
+                id: record.id,
+                data: { baseline_chosen_points: updatedPoints },
+            })
+                .then(({ data }) => {
+                    notify('Baseline updated', { autoHideDuration: 500 });
+                    // If the API returns updated baseline_chosen_points, update the form state accordingly.
+                    if (data.baseline_chosen_points) {
+                        setValue('baseline_chosen_points', data.baseline_chosen_points, { shouldValidate: true, shouldDirty: true });
+                    }
+                    refresh();
+                })
+                .catch((error) => {
+                    notify('Error: Changes could not be saved');
+                    console.error(error);
+                });
+        };
+
+        return (
+            <Button onClick={handleClick} color="warning" {...props}>
+                <Typography>Remove Point</Typography>
+            </Button>
+        );
     };
 
 
@@ -217,16 +249,15 @@ const InstrumentChannelEdit = () => {
                         disableAdd
                         disableReordering
                         disableClear
-                        removeButton={
-                            <Button onClick={handleClick}>Remove Point</Button>
-                        }
+                        removeButton={<MyRemoveButton />}
+
                     >
                         <TextInput source="x" readOnly />
                         <TextInput source="y" readOnly />
                     </SimpleFormIterator>
                 </ArrayInput>
             </SimpleForm>
-        </Edit>
+        </Edit >
     )
 };
 

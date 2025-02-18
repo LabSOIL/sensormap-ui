@@ -10,10 +10,7 @@ import {
     TextInput,
     DateField,
 } from "react-admin";
-
-const postFilters = [
-    <TextInput label="Search" source="q" alwaysOn />,
-];
+import { postFilters } from "../filters/list";
 
 const SoilProfileListActions = () => {
     const { permissions } = usePermissions();

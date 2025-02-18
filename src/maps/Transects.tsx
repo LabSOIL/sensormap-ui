@@ -22,6 +22,7 @@ import Legend from './Legend'; // Import the Legend component
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import proj4 from 'proj4';
 
 const DEFAULT_ZOOM_LEVEL = 15;
 
@@ -198,21 +199,30 @@ export const TransectCreateMap = ({ area_id }) => {
         </MapContainer>
     );
 };
-
 export const TransectShowMap = () => {
     const record = useRecordContext();
 
     if (!record) {
         return <Loading />;
     }
-    const nodePolyLine = record.nodes.map(
-        node => [node["latitude"], node["longitude"]]
-    );
+
+
+    // Convert coordinates to lat/lon
+    const nodePolyLine = record.nodes.map(node => {
+        // Define the projection for the coordinates
+        const sourceProj = `EPSG:${node.coord_srid}`;
+        const destProj = 'EPSG:4326';
+        const [lon, lat] = proj4(sourceProj, destProj, [node.coord_x, node.coord_y]);
+        return [lat, lon];
+    });
+
     // Get map bounds from the bounding box of all nodes in the record
     const mapBounds = record.nodes.reduce((acc, node) => {
-        return acc.extend([node["latitude"], node["longitude"]]);
+        const sourceProj = `EPSG:${node.coord_srid}`;
+        const destProj = 'EPSG:4326';
+        const [lon, lat] = proj4(sourceProj, destProj, [node.coord_x, node.coord_y]);
+        return acc.extend([lat, lon]);
     }, L.latLngBounds());
-
 
     // We want a similar map to create, but just the plots from the record now
     // instead as it is resembling a show view
@@ -227,10 +237,13 @@ export const TransectShowMap = () => {
             <BaseLayers />
 
             {record.nodes && record.nodes.length > 0 ? record.nodes.map((plot, index) => {
+                const sourceProj = `EPSG:${plot.coord_srid}`;
+                const destProj = 'EPSG:4326';
+                const [lon, lat] = proj4(sourceProj, destProj, [plot.coord_x, plot.coord_y]);
                 return (
                     <Marker
                         key={index}
-                        position={[plot["latitude"], plot["longitude"]]}
+                        position={[lat, lon]}
                         icon={plotIcon}
                     >
                         <Tooltip permanent>{plot["name"]}</Tooltip>

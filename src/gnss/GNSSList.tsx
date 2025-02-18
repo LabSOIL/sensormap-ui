@@ -9,11 +9,13 @@ import {
     CreateSoilProfileButton,
     CreateSensorButton,
 } from "./Buttons";
+import { postFilters } from "../filters/list";
 
 export const GNSSList = () => {
     return (
         <>
-            <List storeKey={false}>
+            <List storeKey={false} filters={postFilters}
+            >
                 <Datagrid rowClick="show" sx={{
                     '& .column-undefined': { width: 15 }, // Icon columns
                     '& .column-time': { width: 200 },
