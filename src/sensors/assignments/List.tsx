@@ -11,6 +11,7 @@ import {
     DeleteButton,
 } from 'react-admin';
 
+
 const SensorProfileAssignmentListActions = () => (
     <TopToolbar>
         <CreateButton />
@@ -20,12 +21,11 @@ const SensorProfileAssignmentListActions = () => (
 const SensorProfileAssignmentList = (props) => (
     <List {...props} actions={<SensorProfileAssignmentListActions />}>
         <Datagrid rowClick="show">
-            <TextField source="id" />
             <ReferenceField source="sensor_id" reference="sensors">
-                <TextField source="id" />
+                <TextField source="name" />
             </ReferenceField>
-            <ReferenceField source="sensorprofile_id" reference="sensorprofiles">
-                <TextField source="id" />
+            <ReferenceField source="sensorprofile_id" reference="sensor_profiles">
+                <TextField source="name" />
             </ReferenceField>
             <DateField source="date_from" label="From" showTime />
             <DateField source="date_to" label="To" showTime />

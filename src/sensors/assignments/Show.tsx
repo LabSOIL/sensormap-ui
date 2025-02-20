@@ -2,8 +2,10 @@ import React from 'react';
 import {
     Show,
     SimpleShowLayout,
-    ArrayField,
-    Datagrid,
+    TopToolbar,
+    EditButton,
+    DeleteButton,
+    usePermissions,
     ReferenceField,
     TextField,
     DateField,
@@ -12,32 +14,33 @@ import {
 } from 'react-admin';
 import { Box } from '@mui/material';
 
-const AssignSensorButton = () => {
-    const record = useRecordContext();
-    if (!record) return null;
+const ShowActions = () => {
+    const { permissions } = usePermissions();
     return (
-        <Box mt={2}>
-            <CreateButton
-                label="Assign Sensor"
-                resource="sensor_profile_assignments"
-                state={{ record: { sensorprofile_id: record.id } }}
-            />
-        </Box>
+        <TopToolbar>
+            {permissions === 'admin' &&
+                <>
+                    <EditButton label='Modify assignment' />
+                    <DeleteButton mutationMode="pessimistic" label='Remove assignment' />
+                </>
+            }
+        </TopToolbar>
     );
-};
+}
+
 
 const SensorProfileAssignmentShow = (props) => (
-    <Show {...props}>
+    <Show {...props} actions={<ShowActions />}
+    >
         <SimpleShowLayout>
-                    <ReferenceField source="sensor_id" reference="sensors">
-                        <TextField source="name" />
-                    </ReferenceField>
-                    <ReferenceField source="sensorprofile_id" reference="sensor_profiles">
-                        <TextField source="name" />
-                    </ReferenceField>
-                    <DateField source="date_from" label="From" showTime />
-                    <DateField source="date_to" label="To" showTime />
-            <AssignSensorButton />
+            <ReferenceField source="sensor_id" reference="sensors">
+                <TextField source="name" />
+            </ReferenceField>
+            <ReferenceField source="sensorprofile_id" reference="sensor_profiles">
+                <TextField source="name" />
+            </ReferenceField>
+            <DateField source="date_from" label="From" showTime />
+            <DateField source="date_to" label="To" showTime />
         </SimpleShowLayout>
     </Show>
 );
