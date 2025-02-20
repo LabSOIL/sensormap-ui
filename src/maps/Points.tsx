@@ -24,6 +24,9 @@ import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 import Legend from './Legend'; // Import the Legend component
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import React, { useState } from 'react';
+import proj4 from 'proj4';
+import react from '@vitejs/plugin-react';
+
 
 const sensorIcon = L.AwesomeMarkers.icon({
     icon: 'temperature-low',
@@ -71,7 +74,7 @@ export const LocationFieldPoints = () => {
 
     // Define the state to track visibility of layers
     const [layersVisibility, setLayersVisibility] = useState({
-        sensors: { visible: true, label: 'Sensors' },
+        sensor_profiles: { visible: true, label: 'sensor_profiles' },
         plots: { visible: true, label: 'Plots' },
         soil_profiles: { visible: true, label: 'Soil Profiles' },
         transects: { visible: true, label: 'Transects' }
@@ -102,10 +105,10 @@ export const LocationFieldPoints = () => {
                 interactive={false}
             />
             <MarkerClusterGroup maxClusterRadius={40} chunkedLoading >
-                {layersVisibility.sensors.visible && record.sensors.map((sensor, index) => (
+                {layersVisibility.sensor_profiles.visible && record.sensor_profiles.map((obj, index) => (
                     <Marker
                         key={index}
-                        position={[sensor["latitude"], sensor["longitude"]]}
+                        position={proj4(`EPSG:${obj.coord_srid}`, 'EPSG:4326', [obj.coord_x, obj.coord_y]).reverse()}
                         icon={L.AwesomeMarkers.icon({
                             icon: 'temperature-low',
                             iconColor: 'yellow',
@@ -113,22 +116,22 @@ export const LocationFieldPoints = () => {
                             markerColor: 'blue'
                         })}
                     >
-                        <Tooltip permanent>{sensor["name"]}</Tooltip>
+                        <Tooltip permanent>{obj["name"]}</Tooltip>
                         <Popup>
-                            <b>{sensor["name"]}</b>
+                            <b>{obj["name"]}</b>
                             <br />
-                            {sensor["description"]}
+                            {obj["description"]}
                             <br /><br />
-                            <Link to={createPath({ type: 'show', resource: 'sensors', id: sensor['id'] })}>
+                            <Link to={createPath({ type: 'show', resource: 'sensor_profiles', id: obj['id'] })}>
                                 Go to Sensor
                             </Link>
                         </Popup>
                     </Marker>
                 ))}
-                {layersVisibility.plots.visible && record.plots.map((plot, index) => (
+                {layersVisibility.plots.visible && record.plots.map((obj, index) => (
                     <Marker
                         key={index}
-                        position={[plot["latitude"], plot["longitude"]]}
+                        position={proj4(`EPSG:${obj.coord_srid}`, 'EPSG:4326', [obj.coord_x, obj.coord_y]).reverse()}
                         icon={L.AwesomeMarkers.icon({
                             icon: 'trowel',
                             iconColor: 'black',
@@ -136,22 +139,22 @@ export const LocationFieldPoints = () => {
                             markerColor: 'green'
                         })}
                     >
-                        <Tooltip permanent>{plot["name"]}</Tooltip>
+                        <Tooltip permanent>{obj["name"]}</Tooltip>
                         <Popup>
-                            <b>{plot["name"]}</b>
+                            <b>{obj["name"]}</b>
                             <br />
-                            {plot["description"]}
+                            {obj["description"]}
                             <br /><br />
-                            <Link to={createPath({ type: 'show', resource: 'plots', id: plot['id'] })}>
+                            <Link to={createPath({ type: 'show', resource: 'plots', id: obj['id'] })}>
                                 Go to Plot
                             </Link>
                         </Popup>
                     </Marker>
                 ))}
-                {layersVisibility.soil_profiles.visible && record.soil_profiles.map((soilProfile, index) => (
+                {layersVisibility.soil_profiles.visible && record.soil_profiles.map((obj, index) => (
                     <Marker
                         key={index}
-                        position={[soilProfile["latitude"], soilProfile["longitude"]]}
+                        position={proj4(`EPSG:${obj.coord_srid}`, 'EPSG:4326', [obj.coord_x, obj.coord_y]).reverse()}
                         icon={L.AwesomeMarkers.icon({
                             icon: 'clipboard',
                             iconColor: 'yellow',
@@ -159,13 +162,13 @@ export const LocationFieldPoints = () => {
                             markerColor: 'red'
                         })}
                     >
-                        <Tooltip permanent>{soilProfile["name"]}</Tooltip>
+                        <Tooltip permanent>{obj["name"]}</Tooltip>
                         <Popup>
-                            <b>{soilProfile["name"]}</b>
+                            <b>{obj["name"]}</b>
                             <br />
-                            {soilProfile["description"]}
+                            {obj["description"]}
                             <br /><br />
-                            <Link to={createPath({ type: 'show', resource: 'soil_profiles', id: soilProfile['id'] })}>
+                            <Link to={createPath({ type: 'show', resource: 'soil_profiles', id: obj['id'] })}>
                                 Go to Soil Profile
                             </Link>
                         </Popup>
@@ -175,7 +178,7 @@ export const LocationFieldPoints = () => {
                     <>
                         <Polyline
                             key={index}
-                            positions={transect.nodes.map(node => [node.latitude, node.longitude])}
+                            positions={transect.nodes.map(node => proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y])).reverse()}
                             color="black"
                             weight={5}
                         />
@@ -183,8 +186,8 @@ export const LocationFieldPoints = () => {
                             <Marker
                                 position={
                                     calculateMiddlePosition(
-                                        [transect.nodes[0].latitude, transect.nodes[0].longitude],
-                                        [transect.nodes[1].latitude, transect.nodes[1].longitude]
+                                        proj4(`EPSG:${transect.nodes[0].coord_srid}`, 'EPSG:4326', [transect.nodes[0].coord_x, transect.nodes[0].coord_y]).reverse(),
+                                        proj4(`EPSG:${transect.nodes[1].coord_srid}`, 'EPSG:4326', [transect.nodes[1].coord_x, transect.nodes[1].coord_y]).reverse()
                                     )
                                 }
                                 icon={L.AwesomeMarkers.icon({

@@ -206,22 +206,15 @@ export const TransectShowMap = () => {
         return <Loading />;
     }
 
-
     // Convert coordinates to lat/lon
     const nodePolyLine = record.nodes.map(node => {
         // Define the projection for the coordinates
-        const sourceProj = `EPSG:${node.coord_srid}`;
-        const destProj = 'EPSG:4326';
-        const [lon, lat] = proj4(sourceProj, destProj, [node.coord_x, node.coord_y]);
-        return [lat, lon];
+        return proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse();
     });
 
     // Get map bounds from the bounding box of all nodes in the record
     const mapBounds = record.nodes.reduce((acc, node) => {
-        const sourceProj = `EPSG:${node.coord_srid}`;
-        const destProj = 'EPSG:4326';
-        const [lon, lat] = proj4(sourceProj, destProj, [node.coord_x, node.coord_y]);
-        return acc.extend([lat, lon]);
+        return acc.extend(proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse());
     }, L.latLngBounds());
 
     // We want a similar map to create, but just the plots from the record now

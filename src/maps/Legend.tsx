@@ -27,7 +27,7 @@ const Legend = ({ layers, toggleLayer }) => {
                     color: black;
                 ">
                     <h4 style="margin-top: 0;">Legend</h4>
-                    <div id="sensor-layer" style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer; ${!layers.sensors.visible ? 'opacity: 0.5;' : ''
+                    <div id="sensor-profiles-layer" style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer; ${!layers.sensor_profiles.visible ? 'opacity: 0.5;' : ''
                 }">
                         <i class="fa fa-temperature-low" style="color: yellow; background: blue; width: 18px; height: 18px; display: inline-block; margin-right: 5px; text-align: center; line-height: 18px;"></i>
                         <span>Sensor</span>
@@ -55,12 +55,12 @@ const Legend = ({ layers, toggleLayer }) => {
         legend.addTo(map);
 
         // Add event listeners to handle clicking
-        const sensorLayer = document.getElementById('sensor-layer');
+        const sensorProfileLayer = document.getElementById('sensor-profiles-layer');
         const plotLayer = document.getElementById('plot-layer');
         const soilProfileLayer = document.getElementById('soil-profile-layer');
         const transectLayer = document.getElementById('transect-layer');
 
-        sensorLayer.addEventListener('click', () => toggleLayer('sensors'));
+        sensorProfileLayer.addEventListener('click', () => toggleLayer('sensor-profiles'));
         plotLayer.addEventListener('click', () => toggleLayer('plots'));
         soilProfileLayer.addEventListener('click', () => toggleLayer('soil_profiles'));
         transectLayer.addEventListener('click', () => toggleLayer('transects'));

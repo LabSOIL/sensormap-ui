@@ -15,6 +15,8 @@ import { LocationFieldPoints } from '../maps/Points';
 import { Grid } from '@mui/material';
 import { Box } from '@mui/system';
 
+
+
 const AreaShowActions = () => {
     const { permissions } = usePermissions();
     return (
@@ -108,7 +110,7 @@ export const AreaShow = () => {
                     </Grid>
 
                     <Grid item xs={9}>
-                        {/* <LocationFieldPoints /> */}
+                        <LocationFieldPoints />
                     </Grid>
                 </Grid>
             </SimpleShowLayout>
