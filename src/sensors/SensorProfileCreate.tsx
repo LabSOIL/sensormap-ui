@@ -1,33 +1,35 @@
 import {
-    Edit,
+    Create,
     SimpleForm,
-    TextField,
     TextInput,
     required,
-    FileInput,
-    FileField,
     ReferenceInput,
     SelectInput,
+    FileInput,
+    FileField,
 } from 'react-admin';
 import { CoordinateInput } from '../maps/CoordinateEntry';
 
 
-const SensorEdit = () => {
+const SensorProfileCreate = () => {
     return (
-        <Edit mutationMode="pessimistic">
-            <SimpleForm>
-                <TextInput source="id" disabled />
+        <Create redirect="list">
+            <SimpleForm >
+
+                Define the area to which this sensor belongs:
                 <ReferenceInput source="area_id" reference="areas" >
                     <SelectInput
                         label="Area"
                         source="area_id"
-                        optionText="name" />
+                        optionText="name"
+                        validate={required()}
+                    />
                 </ReferenceInput>
-                <TextInput source="name" validate={[required()]} />
+                <TextInput source="name" validate={[required()]}  />
                 <TextInput source="description" />
+                <TextInput source="comment" label="Notes/Comments" />
                 <TextInput source="serial_number" />
-                <TextInput source="comment" label="Notes/Comments" multiline />
-                {/* <CoordinateInput updateElevationOnMount={false} /> */}
+                <CoordinateInput />
                 <FileInput label="Instrument data" source="attachments">
                     <FileField
                         source="src"
@@ -35,8 +37,8 @@ const SensorEdit = () => {
                     />
                 </FileInput>
             </SimpleForm>
-        </Edit>
+        </Create>
     )
 };
 
-export default SensorEdit;
+export default SensorProfileCreate;

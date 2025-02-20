@@ -16,7 +16,7 @@ const Instrument = {
     show: InstrumentShow,
     recordRepresentation: 'name',
     options: {
-        label: 'Instrument Processing',
+        label: 'Lab Processing',
     },
 
     icon: BuildIcon,

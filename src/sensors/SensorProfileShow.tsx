@@ -26,7 +26,7 @@ import { Box, Typography } from '@mui/material';
 import { IconButton } from '@mui/material';
 import plots from '../plots';
 
-const SensorShowActions = () => {
+const SensorProfileShowActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
@@ -35,7 +35,7 @@ const SensorShowActions = () => {
     );
 }
 
-export const SensorPlot = () => {
+export const SensorProfilePlot = () => {
     const record = useRecordContext();
     const [theme, setTheme] = useTheme();
     if (!record) return null;
@@ -94,8 +94,6 @@ export const SensorPlot = () => {
                     titlefont: { color: 'rgb(31, 119, 180)' },
                     tickfont: { color: 'rgb(31, 119, 180)' },
                     gridcolor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                    range: [null, 45], // Set the maximum value to 45 degrees
-
                 },
                 yaxis2: {
                     title: 'Soil Moisture',
@@ -146,12 +144,12 @@ export const CreatePlotRelationship = () => {
     </IconButton>;
 };
 
-const SensorShow = () => {
-    const [highResolution, setHighResolution] = useState(false);
+const SensorProfileShow = () => {
+    const [lowResolution, setLowResolution] = useState(true);
     const createPath = useCreatePath();
-    // Function to toggle resolution
+    // Function to toggle lowResolution
     const handleToggle = () => {
-        setHighResolution(!highResolution);
+        setLowResolution(!lowResolution);
     };
 
     const handleRowClick = (id, basePath, record) => {
@@ -163,17 +161,13 @@ const SensorShow = () => {
         }
         return null;
     }
-    // Rerender data when resolution state changes
-    useEffect(() => { }, [highResolution]);
+    // Rerender data when lowResolution state changes
+    useEffect(() => { }, [lowResolution]);
 
     return (
         <Show
-            actions={<SensorShowActions />}
-            queryOptions={{ 
-                meta: { 
-                    high_resolution: highResolution
-                } 
-            }}
+            actions={<SensorProfileShowActions />}
+            queryOptions={{ meta: { low_resolution: lowResolution } }}
         >
             <SimpleShowLayout>
                 <Grid container spacing={2}>
@@ -236,28 +230,28 @@ const SensorShow = () => {
                     </Grid>
 
                     <Grid item xs={10}>
-                        <SensorPlot source="temperature_plot" />
+                        <SensorProfilePlot source="temperature_plot" />
                         <Grid container justifyContent="flex-start">
                             <FormControlLabel
                                 control={
                                     <Switch
-                                        checked={highResolution}
+                                        checked={lowResolution}
                                         onChange={handleToggle}
-                                        name="highResolution"
+                                        name="lowResolution"
                                         color="primary"
                                     />
                                 }
                                 label={
                                     <Typography variant="body2"> {/* Decrease the label text size */}
-                                        High resolution
+                                        Low Resolution
                                     </Typography>
                                 }
                             />
                             <Box width="400px" mb={1}>
                                 <Typography variant="caption">
-                                    To reduce loading time, high-resolution data is disabled by default and 
-                                    provided as a daily average. <br />
-                                    Switch to enable high-resolution data.
+                                    The sensor data is large, by default the plot is downsampled with
+                                    the <i>Largest-Triangle-Three-Buckets</i> algorithm for memory efficiency.<br />
+                                    Disable to load high-resolution data.
                                 </Typography>
                             </Box>
                         </Grid>
@@ -280,4 +274,4 @@ const SensorShow = () => {
     );
 };
 
-export default SensorShow;
+export default SensorProfileShow;

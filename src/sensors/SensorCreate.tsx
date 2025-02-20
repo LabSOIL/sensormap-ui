@@ -29,7 +29,7 @@ const SensorCreate = () => {
                 <TextInput source="description" />
                 <TextInput source="comment" label="Notes/Comments" />
                 <TextInput source="serial_number" />
-                <CoordinateInput />
+                {/* <CoordinateInput /> */}
                 <FileInput label="Instrument data" source="attachments">
                     <FileField
                         source="src"

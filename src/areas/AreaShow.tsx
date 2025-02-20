@@ -63,10 +63,10 @@ export const AreaShow = () => {
                         </Grid>
                         <Grid item xs={6} />
                         <Grid item xs={6}>
-                            <Labeled label="Sensors">
+                            <Labeled label="Sensor Profiles">
                                 <ReferenceManyCount
-                                    label="Sensors"
-                                    reference="sensors"
+                                    label="Sensor Profiles"
+                                    reference="sensor_profiles"
                                     target="area_id"
                                     link
                                 />

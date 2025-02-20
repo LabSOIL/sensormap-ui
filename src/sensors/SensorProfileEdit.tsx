@@ -12,9 +12,9 @@ import {
 import { CoordinateInput } from '../maps/CoordinateEntry';
 
 
-const SensorEdit = () => {
+const SensorProfileEdit = () => {
     return (
-        <Edit mutationMode="pessimistic">
+        <Edit>
             <SimpleForm>
                 <TextInput source="id" disabled />
                 <ReferenceInput source="area_id" reference="areas" >
@@ -27,7 +27,7 @@ const SensorEdit = () => {
                 <TextInput source="description" />
                 <TextInput source="serial_number" />
                 <TextInput source="comment" label="Notes/Comments" multiline />
-                {/* <CoordinateInput updateElevationOnMount={false} /> */}
+                <CoordinateInput updateElevationOnMount={false} />
                 <FileInput label="Instrument data" source="attachments">
                     <FileField
                         source="src"
@@ -39,4 +39,4 @@ const SensorEdit = () => {
     )
 };
 
-export default SensorEdit;
+export default SensorProfileEdit;

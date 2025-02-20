@@ -4,6 +4,7 @@ import {
     TitlePortal,
 } from 'react-admin';
 import { CssBaseline, Typography } from '@mui/material';
+import { MyMenu } from './AppMenu';
 
 const MyAppBar = (props) => {
     const appBarText = () => {
@@ -41,6 +42,7 @@ const MyLayout = ({ children, deployment }) => {
         <>
             <CssBaseline />
             <Layout
+                menu={MyMenu}
                 appBar={() => <MyAppBar deployment={deployment} />}
             >
                 {children}

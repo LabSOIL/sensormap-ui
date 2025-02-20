@@ -14,7 +14,7 @@ import Keycloak, {
 } from 'keycloak-js';
 import { httpClient } from 'ra-keycloak';
 import { keycloakAuthProvider } from './authProvider';
-import MyLayout from './Layout';
+import MyLayout from './layout/Layout';
 import users from './users';
 import sensors from './sensors';
 import areas from "./areas";
@@ -104,6 +104,7 @@ const App = () => {
                             <Resource name="plots" {...plots.plot} />
                             <Resource name="plot_samples" {...plots.sample} />
                             <Resource name="sensors" {...sensors.sensor} />
+                            <Resource name="sensor_profiles" {...sensors.profile} />
                             <Resource name="sensordata" {...sensors.sensordata} />
                             <Resource name="soil_profiles" {...soil.profile} />
                             <Resource name="soil_types" {...soil.type} />

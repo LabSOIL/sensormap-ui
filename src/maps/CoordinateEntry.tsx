@@ -56,7 +56,7 @@ const ElevationInput = () => {
             <Typography variant="caption" color={'error'}>
                 {errorMessage ? errorMessage : null}
             </Typography>
-            <NumberInput source="coord_z" label="Elevation (m)" />
+            <NumberInput source="coord_z" label="Elevation (m)" validate={[required()]}  />
         </>
     );
 };
