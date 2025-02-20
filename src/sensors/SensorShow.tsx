@@ -30,7 +30,7 @@ const SensorShowActions = () => {
     const { permissions } = usePermissions();
     return (
         <TopToolbar>
-            {permissions === 'admin' && <><EditButton /><DeleteButton /></>}
+            {permissions === 'admin' && <><EditButton /><DeleteButton mutationMode="pessimistic" /></>}
         </TopToolbar>
     );
 }
@@ -122,25 +122,6 @@ export const CreatePlotRelationship = () => {
     return <IconButton
         color="success"
         title="Create sensor"
-    // onClick={(event) => {
-    //     if (navigator.clipboard) {
-    //         const clipboardText = `${record.name}: ${record.comment}`;
-    //         navigator.clipboard.writeText(clipboardText).then(() => {
-    //             notify(`Copied "${clipboardText}" to clipboard`);
-    //         });
-    //     }
-    //     redirect('create', 'plot_sensor', null, {}, {
-    //         record: {
-    //             coord_x: record.x,
-    //             coord_y: record.y,
-    //             coord_z: record.elevation_gps,
-    //             name: record.name,
-    //             description: record.comment,
-    //             created_on: record.time
-    //         }
-    //     })
-    //     event.stopPropagation();
-    // }}
     >
         <plots.plot.icon />
     </IconButton>;
@@ -201,20 +182,6 @@ const SensorShow = () => {
                             </Labeled>
                         </Grid>
                         <Grid item xs={6} />
-                        <Grid item xs={6}>
-                            <Labeled label="XY Coordinates (m)">
-                                <FunctionField render={record =>
-                                    `${record.coord_x}, ${record.coord_y}`}
-                                    label="Coordinates"
-                                />
-                            </Labeled>
-                        </Grid>
-                        <Grid item xs={6} />
-                        <Grid item xs={6}>
-                            <Labeled label="Elevation (m)">
-                                <TextField source="coord_z" />
-                            </Labeled>
-                        </Grid>
                         <Grid item xs={6}>
                             <Labeled label="Description">
                                 <TextField source="description" />

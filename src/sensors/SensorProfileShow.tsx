@@ -35,77 +35,77 @@ const SensorProfileShowActions = () => {
     );
 }
 
-export const SensorProfilePlot = () => {
-    const record = useRecordContext();
-    const [theme, setTheme] = useTheme();
-    if (!record) return null;
+// export const SensorProfilePlot = () => {
+//     const record = useRecordContext();
+//     const [theme, setTheme] = useTheme();
+//     if (!record) return null;
 
-    const x = record.data.map((d) => d.time_utc);
-    const traces = [
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_1),
-            name: 'Temperature 1',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_2),
-            name: 'Temperature 2',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_3),
-            name: 'Temperature 3',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_average),
-            name: 'Temperature Average',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.soil_moisture_count),
-            yaxis: 'y2',
-            name: 'Soil Moisture'
-        },
-    ];
+//     const x = record.data.map((d) => d.time_utc);
+//     const traces = [
+//         {
+//             x: x,
+//             y: record.data.map((d) => d.temperature_1),
+//             name: 'Temperature 1',
+//         },
+//         {
+//             x: x,
+//             y: record.data.map((d) => d.temperature_2),
+//             name: 'Temperature 2',
+//         },
+//         {
+//             x: x,
+//             y: record.data.map((d) => d.temperature_3),
+//             name: 'Temperature 3',
+//         },
+//         {
+//             x: x,
+//             y: record.data.map((d) => d.temperature_average),
+//             name: 'Temperature Average',
+//         },
+//         {
+//             x: x,
+//             y: record.data.map((d) => d.soil_moisture_count),
+//             yaxis: 'y2',
+//             name: 'Soil Moisture'
+//         },
+//     ];
 
-    return (
-        <Plot
-            data={traces}
-            layout={{
-                width: 800,
-                autosize: true,
-                paper_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
-                plot_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
+//     return (
+//         <Plot
+//             data={traces}
+//             layout={{
+//                 width: 800,
+//                 autosize: true,
+//                 paper_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
+//                 plot_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
 
-                font: {
-                    color: theme === 'dark' ? 'white' : 'black',
-                    size: 12,
-                },
-                margin: {
-                    l: 50,  // Left margin
-                    r: 50,  // Right margin
-                    t: 50,  // Top margin
-                    b: 50,  // Bottom margin
-                },
-                yaxis: {
-                    title: 'Temperature (°C)',
-                    titlefont: { color: 'rgb(31, 119, 180)' },
-                    tickfont: { color: 'rgb(31, 119, 180)' },
-                    gridcolor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                },
-                yaxis2: {
-                    title: 'Soil Moisture',
-                    titlefont: { color: 'rgb(148, 103, 189)' },
-                    tickfont: { color: 'rgb(148, 103, 189)' },
-                    overlaying: 'y',
-                    side: 'right'
-                },
-            }}
-        />
-    );
-};
+//                 font: {
+//                     color: theme === 'dark' ? 'white' : 'black',
+//                     size: 12,
+//                 },
+//                 margin: {
+//                     l: 50,  // Left margin
+//                     r: 50,  // Right margin
+//                     t: 50,  // Top margin
+//                     b: 50,  // Bottom margin
+//                 },
+//                 yaxis: {
+//                     title: 'Temperature (°C)',
+//                     titlefont: { color: 'rgb(31, 119, 180)' },
+//                     tickfont: { color: 'rgb(31, 119, 180)' },
+//                     gridcolor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+//                 },
+//                 yaxis2: {
+//                     title: 'Soil Moisture',
+//                     titlefont: { color: 'rgb(148, 103, 189)' },
+//                     tickfont: { color: 'rgb(148, 103, 189)' },
+//                     overlaying: 'y',
+//                     side: 'right'
+//                 },
+//             }}
+//         />
+//     );
+// };
 
 
 export const CreatePlotRelationship = () => {
@@ -226,11 +226,10 @@ const SensorProfileShow = () => {
                                 <TextField source="serial_number" />
                             </Labeled>
                         </Grid>
-
                     </Grid>
 
                     <Grid item xs={10}>
-                        <SensorProfilePlot source="temperature_plot" />
+                        {/* <SensorProfilePlot source="temperature_plot" /> */}
                         <Grid container justifyContent="flex-start">
                             <FormControlLabel
                                 control={

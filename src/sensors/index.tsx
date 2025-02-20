@@ -11,7 +11,22 @@ import SensorProfileEdit from './SensorProfileEdit';
 import SensorProfileShow from './SensorProfileShow';
 import SensorProfileList from './SensorProfileList';
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
-
+import SensorAssignmentCreate from './assignments/Create';
+import SensorAssignmentEdit from './assignments/Edit';
+import SensorAssignmentList from './assignments/List';
+import SensorAssignmentShow from './assignments/Show';
+import SensorAssignmentIcon from '@mui/icons-material/Assignment';
+const assignments = {
+    create: SensorAssignmentCreate,
+    edit: SensorAssignmentEdit,
+    list: SensorAssignmentList,
+    show: SensorAssignmentShow,
+    icon: SensorAssignmentIcon,
+    recordRepresentation: 'name',
+    options: {
+        label: 'Sensor assignments',
+    },
+}
 const profile = {
     create: SensorProfileCreate,
     edit: SensorProfileEdit,
@@ -42,4 +57,5 @@ export default {
     sensor,
     sensordata,
     profile,
+    assignments,
 };

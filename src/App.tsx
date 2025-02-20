@@ -105,6 +105,7 @@ const App = () => {
                             <Resource name="plot_samples" {...plots.sample} />
                             <Resource name="sensors" {...sensors.sensor} />
                             <Resource name="sensor_profiles" {...sensors.profile} />
+                            <Resource name="sensor_profile_assignments" {...sensors.assignments} />
                             <Resource name="sensordata" {...sensors.sensordata} />
                             <Resource name="soil_profiles" {...soil.profile} />
                             <Resource name="soil_types" {...soil.type} />

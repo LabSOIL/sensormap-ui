@@ -23,6 +23,7 @@ export const MyMenu = () => (
             <Menu.ResourceItem name="gnss" />
             <Menu.ResourceItem name="soil_types" />
             <Menu.ResourceItem name="sensors" />
+            <Menu.ResourceItem name="sensor_profile_assignments" />
         </SubMenu>
         <hr style={{ width: '70%' }} />
         <Menu.ResourceItem name="instruments" />
