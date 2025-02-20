@@ -74,7 +74,7 @@ export const LocationFieldPoints = () => {
 
     // Define the state to track visibility of layers
     const [layersVisibility, setLayersVisibility] = useState({
-        sensor_profiles: { visible: true, label: 'sensor_profiles' },
+        sensor_profiles: { visible: true, label: 'Sensors' },
         plots: { visible: true, label: 'Plots' },
         soil_profiles: { visible: true, label: 'Soil Profiles' },
         transects: { visible: true, label: 'Transects' }
@@ -178,7 +178,7 @@ export const LocationFieldPoints = () => {
                     <>
                         <Polyline
                             key={index}
-                            positions={transect.nodes.map(node => proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y])).reverse()}
+                            positions={transect.nodes.map(node => proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse())}
                             color="black"
                             weight={5}
                         />

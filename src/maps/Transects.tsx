@@ -208,7 +208,6 @@ export const TransectShowMap = () => {
 
     // Convert coordinates to lat/lon
     const nodePolyLine = record.nodes.map(node => {
-        // Define the projection for the coordinates
         return proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse();
     });
 

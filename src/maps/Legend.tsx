@@ -60,7 +60,7 @@ const Legend = ({ layers, toggleLayer }) => {
         const soilProfileLayer = document.getElementById('soil-profile-layer');
         const transectLayer = document.getElementById('transect-layer');
 
-        sensorProfileLayer.addEventListener('click', () => toggleLayer('sensor-profiles'));
+        sensorProfileLayer.addEventListener('click', () => toggleLayer('sensor_profiles'));
         plotLayer.addEventListener('click', () => toggleLayer('plots'));
         soilProfileLayer.addEventListener('click', () => toggleLayer('soil_profiles'));
         transectLayer.addEventListener('click', () => toggleLayer('transects'));
