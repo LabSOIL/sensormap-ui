@@ -21,6 +21,7 @@ import {
     Button,
     useRefresh,
     useDataProvider,
+    useCreatePath,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
 import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -55,7 +56,7 @@ const SensorShowActions = () => {
         <TopToolbar>
             {permissions === 'admin' && (
                 <>
-                    <EditButton />
+                    <EditButton label="Edit or add new data" />
                     <Button
                         mutationMode="pessimistic"
                         onClick={() => {
@@ -97,7 +98,7 @@ const AssignSensorButton = () => {
     return (
         <Box mt={2}>
             <CreateButton
-                label="Assign Sensor"
+                label="Assign Sensor to Sensor Profile"
                 resource="sensor_profile_assignments"
                 state={{ record: { sensor_id: record.id } }}
             />
@@ -111,8 +112,9 @@ const SensorPlot = (
         highResolution: boolean,
         setHighResolution: (value: boolean) => void,
     }) => {
-    const record = useRecordContext();
+
     const [theme] = useTheme();
+    const record = useRecordContext();
     if (!record) return null;
 
 
@@ -277,7 +279,7 @@ const SensorPlot = (
 
 const SensorShow = (record: any) => {
     const [highResolution, setHighResolution] = useState(false);
-
+    const createPath = useCreatePath();
     // Rerender data when resolution state changes
     useEffect(() => { }, [highResolution]);
 
@@ -333,6 +335,16 @@ const SensorShow = (record: any) => {
                                 <TextField source="serial_number" />
                             </Labeled>
                         </Grid>
+                        <Grid item xs={6}>
+                            <Labeled label="Data from">
+                                <DateField showTime source="data_from" />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Labeled label="Data to">
+                                <DateField showTime source="data_to" />
+                            </Labeled>
+                        </Grid>
 
                     </Grid>
 
@@ -346,7 +358,13 @@ const SensorShow = (record: any) => {
                 </Grid>
                 <Typography variant="h6">Assignments</Typography>
                 <ArrayField source="assignments">
-                    <Datagrid bulkActionButtons={false} rowClick={false}>
+                    <AssignSensorButton />
+                    <Datagrid
+                        bulkActionButtons={false}
+                        rowClick={(id) => createPath(
+                            { resource: 'sensor_profile_assignments', id, type: 'edit', fromPage: "sensors" }
+                        )}
+                    >
                         <ReferenceField
                             source='sensorprofile_id'
                             reference='sensor_profiles'

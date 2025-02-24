@@ -33,7 +33,7 @@ const profile = {
     list: SensorProfileList,
     show: SensorProfileShow,
     icon: DeviceThermostatIcon,
-    recordRepresentation: 'name',
+    // recordRepresentation: 'name',
 };
 const sensor = {
     create: SensorCreate,
@@ -41,7 +41,7 @@ const sensor = {
     list: SensorList,
     show: SensorShow,
     icon: SensorsIcon,
-    recordRepresentation: 'name',
+    // recordRepresentation: 'name',
     options: {
         label: 'Sensor instruments',
     },

@@ -5,11 +5,24 @@ import {
     SelectInput,
     DateTimeInput,
     required,
+    useRedirect,
+    useNotify,
+    useRefresh,
+    useRecordContext,
 } from 'react-admin';
 
-const SensorProfileAssignmentEdit = (props) => {
+const SensorProfileAssignmentEdit = () => {
+    const redirect = useRedirect();
+    const notify = useNotify();
+    const refresh = useRefresh();
+
+    const onSuccess = (data) => {
+        notify(`Changes saved to Sensor: ${data.sensor.name} and Sensor Profile: ${data.sensor_profile.name}`);
+        redirect("show", "sensors", data.sensor_id, {});
+        refresh();
+    };
     return (
-        <Edit mutationMode="pessimistic" {...props}>
+        <Edit mutationOptions={{ onSuccess }} mutationMode="pessimistic">
             <SimpleForm>
                 <ReferenceInput source="sensor_id" reference="sensors">
                     <SelectInput optionText="name" validate={required()} />
@@ -19,8 +32,8 @@ const SensorProfileAssignmentEdit = (props) => {
                 </ReferenceInput>
                 <DateTimeInput source="date_from" label="Date From" validate={required()} parse={(date: Date) => (date ? date.toISOString().replace('Z', '') : null)} />
                 <DateTimeInput source="date_to" label="Date To" validate={required()} parse={(date: Date) => (date ? date.toISOString().replace('Z', '') : null)} />
-            </SimpleForm>
-        </Edit>
+            </SimpleForm >
+        </Edit >
     );
 };
 

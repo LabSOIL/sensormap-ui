@@ -36,6 +36,8 @@ const SensorList = () => {
                 <ReferenceField source="area_id" reference="areas">
                     <TextField source='name' />
                 </ReferenceField>
+                <DateField source='data_from' showTime />
+                <DateField source='data_to' showTime />
                 <DateField source='last_updated' showTime />
                 <TextField source="description" />
                 <TextField source="comment" />
