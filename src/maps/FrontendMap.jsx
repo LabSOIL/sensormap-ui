@@ -11,7 +11,7 @@ import { useDataProvider, useCreatePath } from 'react-admin';
 import { Link } from 'react-router-dom';
 import Legend from './Legend';
 
-// Map events component to track zoom and bounds
+// Component to track zoom and map bounds
 const MapEvents = ({ setZoomLevel, setCurrentMapBounds }) => {
     const map = useMap();
     useMapEvents({
@@ -25,7 +25,7 @@ const MapEvents = ({ setZoomLevel, setCurrentMapBounds }) => {
     return null;
 };
 
-// Component to render an area polygon with a tooltip that zooms in
+// Renders the area polygon with an enhanced tooltip label for clarity
 const ZoomablePolygon = ({ area }) => {
     const map = useMap();
     if (!area.geom) return null;
@@ -33,7 +33,7 @@ const ZoomablePolygon = ({ area }) => {
     const center = positions.reduce((acc, pos) => [acc[0] + pos[0], acc[1] + pos[1]], [0, 0]);
     const centerPos = [center[0] / positions.length, center[1] / positions.length];
     const handleZoom = () => {
-        map.setView(centerPos, 15);
+        map.setView(centerPos, 16);
     };
     return (
         <Polygon
@@ -41,22 +41,38 @@ const ZoomablePolygon = ({ area }) => {
             color={area.project && area.project.color ? area.project.color : 'blue'}
             eventHandlers={{ click: handleZoom }}
         >
-            <Tooltip permanent interactive={true}>
-                <span onClick={handleZoom} style={{ cursor: 'pointer' }}>{area.name}</span>
+            <Tooltip
+                permanent
+                interactive={true}
+                direction="center"
+            >
+                <span
+                    onClick={handleZoom}
+                    style={{
+                        background: 'rgba(255,255,255,1)',
+                        padding: '3px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 'bolder',
+                        color: '#000',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {area.name}
+                </span>
             </Tooltip>
         </Polygon>
     );
 };
 
-// Helper to calculate the midpoint between two coordinates (each [lat, lng])
+// Helper to calculate the midpoint between two coordinates (each as [lat, lng])
 const calculateMiddlePosition = (coord1, coord2) => {
     const lat = (coord1[0] + coord2[0]) / 2;
     const lng = (coord1[1] + coord2[1]) / 2;
     return [lat, lng];
 };
 
-// Ensure the generated path is absolute (starts with "/")
-const getAbsolutePath = (path) => path.startsWith('/') ? path : '/' + path;
+// Ensure that the generated path is absolute (starts with '/')
+const getAbsolutePath = (path) => (path.startsWith('/') ? path : '/' + path);
 
 const FrontendMap = ({ height = "60%", width = "80%" }) => {
     const dataProvider = useDataProvider();
@@ -67,14 +83,13 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
     const [currentMapBounds, setCurrentMapBounds] = useState(null);
     const fittedRef = useRef(false);
 
-    // Local state to manage layer visibility (used by the Legend)
+    // State for toggling layer visibility via the Legend
     const [layersVisibility, setLayersVisibility] = useState({
         sensor_profiles: { visible: true, label: 'Sensors' },
         plots: { visible: true, label: 'Plots' },
         soil_profiles: { visible: true, label: 'Soil Profiles' },
         transects: { visible: true, label: 'Transects' }
     });
-
     const toggleLayer = (layerKey) => {
         setLayersVisibility(prev => ({
             ...prev,
@@ -82,11 +97,11 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         }));
     };
 
-    // Define the Swiss coordinate system (EPSG:2056) with the towgs84 parameters
+    // Define EPSG:2056 with the proper towgs84 parameters
     proj4.defs("EPSG:2056", "+proj=somerc +lat_0=46.9524055555556 +lon_0=7.43958333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs +type=crs");
     const convertCoordinates = (x, y) => proj4("EPSG:2056", "EPSG:4326", [x, y]); // returns [lng, lat]
 
-    // Fetch areas from react-admin (each area contains nested plots, sensor_profiles, soil_profiles, and transects)
+    // Fetch areas (with nested features) and compute bounds with extra padding so details are centered
     useEffect(() => {
         dataProvider.getList('areas', {
             filter: {},
@@ -98,13 +113,13 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                 const allCoords = areasData
                     .filter(area => area.geom && area.geom.coordinates && area.geom.coordinates.length > 0)
                     .flatMap(area => area.geom.coordinates[0].map(coord => [coord[1], coord[0]]));
-                const computedBounds = allCoords.length > 0 ? L.latLngBounds(allCoords) : null;
+                const computedBounds = allCoords.length > 0 ? L.latLngBounds(allCoords).pad(0.5) : null;
                 setBounds(computedBounds);
             })
             .catch(error => console.error('Error fetching areas:', error));
     }, [dataProvider]);
 
-    // Icon mapping matching the legend; note transect now uses key "Transect"
+    // Icon mapping (matching the legend) for various features
     const iconMapping = {
         "Plot": { icon: 'trowel', markerColor: 'green', iconColor: 'black', resource: 'plots' },
         "Sensor Profile": { icon: 'temperature-low', markerColor: 'blue', iconColor: 'yellow', resource: 'sensor_profiles' },
@@ -112,7 +127,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         "Transect": { icon: 'road', markerColor: 'black', iconColor: 'white', resource: 'transects' }
     };
 
-    // Generate markers from the nested data
+    // Generate markers for nested features
     let markers = [];
     areas.forEach(area => {
         if (zoomLevel >= 15) {
@@ -161,7 +176,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
             if (area.transects && Array.isArray(area.transects)) {
                 area.transects.forEach(transect => {
                     if (transect.nodes && Array.isArray(transect.nodes) && transect.nodes.length > 1) {
-                        // Calculate a single marker position for the transect (using the midpoint of the first two nodes)
+                        // Create one marker per transect using the midpoint between the first two nodes
                         const pos = calculateMiddlePosition(
                             proj4(`EPSG:${transect.nodes[0].coord_srid}`, 'EPSG:4326', [transect.nodes[0].coord_x, transect.nodes[0].coord_y]).reverse(),
                             proj4(`EPSG:${transect.nodes[1].coord_srid}`, 'EPSG:4326', [transect.nodes[1].coord_x, transect.nodes[1].coord_y]).reverse()
@@ -178,7 +193,6 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
             }
         }
     });
-
     const filteredMarkers = markers.filter(marker => {
         if (marker.type === 'Plot') return layersVisibility.plots.visible;
         if (marker.type === 'Sensor Profile') return layersVisibility.sensor_profiles.visible;
@@ -187,7 +201,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         return true;
     });
 
-    // Generate polylines for transects (connecting all nodes)
+    // Generate polylines connecting transect nodes
     let transectPolylines = [];
     areas.forEach(area => {
         if (area.transects && Array.isArray(area.transects)) {
@@ -211,6 +225,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         }
     });
 
+    // Component to fit the map bounds on first load
     const FitBounds = ({ bounds }) => {
         const map = useMap();
         useEffect(() => {
@@ -247,12 +262,13 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                     [47.808455, 10.492294]
                 ]}
                 minZoom={9}
+                maxZoom={21}
             >
                 <MapEvents setZoomLevel={setZoomLevel} setCurrentMapBounds={setCurrentMapBounds} />
                 <BaseLayers />
                 <FitBounds bounds={bounds} />
                 {zoomLevel >= 15 && (
-                    <MarkerClusterGroup maxClusterRadius={25} chunkedLoading>
+                    <MarkerClusterGroup maxClusterRadius={5} chunkedLoading>
                         {filteredMarkers.map(marker => {
                             const mapping = iconMapping[marker.type] || { icon: 'map-marker', markerColor: 'blue', iconColor: 'white', resource: 'areas' };
                             return (
