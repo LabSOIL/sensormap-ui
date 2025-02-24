@@ -14,7 +14,7 @@ import { CoordinateInput } from '../maps/CoordinateEntry';
 
 const SensorEdit = () => {
     return (
-        <Edit mutationMode="pessimistic">
+        <Edit mutationMode="pessimistic" redirect="show">
             <SimpleForm>
                 <TextInput source="id" disabled />
                 <ReferenceInput source="area_id" reference="areas" >
@@ -27,7 +27,6 @@ const SensorEdit = () => {
                 <TextInput source="description" />
                 <TextInput source="serial_number" />
                 <TextInput source="comment" label="Notes/Comments" multiline />
-                {/* <CoordinateInput updateElevationOnMount={false} /> */}
                 <FileInput label="Instrument data" source="attachments">
                     <FileField
                         source="src"

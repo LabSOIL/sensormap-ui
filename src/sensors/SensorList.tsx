@@ -6,6 +6,8 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
+    ReferenceField,
+    DateField,
 } from "react-admin";
 
 const SensorListActions = () => {
@@ -31,9 +33,12 @@ const SensorList = () => {
                 rowClick="show"
             >
                 <TextField source="name" />
+                <ReferenceField source="area_id" reference="areas">
+                    <TextField source='name' />
+                </ReferenceField>
+                <DateField source='last_updated' showTime />
                 <TextField source="description" />
                 <TextField source="comment" />
-                <TextField source='area.name' />
             </Datagrid>
         </List >
     )

@@ -11,31 +11,68 @@ import {
     DateField,
     Labeled,
     useGetManyReference,
-    FunctionField,
     ArrayField,
     Datagrid,
     useTheme,
-    NumberField,
+    DeleteWithConfirmButton,
     useNotify,
     CreateButton,
     useRedirect,
-    Loading,
+    Button,
+    useRefresh,
+    useDataProvider,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
 import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
 import { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import plots from '../plots';
 
 const SensorShowActions = () => {
     const { permissions } = usePermissions();
+    const record = useRecordContext();
+    const notify = useNotify();
+    const redirect = useRedirect();
+    const refresh = useRefresh();
+    const dataProvider = useDataProvider();
+    const handleDeleteData = async () => {
+
+
+        if (!record) return;
+        try {
+            await dataProvider.deleteData("sensors", { id: record.id }).then(() => {
+                notify('Data deleted successfully', { type: 'success' });
+                refresh();
+            });
+        } catch (error) {
+            notify('Error deleting data', { type: 'error' });
+        }
+    };
+
     return (
         <TopToolbar>
-            {permissions === 'admin' && <><EditButton /><DeleteButton mutationMode="pessimistic" /></>}
+            {permissions === 'admin' && (
+                <>
+                    <EditButton />
+                    <Button
+                        mutationMode="pessimistic"
+                        onClick={() => {
+                            if (window.confirm("Are you sure you want to delete the sensor's data ? ")) {
+                                handleDeleteData();
+                            }
+                        }}
+                        label="Delete Sensor Data"
+                        style={{ color: 'red' }}
+                        startIcon={<DeleteIcon />}
+                    />
+                    <DeleteButton mutationMode="pessimistic" />
+                </>
+            )}
         </TopToolbar>
     );
-}
+};
 
 
 export const CreatePlotRelationship = () => {
@@ -170,8 +207,6 @@ const SensorPlot = (
                 data={traces}
                 useResizeHandler={true}
                 layout={{
-                    // autosize: true,
-                    // width: '100%',
                     paper_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
                     plot_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
                     font: {
@@ -241,14 +276,10 @@ const SensorPlot = (
 
 
 const SensorShow = (record: any) => {
-    // const record = useRecordContext();
-    // if (!record) { return <Loading /> };
-    // console.log("Record: ", record);
     const [highResolution, setHighResolution] = useState(false);
 
     // Rerender data when resolution state changes
     useEffect(() => { }, [highResolution]);
-
 
     return (
         <Show

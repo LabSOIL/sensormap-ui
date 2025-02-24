@@ -1,6 +1,6 @@
 import { stringify } from 'query-string';
 import { fetchUtils, DataProvider } from 'ra-core';
-import { useNotify } from 'react-admin';
+import { ResourceMenuItem, useNotify } from 'react-admin';
 
 const convertFileToBase64 = file =>
     new Promise((resolve, reject) => {
@@ -233,6 +233,12 @@ const dataProvider = (
     getInstrumentSummaryData: async (resource, params) => {
         const url = `${apiUrl}/${resource}/${params.id}/summary`;
         return httpClient(url).then(({ json }) => ({ data: json }));
+    },
+    deleteData: async (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}/data`;
+        return httpClient(url, {
+            method: 'DELETE',
+        }).then(({ json }) => ({ data: json }));
     }
 });
 
