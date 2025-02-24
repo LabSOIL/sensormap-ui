@@ -25,7 +25,7 @@ const MapEvents = ({ setZoomLevel, setCurrentMapBounds }) => {
     return null;
 };
 
-// Renders the area polygon with an enhanced tooltip label for clarity
+// Renders an area polygon with an enhanced label (tooltip)
 const ZoomablePolygon = ({ area }) => {
     const map = useMap();
     if (!area.geom) return null;
@@ -33,7 +33,7 @@ const ZoomablePolygon = ({ area }) => {
     const center = positions.reduce((acc, pos) => [acc[0] + pos[0], acc[1] + pos[1]], [0, 0]);
     const centerPos = [center[0] / positions.length, center[1] / positions.length];
     const handleZoom = () => {
-        map.setView(centerPos, 16);
+        map.setView(centerPos, 17);
     };
     return (
         <Polygon
@@ -49,7 +49,7 @@ const ZoomablePolygon = ({ area }) => {
                 <span
                     onClick={handleZoom}
                     style={{
-                        background: 'rgba(255,255,255,1)',
+                        background: 'rgba(255,255,255,0.8)',
                         padding: '3px 6px',
                         borderRadius: '4px',
                         fontWeight: 'bolder',
@@ -97,11 +97,11 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         }));
     };
 
-    // Define EPSG:2056 with the proper towgs84 parameters
+    // Define EPSG:2056 with to wgs84 parameters
     proj4.defs("EPSG:2056", "+proj=somerc +lat_0=46.9524055555556 +lon_0=7.43958333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs +type=crs");
     const convertCoordinates = (x, y) => proj4("EPSG:2056", "EPSG:4326", [x, y]); // returns [lng, lat]
 
-    // Fetch areas (with nested features) and compute bounds with extra padding so details are centered
+    // Fetch areas (with nested features) and compute padded bounds so details are centered
     useEffect(() => {
         dataProvider.getList('areas', {
             filter: {},
@@ -119,7 +119,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
             .catch(error => console.error('Error fetching areas:', error));
     }, [dataProvider]);
 
-    // Icon mapping (matching the legend) for various features
+    // Icon mapping for features (matching the Legend)
     const iconMapping = {
         "Plot": { icon: 'trowel', markerColor: 'green', iconColor: 'black', resource: 'plots' },
         "Sensor Profile": { icon: 'temperature-low', markerColor: 'blue', iconColor: 'yellow', resource: 'sensor_profiles' },
@@ -127,7 +127,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         "Transect": { icon: 'road', markerColor: 'black', iconColor: 'white', resource: 'transects' }
     };
 
-    // Generate markers for nested features
+    // Generate markers from nested data (only when zoom level is 15 or greater)
     let markers = [];
     areas.forEach(area => {
         if (zoomLevel >= 15) {
@@ -201,7 +201,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         return true;
     });
 
-    // Generate polylines connecting transect nodes
+    // Generate polylines for transects (joining all nodes)
     let transectPolylines = [];
     areas.forEach(area => {
         if (area.transects && Array.isArray(area.transects)) {
@@ -262,13 +262,12 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                     [47.808455, 10.492294]
                 ]}
                 minZoom={9}
-                maxZoom={21}
             >
                 <MapEvents setZoomLevel={setZoomLevel} setCurrentMapBounds={setCurrentMapBounds} />
                 <BaseLayers />
                 <FitBounds bounds={bounds} />
                 {zoomLevel >= 15 && (
-                    <MarkerClusterGroup maxClusterRadius={5} chunkedLoading>
+                    <MarkerClusterGroup maxClusterRadius={25} chunkedLoading>
                         {filteredMarkers.map(marker => {
                             const mapping = iconMapping[marker.type] || { icon: 'map-marker', markerColor: 'blue', iconColor: 'white', resource: 'areas' };
                             return (
@@ -282,6 +281,16 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                                         iconColor: mapping.iconColor,
                                     })}
                                 >
+                                    {/* Permanent label above each marker */}
+                                    <Tooltip permanent direction="top" offset={[0, -35]} className="small-tooltip">
+                                        <span style={{
+                                            padding: '2px 4px',
+                                            borderRadius: '3px',
+                                            fontSize: '0.8em',
+                                        }}>
+                                            {marker.data.name}
+                                        </span>
+                                    </Tooltip>
                                     <Popup>
                                         <div style={{ fontSize: '0.9em' }}>
                                             <strong>{marker.type}</strong>

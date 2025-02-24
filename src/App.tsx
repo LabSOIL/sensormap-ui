@@ -26,6 +26,7 @@ import gnss from './gnss';
 import axios from 'axios';
 import instruments from './instruments';
 import Dashboard from './Dashboard';
+import './App.css';
 
 
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false };
