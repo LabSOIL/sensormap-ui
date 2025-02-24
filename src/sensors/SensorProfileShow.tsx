@@ -18,6 +18,7 @@ import {
     useCreatePath,
     useNotify,
     useRedirect,
+    ReferenceArrayField,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
 import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -209,29 +210,12 @@ const SensorProfileShow = () => {
                                 <TextField source="coord_z" />
                             </Labeled>
                         </Grid>
-                        <Grid item xs={6}>
-                            <Labeled label="Description">
-                                <TextField source="description" />
-                            </Labeled>
-                        </Grid>
-                        <Grid item xs={6} />
-                        <Grid item xs={6}>
-                            <Labeled label="Notes/Comments">
-                                <TextField source="comment" />
-                            </Labeled>
-                        </Grid>
-                        <Grid item xs={6} />
-                        <Grid item xs={6}>
-                            <Labeled label="Serial Number">
-                                <TextField source="serial_number" />
-                            </Labeled>
-                        </Grid>
                     </Grid>
 
                     <Grid item xs={10}>
                         {/* <SensorProfilePlot source="temperature_plot" /> */}
                         <Grid container justifyContent="flex-start">
-                            <FormControlLabel
+                            {/* <FormControlLabel
                                 control={
                                     <Switch
                                         checked={lowResolution}
@@ -241,31 +225,39 @@ const SensorProfileShow = () => {
                                     />
                                 }
                                 label={
-                                    <Typography variant="body2"> {/* Decrease the label text size */}
+                                    <Typography variant="body2">
                                         Low Resolution
                                     </Typography>
                                 }
-                            />
-                            <Box width="400px" mb={1}>
+                            /> */}
+                            {/* <Box width="400px" mb={1}>
                                 <Typography variant="caption">
                                     The sensor data is large, by default the plot is downsampled with
                                     the <i>Largest-Triangle-Three-Buckets</i> algorithm for memory efficiency.<br />
                                     Disable to load high-resolution data.
                                 </Typography>
-                            </Box>
+                            </Box> */}
                         </Grid>
                     </Grid>
                 </Grid>
-                <ArrayField source="closest_features">
+                {/* <ReferenceArrayField source="sensor_profile_assignments" reference="sensorprofile_id" label="Sensor Data">
+                    <Datagrid>
+                        <TextField source="sensor_id" label="Sensor ID" />
+
+                    </Datagrid>
+                </ReferenceArrayField> */}
+                <ArrayField source="assignments">
                     <Datagrid
-                        rowClick={handleRowClick}
-                        bulkActionButtons={false}>
+                        bulkActionButtons={false}
+                        rowClick={false}
+                    >
+                        <ReferenceField source="sensor_id" reference="sensors" link="show" >
+                            <TextField source="name" />
+                        </ReferenceField>
                         <FunctionField source="type" render={record => record.type === 'soil_profile' ? "Soil Profile" : "Plot"} />
                         <TextField source="name" label="Name" />
-                        <NumberField source="distance" label="Distance (m)" />
-                        <NumberField source="elevation_difference" label="Elevation difference (m)" />
-                        <CreatePlotRelationship label="Add to Plot" />
-
+                        <DateField source="date_from" label="From" showTime />
+                        <DateField source="date_to" label="To" showTime />
                     </Datagrid>
                 </ArrayField>
             </SimpleShowLayout>

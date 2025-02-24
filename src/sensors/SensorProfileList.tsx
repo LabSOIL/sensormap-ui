@@ -5,6 +5,7 @@ import {
     usePermissions,
     TopToolbar,
     CreateButton,
+    ReferenceField,
     ExportButton,
 } from "react-admin";
 
@@ -33,7 +34,9 @@ const SensorProfileList = () => {
                 <TextField source="name" />
                 <TextField source="description" />
                 <TextField source="comment" />
-                <TextField source='area.name' />
+                <ReferenceField source="area_id" reference="areas">
+                    <TextField source="name" />
+                </ReferenceField>
             </Datagrid>
         </List >
     )
