@@ -11,21 +11,16 @@ import {
     DateField,
     Labeled,
     FunctionField,
-    useTheme,
     ArrayField,
-    NumberField,
     Datagrid,
     useCreatePath,
-    useNotify,
-    useRedirect,
-    ReferenceArrayField,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
-import { Grid, Switch, FormControlLabel } from '@mui/material';
-import Plot from 'react-plotly.js';
+import { Grid } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
 import { IconButton } from '@mui/material';
 import plots from '../plots';
+import { SensorPlot } from './Plots';
+
 
 const SensorProfileShowActions = () => {
     const { permissions } = usePermissions();
@@ -111,8 +106,6 @@ const SensorProfileShowActions = () => {
 
 export const CreatePlotRelationship = () => {
     const record = useRecordContext();
-    const redirect = useRedirect();
-    const notify = useNotify();
     if (!record) return null;
 
     // Only show button if plot as we can only create sensor:plot relationships
@@ -146,12 +139,8 @@ export const CreatePlotRelationship = () => {
 };
 
 const SensorProfileShow = () => {
-    const [lowResolution, setLowResolution] = useState(true);
     const createPath = useCreatePath();
-    // Function to toggle lowResolution
-    const handleToggle = () => {
-        setLowResolution(!lowResolution);
-    };
+    const [highResolution, setHighResolution] = useState(false);
 
     const handleRowClick = (id, basePath, record) => {
         if (record.type === 'plot') {
@@ -163,12 +152,16 @@ const SensorProfileShow = () => {
         return null;
     }
     // Rerender data when lowResolution state changes
-    useEffect(() => { }, [lowResolution]);
+    useEffect(() => { }, [highResolution]);
 
     return (
         <Show
             actions={<SensorProfileShowActions />}
-            queryOptions={{ meta: { low_resolution: lowResolution } }}
+            queryOptions={{
+                meta: {
+                    high_resolution: highResolution
+                }
+            }}
         >
             <SimpleShowLayout>
                 <Grid container spacing={2}>
@@ -212,6 +205,13 @@ const SensorProfileShow = () => {
                         </Grid>
                     </Grid>
 
+                    <Grid item xs={10}>
+                        <SensorPlot
+                            source="temperature_plot"
+                            highResolution={highResolution}
+                            setHighResolution={setHighResolution}
+                        />
+                    </Grid>
                     <Grid item xs={10}>
                         {/* <SensorProfilePlot source="temperature_plot" /> */}
                         <Grid container justifyContent="flex-start">
