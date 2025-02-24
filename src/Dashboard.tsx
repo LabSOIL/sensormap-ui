@@ -1,6 +1,6 @@
 import { usePermissions } from 'react-admin';
 import { Typography } from '@mui/material';
-
+import FrontendMap from './maps/FrontendMap';
 const Dashboard = () => {
     const { permissions } = usePermissions();
 
@@ -12,14 +12,7 @@ const Dashboard = () => {
             Welcome to the SOIL Sensor Map
         </Typography>
             {(permissions && permissions === 'admin') ? (
-
-                <Typography
-                    variant="body"
-                    align='center'
-                    gutterBottom>
-                    Use the menu to the left to navigate the site.
-                </Typography>
-
+                <FrontendMap />
             ) : (
                 <Typography
                     variant="body"
@@ -32,9 +25,6 @@ const Dashboard = () => {
         </>
     );
 };
-
-
-
 
 
 export default Dashboard;
