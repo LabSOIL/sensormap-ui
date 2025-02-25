@@ -369,11 +369,22 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                                     });
                                     const isSelected = String(props.area_id) === String(a.id);
                                     return (
-                                        <Polygon
-                                            key={a.id}
-                                            positions={convertedCoords}
-                                            pathOptions={{ color: "blue", fillOpacity: isSelected ? 0.7 : 0.1 }}
-                                        />
+                                        <>
+                                            <Polygon
+                                                key={a.id}
+                                                positions={convertedCoords}
+                                                pathOptions={{ color: "blue" }}
+                                            />
+
+                                            <Marker
+                                                position={L.latLngBounds(convertedCoords).getCenter()}
+                                                icon={L.divIcon({
+                                                    className: 'area-label',
+                                                    html: `<div style="color: black; white-space: nowrap; font-weight: bold; font-size: 16px;">${a.name}</div>`,
+                                                })}
+                                                interactive={false}
+                                            />
+                                        </>
                                     );
                                 }
                                 return null;
@@ -405,7 +416,7 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                                             iconColor: mapping.iconColor,
                                             extraClasses: "small-tooltip",
                                         })}
-                                        opacity={0.5}
+                                        opacity={0.15}
                                     />
                                 );
                             })}
