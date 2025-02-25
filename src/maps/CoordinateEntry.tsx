@@ -74,7 +74,7 @@ const MapUpdater = ({ polygonCoords }) => {
 
 export const CoordinateInput = (props) => {
     const { setValue, watch } = useFormContext();
-    
+
     // Get area only when an area_id is provided
     const { data: area, isPending, error } = useGetOne(
         'areas',
@@ -100,6 +100,7 @@ export const CoordinateInput = (props) => {
     const defaultCoordinates = [46.224413762594594, 7.359968915183943];
     const [position, setPosition] = useState(latitude && longitude ? [latitude, longitude] : defaultCoordinates);
     const [polygonCoords, setPolygonCoords] = useState(null);
+    const [additionalMarkers, setAdditionalMarkers] = useState([]);
 
     const isValidCoordinate = (value) => {
         return typeof value === 'number' && isFinite(value);
@@ -141,17 +142,15 @@ export const CoordinateInput = (props) => {
         updateXYFromLatLon(lat, lng);
     };
 
+    // Process area polygon geometry
     useEffect(() => {
         if (area && area.geom && area.geom.coordinates) {
-            // Extract the first ring of the polygon
             const rawCoords = area.geom.coordinates[0];
             let convertedCoords;
-            // Check if conversion is needed by verifying if the first coordinate's value is within typical longitude bounds
+            // Check if coordinates are already in degrees (EPSG:4326) by examining the first value
             if (rawCoords.length > 0 && Math.abs(rawCoords[0][0]) <= 180) {
-                // Data is already in EPSG:4326 (GeoJSON standard [lng, lat]); switch to [lat, lng] for leaflet
                 convertedCoords = rawCoords.map(coord => [coord[1], coord[0]]);
             } else {
-                // Convert from EPSG:2056 to EPSG:4326
                 convertedCoords = rawCoords.map(coord => {
                     const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', coord);
                     return [lat, lng];
@@ -168,6 +167,80 @@ export const CoordinateInput = (props) => {
             setValue('latitude', centroid[0], { shouldValidate: true });
             setValue('longitude', centroid[1], { shouldValidate: true });
             setPolygonCoords(convertedCoords);
+        }
+    }, [area]);
+
+    // Helper function to convert a coordinate from EPSG:2056 to [lat, lng] in EPSG:4326
+    const convertCoord = (x, y) => {
+        const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [x, y]);
+        return [lat, lng];
+    };
+
+    // Define marker styles matching your legend
+    const iconMapping = {
+        "Plot": { icon: 'trowel', markerColor: 'green', iconColor: 'black' },
+        "Sensor Profile": { icon: 'temperature-low', markerColor: 'blue', iconColor: 'yellow' },
+        "Soil Profile": { icon: 'clipboard', markerColor: 'red', iconColor: 'yellow' },
+        "Transect": { icon: 'road', markerColor: 'black', iconColor: 'white' }
+    };
+
+    // Extract additional markers from area features (plots, sensor_profiles, soil_profiles, transects)
+    useEffect(() => {
+        if (area) {
+            const markers = [];
+            if (area.plots && Array.isArray(area.plots)) {
+                area.plots.forEach(plot => {
+                    if (plot.coord_x && plot.coord_y) {
+                        markers.push({
+                            id: `plot-${plot.id}`,
+                            type: 'Plot',
+                            position: convertCoord(plot.coord_x, plot.coord_y)
+                        });
+                    }
+                });
+            }
+            if (area.sensor_profiles && Array.isArray(area.sensor_profiles)) {
+                area.sensor_profiles.forEach(sp => {
+                    if (sp.coord_x && sp.coord_y) {
+                        markers.push({
+                            id: `sensor-${sp.id}`,
+                            type: 'Sensor Profile',
+                            position: convertCoord(sp.coord_x, sp.coord_y)
+                        });
+                    }
+                });
+            }
+            if (area.soil_profiles && Array.isArray(area.soil_profiles)) {
+                area.soil_profiles.forEach(sp => {
+                    if (sp.coord_x && sp.coord_y) {
+                        markers.push({
+                            id: `soil-${sp.id}`,
+                            type: 'Soil Profile',
+                            position: convertCoord(sp.coord_x, sp.coord_y)
+                        });
+                    }
+                });
+            }
+            if (area.transects && Array.isArray(area.transects)) {
+                area.transects.forEach(transect => {
+                    if (transect.nodes && transect.nodes.length >= 2) {
+                        const first = transect.nodes[0];
+                        const second = transect.nodes[1];
+                        if (first.coord_x && first.coord_y && second.coord_x && second.coord_y) {
+                            const pos1 = convertCoord(first.coord_x, first.coord_y);
+                            const pos2 = convertCoord(second.coord_x, second.coord_y);
+                            const midLat = (pos1[0] + pos2[0]) / 2;
+                            const midLng = (pos1[1] + pos2[1]) / 2;
+                            markers.push({
+                                id: `transect-${transect.id}`,
+                                type: 'Transect',
+                                position: [midLat, midLng]
+                            });
+                        }
+                    }
+                });
+            }
+            setAdditionalMarkers(markers);
         }
     }, [area]);
 
@@ -216,6 +289,25 @@ export const CoordinateInput = (props) => {
                             }}
                         />
                         <MapUpdater polygonCoords={polygonCoords} />
+                        {/* Additional markers using awesome markers with low opacity */}
+                        {additionalMarkers.map(marker => {
+                            const mapping = iconMapping[marker.type] || { icon: 'map-marker', markerColor: 'blue', iconColor: 'white' };
+                            return (
+                                <Marker
+                                    key={marker.id}
+                                    position={marker.position}
+                                    icon={L.AwesomeMarkers.icon({
+                                        icon: mapping.icon,
+                                        prefix: 'fa',
+                                        markerColor: mapping.markerColor,
+                                        iconColor: mapping.iconColor,
+                                        extraClasses: 'small-tooltip'
+                                    })}
+                                    opacity={0.5}
+                                    interactive={false}
+                                />
+                            );
+                        })}
                     </MapContainer>
                 </Grid>
             </Grid>
