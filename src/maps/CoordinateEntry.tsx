@@ -2,8 +2,8 @@ import {
     required,
     NumberInput,
     Button,
-    useGetOne,
     useDataProvider,
+    useGetList,
 } from 'react-admin';
 import { MapContainer, Marker, Polygon, useMap } from 'react-leaflet';
 import { useFormContext } from 'react-hook-form';
@@ -94,7 +94,6 @@ const MapUpdater = ({ areaId, polygonCoords }: { areaId: string | undefined; pol
     return null;
 };
 
-
 const RecenterButton = ({ updateXY }: { updateXY: (lat: number, lng: number) => void }) => {
     const map = useMap();
     const handleRecenterMarker = () => {
@@ -133,7 +132,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     });
     const [polygonCoords, setPolygonCoords] = useState<L.LatLngExpression[] | null>(null);
     const [additionalMarkers, setAdditionalMarkers] = useState<{ id: string; type: string; position: L.LatLngExpression }[]>([]);
-
 
     // Helper: valid coordinate check.
     const isValidCoordinate = (value: any): boolean =>
@@ -204,39 +202,30 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     };
 
     // --- AREA PROCESSING ---
-    // Get area details if an area_id is provided.
-    const areaResult = useGetOne("areas", { id: props.area_id }, { enabled: !!props.area_id });
-    const area = areaResult.data;
+    // Use useGetList to load all areas.
+    const { data: areas, isLoading, error } = useGetList("areas", {
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "id", order: "ASC" },
+        filter: {},
+    });
+
     useEffect(() => {
-        if (area && area.geom && area.geom.coordinates) {
-            const rawCoords = area.geom.coordinates[0];
-            const convertedCoords = rawCoords.map(coord => {
-                if (Math.abs(coord[0]) <= 180) {
-                    return [coord[1], coord[0]];
-                } else {
-                    const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", coord);
-                    return [lat, lng];
-                }
-            });
-            setPolygonCoords(convertedCoords);
-            // Only update marker position from the area if no pre-filled coordinates exist.
-            // if (!(isValidCoordinate(coord_x) && isValidCoordinate(coord_y)) &&
-            //     !(isValidCoordinate(latitude) && isValidCoordinate(longitude))) {
-            //     let sumLat = 0, sumLng = 0;
-            //     convertedCoords.forEach(([lat, lng]) => {
-            //         sumLat += lat;
-            //         sumLng += lng;
-            //     });
-            //     const centroid = [
-            //         sumLat / convertedCoords.length,
-            //         sumLng / convertedCoords.length,
-            //     ];
-            //     setPosition(centroid);
-            //     setValue("latitude", centroid[0], { shouldValidate: true });
-            //     setValue("longitude", centroid[1], { shouldValidate: true });
-            // }
+        if (areas && props.area_id) {
+            const selectedArea = areas.find((a: any) => String(a.id) === String(props.area_id));
+            if (selectedArea && selectedArea.geom && selectedArea.geom.coordinates) {
+                const rawCoords = selectedArea.geom.coordinates[0];
+                const convertedCoords = rawCoords.map((coord: any) => {
+                    if (Math.abs(coord[0]) <= 180) {
+                        return [coord[1], coord[0]];
+                    } else {
+                        const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", coord);
+                        return [lat, lng];
+                    }
+                });
+                setPolygonCoords(convertedCoords);
+            }
         }
-    }, [area, setValue, coord_x, coord_y, latitude, longitude]);
+    }, [areas, props.area_id]);
 
     // --- ADDITIONAL MARKERS ---
     const convertCoord = (x: number, y: number): L.LatLngExpression => {
@@ -252,64 +241,65 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     };
 
     useEffect(() => {
-        if (area) {
+        if (areas) {
             const tempMarkers: { id: string; type: string; position: L.LatLngExpression }[] = [];
-            if (area.plots && Array.isArray(area.plots)) {
-                area.plots.forEach(plot => {
-                    if (plot.coord_x && plot.coord_y) {
-                        tempMarkers.push({
-                            id: `plot-${plot.id}`,
-                            type: "Plot",
-                            position: convertCoord(plot.coord_x, plot.coord_y)
-                        });
-                    }
-                });
-            }
-            if (area.sensor_profiles && Array.isArray(area.sensor_profiles)) {
-                area.sensor_profiles.forEach(sp => {
-                    if (sp.coord_x && sp.coord_y) {
-                        tempMarkers.push({
-                            id: `sensor-${sp.id}`,
-                            type: "Sensor Profile",
-                            position: convertCoord(sp.coord_x, sp.coord_y)
-                        });
-                    }
-                });
-            }
-            if (area.soil_profiles && Array.isArray(area.soil_profiles)) {
-                area.soil_profiles.forEach(sp => {
-                    if (sp.coord_x && sp.coord_y) {
-                        tempMarkers.push({
-                            id: `soil-${sp.id}`,
-                            type: "Soil Profile",
-                            position: convertCoord(sp.coord_x, sp.coord_y)
-                        });
-                    }
-                });
-            }
-            if (area.transects && Array.isArray(area.transects)) {
-                area.transects.forEach(transect => {
-                    if (transect.nodes && transect.nodes.length >= 2) {
-                        const first = transect.nodes[0];
-                        const second = transect.nodes[1];
-                        if (first.coord_x && first.coord_y && second.coord_x && second.coord_y) {
-                            const pos1 = convertCoord(first.coord_x, first.coord_y);
-                            const pos2 = convertCoord(second.coord_x, second.coord_y);
-                            const midLat = (((pos1 as number[])[0]) + ((pos2 as number[])[0])) / 2;
-                            const midLng = (((pos1 as number[])[1]) + ((pos2 as number[])[1])) / 2;
+            areas.forEach((area: any) => {
+                if (area.plots && Array.isArray(area.plots)) {
+                    area.plots.forEach((plot: any) => {
+                        if (plot.coord_x && plot.coord_y) {
                             tempMarkers.push({
-                                id: `transect-${transect.id}`,
-                                type: "Transect",
-                                position: [midLat, midLng]
+                                id: `plot-${plot.id}`,
+                                type: "Plot",
+                                position: convertCoord(plot.coord_x, plot.coord_y)
                             });
                         }
-                    }
-                });
-            }
+                    });
+                }
+                if (area.sensor_profiles && Array.isArray(area.sensor_profiles)) {
+                    area.sensor_profiles.forEach((sp: any) => {
+                        if (sp.coord_x && sp.coord_y) {
+                            tempMarkers.push({
+                                id: `sensor-${sp.id}`,
+                                type: "Sensor Profile",
+                                position: convertCoord(sp.coord_x, sp.coord_y)
+                            });
+                        }
+                    });
+                }
+                if (area.soil_profiles && Array.isArray(area.soil_profiles)) {
+                    area.soil_profiles.forEach((sp: any) => {
+                        if (sp.coord_x && sp.coord_y) {
+                            tempMarkers.push({
+                                id: `soil-${sp.id}`,
+                                type: "Soil Profile",
+                                position: convertCoord(sp.coord_x, sp.coord_y)
+                            });
+                        }
+                    });
+                }
+                if (area.transects && Array.isArray(area.transects)) {
+                    area.transects.forEach((transect: any) => {
+                        if (transect.nodes && transect.nodes.length >= 2) {
+                            const first = transect.nodes[0];
+                            const second = transect.nodes[1];
+                            if (first.coord_x && first.coord_y && second.coord_x && second.coord_y) {
+                                const pos1 = convertCoord(first.coord_x, first.coord_y);
+                                const pos2 = convertCoord(second.coord_x, second.coord_y);
+                                const midLat = (((pos1 as number[])[0]) + ((pos2 as number[])[0])) / 2;
+                                const midLng = (((pos1 as number[])[1]) + ((pos2 as number[])[1])) / 2;
+                                tempMarkers.push({
+                                    id: `transect-${transect.id}`,
+                                    type: "Transect",
+                                    position: [midLat, midLng]
+                                });
+                            }
+                        }
+                    });
+                }
+            });
             setAdditionalMarkers(tempMarkers);
         }
-    }, [area]);
-
+    }, [areas]);
 
     return (
         <div
@@ -366,12 +356,28 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                             style={{ height: "400px", width: "100%" }}
                         >
                             <BaseLayers />
-                            {polygonCoords && (
-                                <Polygon
-                                    positions={polygonCoords}
-                                    pathOptions={{ color: "blue" }}
-                                />
-                            )}
+                            {areas && areas.map((a: any) => {
+                                if (a.geom && a.geom.coordinates) {
+                                    const rawCoords = a.geom.coordinates[0];
+                                    const convertedCoords = rawCoords.map((coord: any) => {
+                                        if (Math.abs(coord[0]) <= 180) {
+                                            return [coord[1], coord[0]];
+                                        } else {
+                                            const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", coord);
+                                            return [lat, lng];
+                                        }
+                                    });
+                                    const isSelected = String(props.area_id) === String(a.id);
+                                    return (
+                                        <Polygon
+                                            key={a.id}
+                                            positions={convertedCoords}
+                                            pathOptions={{ color: "blue", fillOpacity: isSelected ? 0.7 : 0.1 }}
+                                        />
+                                    );
+                                }
+                                return null;
+                            })}
                             <Marker
                                 position={position}
                                 draggable={!disabled}
