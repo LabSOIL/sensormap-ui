@@ -30,6 +30,7 @@ const PlotCreate = () => {
                 <ReferenceInput source="area_id" reference="areas">
                     <SelectInput optionText="name" validate={[required()]} />
                 </ReferenceInput>
+                <CoordinateInput disabled />
                 <SelectInput
                     source="gradient"
                     choices={[
@@ -44,7 +45,6 @@ const PlotCreate = () => {
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
-                <CoordinateInput />
             </SimpleForm>
         </Create>
     );

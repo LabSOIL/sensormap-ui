@@ -23,7 +23,7 @@ L.Icon.Default.mergeOptions({
 // Define the Swiss coordinate system EPSG:2056
 proj4.defs("EPSG:2056", "+proj=somerc +lat_0=46.9524055555556 +lon_0=7.43958333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs +type=crs");
 
-const ElevationInput = () => {
+const ElevationInput = ({ disabled }) => {
     const formContext = useFormContext();
     const [errorMessage, setErrorMessage] = useState(null);
     const [successResponse, setSuccessResponse] = useState(false);
@@ -50,13 +50,14 @@ const ElevationInput = () => {
             <Button
                 label="Get elevation from SwissTopo"
                 variant="outlined"
+                disabled={disabled}
                 color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
                 onClick={updateElevation}
             />
             <Typography variant="caption" color={'error'}>
                 {errorMessage ? errorMessage : null}
             </Typography>
-            <NumberInput source="coord_z" label="Elevation (m)" validate={[required()]}  />
+            <NumberInput source="coord_z" label="Elevation (m)" disabled={disabled} validate={[required()]}  />
         </>
     );
 };
@@ -72,7 +73,7 @@ const MapUpdater = ({ polygonCoords }) => {
     return null;
 };
 
-export const CoordinateInput = (props) => {
+export const CoordinateInput = ({ disabled = false, ...props }) => {
     const { setValue, watch } = useFormContext();
 
     // Get area only when an area_id is provided
@@ -245,25 +246,26 @@ export const CoordinateInput = (props) => {
     }, [area]);
 
     return (
-        <>
+        <div style={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
             <Grid container spacing={2} alignItems='center'>
                 {/* Left side: Input fields */}
+                
                 <Grid item xs={5}>
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
-                            <NumberInput source="coord_x" label="X Coordinate (m: SRID 2056)" validate={[required()]} />
+                            <NumberInput source="coord_x" label="X Coordinate (m: SRID 2056)" disabled={disabled} validate={[required()]} />
                         </Grid>
                         <Grid item xs={6}>
-                            <NumberInput source="coord_y" label="Y Coordinate (m: SRID 2056)" validate={[required()]} />
+                            <NumberInput source="coord_y" label="Y Coordinate (m: SRID 2056)" disabled={disabled} validate={[required()]} />
                         </Grid>
                         <Grid item xs={6}>
-                            <NumberInput source="latitude" label="Latitude (°)" />
+                            <NumberInput source="latitude" label="Latitude (°)" disabled={disabled} />
                         </Grid>
                         <Grid item xs={6}>
-                            <NumberInput source="longitude" label="Longitude (°)" />
+                            <NumberInput source="longitude" label="Longitude (°)" disabled={disabled} />
                         </Grid>
                         <Grid item xs={12}>
-                            <ElevationInput />
+                            <ElevationInput disabled={disabled} />
                         </Grid>
                     </Grid>
                 </Grid>
@@ -280,7 +282,7 @@ export const CoordinateInput = (props) => {
                         )}
                         <Marker
                             position={position}
-                            draggable={true}
+                            draggable={!disabled}
                             eventHandlers={{
                                 dragend(e) {
                                     const { lat, lng } = e.target.getLatLng();
@@ -289,7 +291,6 @@ export const CoordinateInput = (props) => {
                             }}
                         />
                         <MapUpdater polygonCoords={polygonCoords} />
-                        {/* Additional markers using awesome markers with low opacity */}
                         {additionalMarkers.map(marker => {
                             const mapping = iconMapping[marker.type] || { icon: 'map-marker', markerColor: 'blue', iconColor: 'white' };
                             return (
@@ -311,8 +312,15 @@ export const CoordinateInput = (props) => {
                     </MapContainer>
                 </Grid>
             </Grid>
-        </>
+        </div>
     );
 };
+export const AreaCoordinateEntry = ({ source = 'area_id' }) => {
+    const { watch } = useFormContext();
+    const selectedArea = watch(source);
+    const isDisabled = !selectedArea;
+
+    return <CoordinateInput area_id={selectedArea} disabled={isDisabled} />;
+}
 
 export default CoordinateInput;

@@ -10,22 +10,9 @@ import {
     useGetOne,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
-import { CoordinateInput } from '../maps/CoordinateEntry';
+import { CoordinateInput, AreaCoordinateEntry } from '../maps/CoordinateEntry';
 import { useEffect } from 'react';
 
-
-const AreaCoordinateEntry = () => {
-    const { setValue, watch } = useFormContext();
-    const selectedArea = watch("area_id");
-    
-    useEffect(() => {
-        if (selectedArea) {
-            console.log('Selected area:', selectedArea);
-        }
-    }, [selectedArea]);
-        
-    return <CoordinateInput area_id={selectedArea} />;
-}
 const SensorProfileCreate = () => {
 
     return (
@@ -40,8 +27,7 @@ const SensorProfileCreate = () => {
                         validate={required()}
                     />
                 </ReferenceInput>
-                <AreaCoordinateEntry/>
-                
+                <AreaCoordinateEntry source="area_id" />
                 <TextInput source="name" validate={[required()]}  />
                 <TextInput source="description" />
                 <TextInput source="comment" label="Notes/Comments" />
