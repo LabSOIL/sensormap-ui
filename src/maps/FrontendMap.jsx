@@ -30,15 +30,14 @@ const ZoomablePolygon = ({ area }) => {
     const map = useMap();
     if (!area.geom) return null;
     const positions = area.geom.coordinates[0].map(coord => [coord[1], coord[0]]);
-    const center = positions.reduce((acc, pos) => [acc[0] + pos[0], acc[1] + pos[1]], [0, 0]);
-    const centerPos = [center[0] / positions.length, center[1] / positions.length];
+    const bounds = L.latLngBounds(positions);
     const handleZoom = () => {
-        map.setView(centerPos, 17);
+        map.fitBounds(bounds);
     };
     return (
         <Polygon
             positions={positions}
-            color={area.project && area.project.color ? area.project.color : 'blue'}
+            color={area.project && area.project.color ? area.project.color : 'grey'}
             eventHandlers={{ click: handleZoom }}
         >
             <Tooltip
@@ -46,6 +45,7 @@ const ZoomablePolygon = ({ area }) => {
                 interactive={true}
                 direction="center"
             >
+            
                 <span
                     onClick={handleZoom}
                     style={{
@@ -73,6 +73,53 @@ const calculateMiddlePosition = (coord1, coord2) => {
 
 // Ensure that the generated path is absolute (starts with '/')
 const getAbsolutePath = (path) => (path.startsWith('/') ? path : '/' + path);
+
+const ResetZoomControl = ({ bounds }) => {
+    const map = useMap();
+    useEffect(() => {
+        // Find the default zoom control container
+        const zoomControl = document.querySelector('.leaflet-control-zoom');
+        if (!zoomControl) return;
+        // Create the reset button element
+        const resetButton = document.createElement('a');
+        resetButton.href = '#';
+        resetButton.title = 'Reset Zoom';
+        resetButton.innerHTML = '↺'; // Unicode reset icon
+        // Apply inline styles to mimic the default zoom button
+        resetButton.style.backgroundColor = 'white';
+        resetButton.style.width = '30px';
+        resetButton.style.height = '30px';
+        resetButton.style.lineHeight = '30px';
+        resetButton.style.textAlign = 'center';
+        resetButton.style.color = 'black';
+        resetButton.style.fontSize = '18px';
+        resetButton.style.cursor = 'pointer';
+        resetButton.style.fontWeight = 'bold';
+        // Disable propagation so the map doesn't also catch the click
+        L.DomEvent.disableClickPropagation(resetButton);
+        L.DomEvent.on(resetButton, 'click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+            map.fitBounds(bounds);
+        });
+        // Insert the reset button into the zoom control container.
+        // This puts it between the zoom in and zoom out buttons.
+        if (zoomControl.children.length >= 2) {
+            zoomControl.insertBefore(resetButton, zoomControl.children[1]);
+        } else {
+            zoomControl.appendChild(resetButton);
+        }
+        // Clean up on unmount
+        return () => {
+            if (resetButton && resetButton.parentNode) {
+                resetButton.parentNode.removeChild(resetButton);
+            }
+        };
+    }, [map, bounds]);
+    return null;
+};
+
+
 
 const FrontendMap = ({ height = "60%", width = "80%" }) => {
     const dataProvider = useDataProvider();
@@ -237,6 +284,10 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
         return null;
     };
 
+    const swissBounds = [
+        [45.398181, 5.140242],
+        [47.808455, 10.492294]
+    ];
     return (
         <div style={{
             position: 'relative',
@@ -257,13 +308,11 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                 bounds={bounds || [[45.398181, 5.140242], [47.808455, 10.492294]]}
                 scrollWheelZoom={true}
                 style={{ height: '100%', width: '100%' }}
-                maxBounds={[
-                    [45.398181, 5.140242],
-                    [47.808455, 10.492294]
-                ]}
+                maxBounds={swissBounds}
                 minZoom={9}
             >
                 <MapEvents setZoomLevel={setZoomLevel} setCurrentMapBounds={setCurrentMapBounds} />
+                <ResetZoomControl bounds={bounds || [swissBounds]} />
                 <BaseLayers />
                 <FitBounds bounds={bounds} />
                 {zoomLevel >= 15 && (
