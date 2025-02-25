@@ -12,7 +12,7 @@ import {
 } from 'react-admin';
 
 import 'leaflet/dist/leaflet.css';
-import { CoordinateInput } from '../maps/CoordinateEntry';
+import { AreaCoordinateEntry, CoordinateInput } from '../maps/CoordinateEntry';
 
 const PlotCreate = () => {
     return (
@@ -30,7 +30,7 @@ const PlotCreate = () => {
                 <ReferenceInput source="area_id" reference="areas">
                     <SelectInput optionText="name" validate={[required()]} />
                 </ReferenceInput>
-                <CoordinateInput disabled />
+                <AreaCoordinateEntry />
                 <SelectInput
                     source="gradient"
                     choices={[
