@@ -2,13 +2,13 @@ import {
     required,
     NumberInput,
     Button,
+    useGetOne,
 } from 'react-admin';
-import { MapContainer, Marker } from 'react-leaflet';
+import { MapContainer, Marker, Polygon, useMap } from 'react-leaflet';
 import { useFormContext } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 import { Grid, Typography } from '@mui/material';
 import proj4 from 'proj4';
-import { set } from 'ol/transform';
 import L from 'leaflet';
 import { BaseLayers } from '../maps/Layers';
 
@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// Define the Swiss coordinate system EPSG 2056
+// Define the Swiss coordinate system EPSG:2056
 proj4.defs("EPSG:2056", "+proj=somerc +lat_0=46.9524055555556 +lon_0=7.43958333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs +type=crs");
 
 const ElevationInput = () => {
@@ -61,8 +61,36 @@ const ElevationInput = () => {
     );
 };
 
-export const CoordinateInput = () => {
+const MapUpdater = ({ polygonCoords }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (polygonCoords) {
+            const bounds = L.latLngBounds(polygonCoords);
+            map.fitBounds(bounds);
+        }
+    }, [polygonCoords, map]);
+    return null;
+};
+
+export const CoordinateInput = (props) => {
     const { setValue, watch } = useFormContext();
+    
+    // Get area only when an area_id is provided
+    const { data: area, isPending, error } = useGetOne(
+        'areas',
+        { id: props.area_id },
+        { enabled: !!props.area_id }
+    );
+
+    useEffect(() => {
+        if (props.area_id) {
+            if (isPending || error) {
+                console.log('No area data yet');
+            } else {
+                console.log('Area:', area);
+            }
+        }
+    }, [props.area_id, area, isPending, error]);
 
     const coord_x = watch('coord_x');
     const coord_y = watch('coord_y');
@@ -71,12 +99,13 @@ export const CoordinateInput = () => {
 
     const defaultCoordinates = [46.224413762594594, 7.359968915183943];
     const [position, setPosition] = useState(latitude && longitude ? [latitude, longitude] : defaultCoordinates);
+    const [polygonCoords, setPolygonCoords] = useState(null);
 
     const isValidCoordinate = (value) => {
         return typeof value === 'number' && isFinite(value);
     };
 
-    // Handle XY to LatLon conversion
+    // Handle conversion from XY (EPSG:2056) to LatLon (EPSG:4326)
     const updateLatLonFromXY = (x, y) => {
         if (isValidCoordinate(x) && isValidCoordinate(y)) {
             const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', [x, y]);
@@ -86,7 +115,7 @@ export const CoordinateInput = () => {
         }
     };
 
-    // Handle LatLon to XY conversion
+    // Handle conversion from LatLon to XY
     const updateXYFromLatLon = (lat, lng) => {
         if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
             const [x, y] = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
@@ -96,14 +125,12 @@ export const CoordinateInput = () => {
         }
     };
 
-    // Update Lat/Lon when coord_x/coord_y change
     useEffect(() => {
         if (isValidCoordinate(coord_x) && isValidCoordinate(coord_y)) {
             updateLatLonFromXY(coord_x, coord_y);
         }
     }, [coord_x, coord_y]);
 
-    // Update coord_x/coord_y when latitude/longitude change
     useEffect(() => {
         if (isValidCoordinate(latitude) && isValidCoordinate(longitude)) {
             updateXYFromLatLon(latitude, longitude);
@@ -111,13 +138,43 @@ export const CoordinateInput = () => {
     }, [latitude, longitude]);
 
     const handleSetCoords = (lat, lng) => {
-        updateXYFromLatLon(lat, lng); // Update XY and LatLon when dragging on map
+        updateXYFromLatLon(lat, lng);
     };
+
+    useEffect(() => {
+        if (area && area.geom && area.geom.coordinates) {
+            // Extract the first ring of the polygon
+            const rawCoords = area.geom.coordinates[0];
+            let convertedCoords;
+            // Check if conversion is needed by verifying if the first coordinate's value is within typical longitude bounds
+            if (rawCoords.length > 0 && Math.abs(rawCoords[0][0]) <= 180) {
+                // Data is already in EPSG:4326 (GeoJSON standard [lng, lat]); switch to [lat, lng] for leaflet
+                convertedCoords = rawCoords.map(coord => [coord[1], coord[0]]);
+            } else {
+                // Convert from EPSG:2056 to EPSG:4326
+                convertedCoords = rawCoords.map(coord => {
+                    const [lng, lat] = proj4('EPSG:2056', 'EPSG:4326', coord);
+                    return [lat, lng];
+                });
+            }
+            // Calculate centroid (simple average)
+            let sumLat = 0, sumLng = 0;
+            convertedCoords.forEach(([lat, lng]) => {
+                sumLat += lat;
+                sumLng += lng;
+            });
+            const centroid = [sumLat / convertedCoords.length, sumLng / convertedCoords.length];
+            setPosition(centroid);
+            setValue('latitude', centroid[0], { shouldValidate: true });
+            setValue('longitude', centroid[1], { shouldValidate: true });
+            setPolygonCoords(convertedCoords);
+        }
+    }, [area]);
 
     return (
         <>
             <Grid container spacing={2} alignItems='center'>
-                {/* Left side: X/Y and Latitude/Longitude in a 2x2 grid */}
+                {/* Left side: Input fields */}
                 <Grid item xs={5}>
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
@@ -137,8 +194,7 @@ export const CoordinateInput = () => {
                         </Grid>
                     </Grid>
                 </Grid>
-
-                {/* Right side: Map taking up the full column */}
+                {/* Right side: Map */}
                 <Grid item xs={7}>
                     <MapContainer
                         center={position}
@@ -146,6 +202,9 @@ export const CoordinateInput = () => {
                         style={{ height: '400px', width: '100%' }}
                     >
                         <BaseLayers />
+                        {polygonCoords && (
+                            <Polygon positions={polygonCoords} pathOptions={{ color: 'blue' }} />
+                        )}
                         <Marker
                             position={position}
                             draggable={true}
@@ -156,6 +215,7 @@ export const CoordinateInput = () => {
                                 },
                             }}
                         />
+                        <MapUpdater polygonCoords={polygonCoords} />
                     </MapContainer>
                 </Grid>
             </Grid>
