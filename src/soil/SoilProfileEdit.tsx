@@ -21,7 +21,7 @@ import {
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { Typography } from '@mui/material';
-import CoordinateInput from '../maps/CoordinateEntry';
+import CoordinateInput, { AreaCoordinateEntry } from '../maps/CoordinateEntry';
 
 const MyToolbar = () => (
     <Toolbar>
@@ -47,6 +47,29 @@ const SoilProfileEdit = () => {
         <Edit redirect="show" >
             <SimpleForm toolbar={<MyToolbar />}>
                 <TextInput source="id" disabled />
+                <TextInput source="name" validate={[required()]} />
+                <ReferenceInput source="area_id" reference="areas" >
+                    <SelectInput optionText="name" validate={[required()]} />
+                </ReferenceInput>
+                <AreaCoordinateEntry />
+                <SelectInput source="gradient" choices={[
+                    { id: 'flat', name: 'Flat' },
+                    { id: 'slope', name: 'Slope' },
+                ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
+                <DateInput source="created_on" label="Description Date" />
+                <ReferenceInput source="soil_type_id" reference="soil_types">
+                    <SelectInput optionText="name" />
+                </ReferenceInput>
+                <TextInput source="vegetation_type" label="Vegetation Type" />
+                <TextInput source="topography" />
+                <TextInput source="aspect" label="Aspect" />
+                <TextInput source="parent_material" label="Parent material" />
+                <ArrayInput source="description_horizon" label="Horizon description" helperText="Add a new row for another title and description" >
+                    <SimpleFormIterator inline>
+                        <TextInput source="title" validate={[required()]} />
+                        <TextInput source="description" validate={[required()]} multiline />
+                    </SimpleFormIterator>
+                </ArrayInput>
                 <ImageFieldPreview source="soil_diagram" />
                 <ImageInput
                     source="soil_diagram"
@@ -65,34 +88,6 @@ const SoilProfileEdit = () => {
                 >
                     <ImageField source="src" title="title" />
                 </ImageInput>
-                <NumberInput
-                    source="profile_iterator"
-                    label="ID"
-                    validate={[required(), minValue(0)]}
-                    helperText={<>A numeric ID given to the soil profile<br />that is unique within the area.<br />Example: 1 will become BF01 in Binntal Flat</>}
-                />
-                <ReferenceInput source="area_id" reference="areas" >
-                    <SelectInput optionText="name" validate={[required()]} />
-                </ReferenceInput>
-                <SelectInput source="gradient" choices={[
-                    { id: 'flat', name: 'Flat' },
-                    { id: 'slope', name: 'Slope' },
-                ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
-                <DateInput source="created_on" label="Description Date" />
-                <CoordinateInput />
-                <ReferenceInput source="soil_type_id" reference="soil_types">
-                    <SelectInput optionText="name" />
-                </ReferenceInput>
-                <TextInput source="vegetation_type" label="Vegetation Type" />
-                <TextInput source="topography" />
-                <TextInput source="aspect" label="Aspect" />
-                <TextInput source="parent_material" label="Parent material" />
-                <ArrayInput source="description_horizon" label="Horizon description" helperText="Add a new row for another title and description" >
-                    <SimpleFormIterator inline>
-                        <TextInput source="title" validate={[required()]} />
-                        <TextInput source="description" validate={[required()]} multiline />
-                    </SimpleFormIterator>
-                </ArrayInput>
             </SimpleForm>
 
         </Edit >

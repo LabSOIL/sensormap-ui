@@ -78,7 +78,7 @@ export const GNSSShow = () => (
                                     </Grid>
 
                                     <Grid item xs={5}>
-                                        <Typography variant="body1">Create Sensor</Typography>
+                                        <Typography variant="body1">Create Sensor Profile</Typography>
                                     </Grid>
                                     <Grid item xs={7}>
                                         <CreateSensorButton />

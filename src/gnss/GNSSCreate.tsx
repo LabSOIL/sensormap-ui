@@ -9,7 +9,7 @@ import {
 const GNSSCreate = () => {
 
     return (
-        <Create redirect="list">
+        <Create redirect="show">
             <SimpleForm >
                 <FileInput source="attachments">
                     <FileField source="src" title="title" />

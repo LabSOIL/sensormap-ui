@@ -30,7 +30,7 @@ export const GNSSList = () => {
                     <FunctionField source="coord_y" label="Y (m)" render={record => record.coord_y.toFixed(2)} />
                     <CreatePlotButton label="Plot" />
                     <CreateSoilProfileButton label="Soil Profile" />
-                    <CreateSensorButton label="Sensor" />
+                    <CreateSensorButton label="Sensor Profile" />
                 </Datagrid>
             </List >
         </>

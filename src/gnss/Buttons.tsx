@@ -26,6 +26,7 @@ export const CreatePlotButton = (label) => {
             }
             redirect('create', 'plots', null, {}, {
                 record: {
+                    name: record.name,
                     coord_x: record.coord_x,
                     coord_y: record.coord_y,
                     coord_z: record.elevation_gps,
@@ -76,7 +77,7 @@ export const CreateSensorButton = () => {
 
     return <IconButton
         color="success"
-        title="Create sensor"
+        title="Create sensor profile"
         onClick={(event) => {
             if (navigator.clipboard) {
                 const clipboardText = `${record.name}: ${record.comment}`;
@@ -84,7 +85,7 @@ export const CreateSensorButton = () => {
                     notify(`Copied "${clipboardText}" to clipboard`);
                 });
             }
-            redirect('create', 'sensors', null, {}, {
+            redirect('create', 'sensor_profiles', null, {}, {
                 record: {
                     coord_x: record.coord_x,
                     coord_y: record.coord_y,
