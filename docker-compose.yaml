@@ -42,6 +42,24 @@ services:
       - "traefik.http.routers.soil-api.rule=Host(`soil`) && PathPrefix(`/api`)"
       - "traefik.http.services.soil-api.loadbalancer.server.port=3000"
 
+  # Left here in case python version is needed to start
+  # soil-api-python:
+  #   build:
+  #     context: ../soil-api-python
+  #   environment:
+  #     - DB_HOST=sensormap-db
+  #     - DB_PORT=5432
+  #     - DB_USER=postgres
+  #     - DB_PASSWORD=psql
+  #     - DB_NAME=postgres
+  #     - DB_PREFIX=postgresql+asyncpg
+  #   ports:
+  #     - 8005:8000
+  #   depends_on:
+  #       - sensormap-db
+  #   volumes:
+  #     - ../soil-api-python/app:/app/app
+
   sensormap-ui:
     build:
       context: .

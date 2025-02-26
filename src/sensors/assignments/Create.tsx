@@ -23,13 +23,13 @@ const SensorProfileAssignmentCreate = (props) => {
         <Create mutationOptions={{ onSuccess }} {...props}>
             <SimpleForm>
                 <ReferenceInput source="sensor_id" reference="sensors" >
-                    <SelectInput optionText="name" validate={required()}/>
+                    <SelectInput optionText="name" validate={required()} />
                 </ReferenceInput>
                 <ReferenceInput source="sensorprofile_id" reference="sensor_profiles" >
-                    <SelectInput optionText="name" validate={required()}/>
+                    <SelectInput optionText="name" validate={required()} />
                 </ReferenceInput>
-                <DateTimeInput source="date_from" label="Date From" parse={(date: Date) => (date ? date.toISOString().replace('Z', '') : null)}/>
-                <DateTimeInput source="date_to" label="Date To" parse={(date: Date) => (date ? date.toISOString().replace('Z', '') : null)}/>
+                <DateTimeInput source="date_from" label="Date From" validate={required()} />
+                <DateTimeInput source="date_to" label="Date To" validate={required()} />
             </SimpleForm>
         </Create>
     );
