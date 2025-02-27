@@ -14,6 +14,8 @@ import L from 'leaflet';
 import { BaseLayers } from '../maps/Layers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
+import { get } from 'http';
+import { c } from 'vite/dist/node/types.d-aGj9QkWt';
 
 // Fix leaflet's default icon issue with webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -204,19 +206,21 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
         </>
     )
 }
-
-const getElevationSwissTopo = (x: number, y: number) => {
-    return fetch(
-        `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`
-    )
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success === false) {
-                throw new Error(`Error fetching elevation: ${data.error.message}`);
-            }
-            return parseFloat(data.height);
-        });
-}
+const getElevationSwissTopo = async (x: number, y: number): Promise<number | undefined> => {
+    try {
+        const response = await fetch(
+            `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`
+        );
+        const data = await response.json();
+        if (data.success === false) {
+            throw new Error(`Error fetching elevation: ${data.error.message}`);
+        }
+        return parseFloat(data.height);
+    } catch (error) {
+        console.error(`Error fetching elevation: ${error.message}`);
+        return undefined;
+    }
+};
 
 const ElevationInput = ({ disabled }: { disabled: boolean }) => {
     const formContext = useFormContext();
@@ -226,15 +230,10 @@ const ElevationInput = ({ disabled }: { disabled: boolean }) => {
     const updateElevation = () => {
         const x = formContext.getValues("coord_x");
         const y = formContext.getValues("coord_y");
-        getElevationSwissTopo(x, y)
-            .then((height) => {
-                setErrorMessage(null);
-                setSuccessResponse(true);
-                formContext.setValue("coord_z", height);
-            })
-            .catch((error) => {
-                setErrorMessage(`Error fetching elevation: ${error.message}`);
-            });
+
+        getElevationSwissTopo(x, y).then((z) => {
+            formContext.setValue("coord_z", z);
+        });
     };
 
     return (
@@ -299,38 +298,21 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     const { setValue, watch } = useFormContext();
     const watch_coord_x = watch("coord_x");
     const watch_coord_y = watch("coord_y");
+    const watch_coord_z = watch("coord_z");
     const watch_latitude = watch("latitude");
     const watch_longitude = watch("longitude");
     const [areaPolygonCoords, setAreaPolygonCoords] = useState<L.LatLngExpression[] | null>(null);
     const [coordinateData, setCoordinateData] = useState({
         coord_x: watch("coord_x"),
         coord_y: watch("coord_y"),
+        coord_z: watch("coord_z"),
         latitude: watch("latitude"),
-        longitude: watch("longitude")
+        longitude: watch("longitude"),
     });
 
     // Helpers to check if a value is a valid coordinate.
     const isValidCoordinate = (value: any): boolean => typeof value === "number" && isFinite(value);
     const lastUpdatedRef = useRef<"xy" | "latlon" | null>(null);  // Tracks which fields were updated last.
-
-    // Default position if nothing is provided.
-    const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
-    const updateXYFromLatLon = (lat: number, lng: number) => {
-        // When the marker is dragged, update fields and mark last update as "latlon".
-        if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
-            const [x, y] = proj4("EPSG:4326", "EPSG:2056", [lng, lat]);
-            setCoordinateData({
-                ...coordinateData,
-                coord_x: x,
-                coord_y: y,
-                latitude: lat,
-                longitude: lng
-            });
-
-            setPosition([lat, lng]);
-            lastUpdatedRef.current = "latlon";
-        }
-    };
 
     const [position, setPosition] = useState<L.LatLngExpression>(() => {
         // If the record has coordinates, use them
@@ -343,23 +325,53 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         return defaultCoordinates;
     });
 
+    // Default position if nothing is provided.
+    const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
+    const updateXYFromLatLon = (lat: number, lng: number) => {
+        // When the marker is dragged, update fields and mark last update as "latlon".
+        if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
+            const [x, y] = proj4("EPSG:4326", "EPSG:2056", [lng, lat]);
+
+            getElevationSwissTopo(x, y).then((z) => {
+                setCoordinateData({
+                    ...coordinateData,
+                    coord_x: x,
+                    coord_y: y,
+                    coord_z: z,
+                    latitude: lat,
+                    longitude: lng,
+                });
+            });
+            setPosition([lat, lng]);
+            lastUpdatedRef.current = "latlon";
+        }
+    }
+
+
+
     useEffect(() => {
         // This useEffect manages when the X and Y fields are updated, and
         // sometimes the X and Y are given as record data at first render, if so, set the lat/lon
         if ((coordinateData.coord_x && coordinateData.coord_y) && (!coordinateData.latitude || !coordinateData.longitude)) {
             const [lat, lon] = proj4("EPSG:2056", "EPSG:4326", [coordinateData.coord_x, coordinateData.coord_y]);
-            setCoordinateData({
-                ...coordinateData,
-                latitude: lat,
-                longitude: lon
+            getElevationSwissTopo(coordinateData.coord_x, coordinateData.coord_y).then((z) => {
+                setCoordinateData({
+                    ...coordinateData,
+                    latitude: lat,
+                    longitude: lon,
+                    coord_z: z,
+                });
             });
         }
         if ((coordinateData.latitude && coordinateData.longitude) && (!coordinateData.coord_x || !coordinateData.coord_y)) {
             const [x, y] = proj4("EPSG:4326", "EPSG:2056", [coordinateData.longitude, coordinateData.latitude]);
-            setCoordinateData({
-                ...coordinateData,
-                coord_x: x,
-                coord_y: y
+            getElevationSwissTopo(x, y).then((z) => {
+                setCoordinateData({
+                    ...coordinateData,
+                    coord_x: x,
+                    coord_y: y,
+                    coord_z: z,
+                });
             });
         }
         // Due to rendering, it's possible that the watch items are null but the coordinateData is not.
@@ -370,19 +382,21 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         if (!watch_coord_y && coordinateData.coord_y) {
             setValue("coord_y", coordinateData.coord_y, { shouldValidate: true });
         }
+        if (!watch_coord_z && coordinateData.coord_z) {
+            setValue("coord_z", coordinateData.coord_z, { shouldValidate: true });
+        }
         if (!watch_latitude && coordinateData.latitude) {
             setValue("latitude", coordinateData.latitude, { shouldValidate: true });
         }
         if (!watch_longitude && coordinateData.longitude) {
             setValue("longitude", coordinateData.longitude, { shouldValidate: true });
         }
-    }, [watch_coord_x, watch_coord_y, watch_latitude, watch_longitude]);
+    }, [watch_coord_x, watch_coord_y, watch_coord_z, watch_latitude, watch_longitude]);
 
     useEffect(() => {
         // Whenever the stored coordinate data changes, update the form fields.
-        const elevation = getElevationSwissTopo(coordinateData.coord_x, coordinateData.coord_y).then((height) => {
+        getElevationSwissTopo(coordinateData.coord_x, coordinateData.coord_y).then((height) => {
             setValue("coord_z", height, { shouldValidate: true });
-            return height;
         }
         );
         setValue("coord_x", coordinateData.coord_x, { shouldValidate: true });
@@ -406,6 +420,7 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                     latitude: lat,
                     longitude: lng
                 });
+                // Get elevation too
             }
         }
     }, [watch_coord_x, watch_coord_y, setValue]);
@@ -429,12 +444,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         }
     }, [watch_latitude, watch_longitude, setValue]);
 
-    const record = useRecordContext();
-
-
-    console.log("lat,lon,x,y", watch_latitude, watch_longitude, watch_coord_x, watch_coord_y);
-    console.log("Record lat/lon/x/y", coordinateData.latitude, coordinateData.longitude, coordinateData.coord_x, coordinateData.coord_y);
-    console.log("Record", record);
     return (
         <div
             style={{

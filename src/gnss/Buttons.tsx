@@ -30,14 +30,14 @@ export const CreatePlotButton = (label) => {
                     coord_x: record.coord_x,
                     coord_y: record.coord_y,
                     coord_z: record.elevation_gps,
-                    created_on: record.time
+                    created_on: new Date(record.time).toISOString().slice(0, 10)  // No time
                 }
             })
             event.stopPropagation();
         }}
     >
         <plots.plot.icon />
-    </IconButton>;
+    </IconButton >;
 };
 
 export const CreateSoilProfileButton = () => {
@@ -60,7 +60,7 @@ export const CreateSoilProfileButton = () => {
                     coord_x: record.coord_x,
                     coord_y: record.coord_y,
                     coord_z: record.elevation_gps,
-                    created_on: record.time
+                    created_on: new Date(record.time).toISOString().slice(0, 10)  // No time
                 }
             })
             event.stopPropagation();
@@ -92,7 +92,7 @@ export const CreateSensorButton = () => {
                     coord_z: record.elevation_gps,
                     name: record.name,
                     description: record.comment,
-                    created_on: record.time
+                    created_on: new Date(record.time).toISOString().slice(0, 10)  // No time
                 }
             })
             event.stopPropagation();
