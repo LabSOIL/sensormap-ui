@@ -16,6 +16,7 @@ import { useWatch } from 'react-hook-form';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
+import { get } from 'http';
 
 // Fix leaflet's default icon issue with webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -37,17 +38,12 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
     setPolygonCoords: (coords: L.LatLngExpression[]) => void
 }) => {
     const [additionalMarkers, setAdditionalMarkers] = useState<{ id: string; type: string; position: L.LatLngExpression }[]>([]);
-
-
-    // --- AREA PROCESSING-- -
-    // Use useGetList to load all areas.
     const { data: areas, isLoading, error } = useGetList("areas", {
+        // Use useGetList to load all areas.
         pagination: { page: 1, perPage: 1000 },
         sort: { field: "id", order: "ASC" },
         filter: {},
     });
-
-
 
     useEffect(() => {
         if (areas && areaId) {
@@ -67,8 +63,7 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
         }
     }, [areas, areaId]);
 
-    // --- ADDITIONAL MARKERS ---
-    const convertCoord = (x: number, y: number): L.LatLngExpression => {
+    const convertCoordXYtoLatLon = (x: number, y: number): L.LatLngExpression => {
         const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [x, y]);
         return [lat, lng];
     };
@@ -90,7 +85,7 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
                             tempMarkers.push({
                                 id: `plot-${plot.id}`,
                                 type: "Plot",
-                                position: convertCoord(plot.coord_x, plot.coord_y)
+                                position: convertCoordXYtoLatLon(plot.coord_x, plot.coord_y)
                             });
                         }
                     });
@@ -101,7 +96,7 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
                             tempMarkers.push({
                                 id: `sensor-${sp.id}`,
                                 type: "Sensor Profile",
-                                position: convertCoord(sp.coord_x, sp.coord_y)
+                                position: convertCoordXYtoLatLon(sp.coord_x, sp.coord_y)
                             });
                         }
                     });
@@ -112,7 +107,7 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
                             tempMarkers.push({
                                 id: `soil-${sp.id}`,
                                 type: "Soil Profile",
-                                position: convertCoord(sp.coord_x, sp.coord_y)
+                                position: convertCoordXYtoLatLon(sp.coord_x, sp.coord_y)
                             });
                         }
                     });
@@ -123,8 +118,8 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
                             const first = transect.nodes[0];
                             const second = transect.nodes[1];
                             if (first.coord_x && first.coord_y && second.coord_x && second.coord_y) {
-                                const pos1 = convertCoord(first.coord_x, first.coord_y);
-                                const pos2 = convertCoord(second.coord_x, second.coord_y);
+                                const pos1 = convertCoordXYtoLatLon(first.coord_x, first.coord_y);
+                                const pos2 = convertCoordXYtoLatLon(second.coord_x, second.coord_y);
                                 const midLat = (((pos1 as number[])[0]) + ((pos2 as number[])[0])) / 2;
                                 const midLng = (((pos1 as number[])[1]) + ((pos2 as number[])[1])) / 2;
                                 tempMarkers.push({
@@ -178,7 +173,7 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
                         <Polygon
                             key={area.id}
                             positions={convertedCoords}
-                            pathOptions={{ color: "black" }}
+                            pathOptions={{ color: area.project.color }}
                         />
                     );
                 }
@@ -191,6 +186,18 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
     )
 }
 
+const getElevationSwissTopo = (x: number, y: number) => {
+    return fetch(
+        `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`
+    )
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success === false) {
+                throw new Error(`Error fetching elevation: ${data.error.message}`);
+            }
+            return parseFloat(data.height);
+        });
+}
 
 const ElevationInput = ({ disabled }: { disabled: boolean }) => {
     const formContext = useFormContext();
@@ -200,17 +207,14 @@ const ElevationInput = ({ disabled }: { disabled: boolean }) => {
     const updateElevation = () => {
         const x = formContext.getValues("coord_x");
         const y = formContext.getValues("coord_y");
-        const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success === false) {
-                    setErrorMessage(`Error fetching elevation: ${data.error.message}`);
-                } else {
-                    setErrorMessage(null);
-                    setSuccessResponse(true);
-                    formContext.setValue("coord_z", parseFloat(data.height));
-                }
+        getElevationSwissTopo(x, y)
+            .then((height) => {
+                setErrorMessage(null);
+                setSuccessResponse(true);
+                formContext.setValue("coord_z", height);
+            })
+            .catch((error) => {
+                setErrorMessage(`Error fetching elevation: ${error.message}`);
             });
     };
 
@@ -243,10 +247,11 @@ const ElevationInput = ({ disabled }: { disabled: boolean }) => {
 };
 
 const MapUpdater = ({ areaId, polygonCoords }: { areaId: string | undefined; polygonCoords: L.LatLngExpression[] | null }) => {
+    // This updates the map view when a new area is chosen.
     const map = useMap();
     const prevAreaIdRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (areaId && polygonCoords && areaId !== prevAreaIdRef.current) {
+        if (areaId && polygonCoords) {
             const bounds = L.latLngBounds(polygonCoords);
             map.fitBounds(bounds);
             prevAreaIdRef.current = areaId;
@@ -256,6 +261,7 @@ const MapUpdater = ({ areaId, polygonCoords }: { areaId: string | undefined; pol
 };
 
 const RecenterButton = ({ updateXY }: { updateXY: (lat: number, lng: number) => void }) => {
+    // Adds a button to recenter the marker to the center of the map.
     const map = useMap();
     const handleRecenterMarker = () => {
         const center = map.getCenter();
@@ -269,21 +275,9 @@ const RecenterButton = ({ updateXY }: { updateXY: (lat: number, lng: number) => 
         </div>
     );
 };
-const useFormValues = () => {
-    const { getValues } = useFormContext()
 
-    return {
-        ...useWatch(
-            { name: 'coord_x' },
-
-        ), // subscribe to form value updates
-        ...getValues(), // always merge with latest form values
-    }
-}
 export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boolean;[key: string]: any }) => {
     const { setValue, watch } = useFormContext();
-    const dataProvider = useDataProvider();
-    // Read coordinate fields.
     const watch_coord_x = watch("coord_x");
     const watch_coord_y = watch("coord_y");
     const watch_latitude = watch("latitude");
@@ -296,9 +290,43 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         longitude: watch("longitude")
     });
 
+    // Helpers to check if a value is a valid coordinate.
+    const isValidCoordinate = (value: any): boolean => typeof value === "number" && isFinite(value);
+    const lastUpdatedRef = useRef<"xy" | "latlon" | null>(null);  // Tracks which fields were updated last.
 
-    // Sometimes the X and Y are given as record data, if so, set the lat/lon
+    // Default position if nothing is provided.
+    const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
+    const updateXYFromLatLon = (lat: number, lng: number) => {
+        // When the marker is dragged, update fields and mark last update as "latlon".
+        if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
+            const [x, y] = proj4("EPSG:4326", "EPSG:2056", [lng, lat]);
+            setCoordinateData({
+                ...coordinateData,
+                coord_x: x,
+                coord_y: y,
+                latitude: lat,
+                longitude: lng
+            });
+
+            setPosition([lat, lng]);
+            lastUpdatedRef.current = "latlon";
+        }
+    };
+
+    const [position, setPosition] = useState<L.LatLngExpression>(() => {
+        // If the record has coordinates, use them
+        if (isFinite(watch_latitude) && isFinite(watch_longitude)) {
+            return [watch_latitude, watch_longitude];
+        } else if (isFinite(watch_coord_x) && isFinite(watch_coord_y)) {
+            const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [watch_coord_x, watch_coord_y]);
+            return [lat, lng];
+        }
+        return defaultCoordinates;
+    });
+
     useEffect(() => {
+        // This useEffect manages when the X and Y fields are updated, and
+        // sometimes the X and Y are given as record data at first render, if so, set the lat/lon
         if ((coordinateData.coord_x && coordinateData.coord_y) && (!coordinateData.latitude || !coordinateData.longitude)) {
             const [lat, lon] = proj4("EPSG:2056", "EPSG:4326", [coordinateData.coord_x, coordinateData.coord_y]);
             setCoordinateData({
@@ -315,62 +343,27 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                 coord_y: y
             });
         }
+
+
     }, [watch_coord_x, watch_coord_y, watch_latitude, watch_longitude]);
 
     useEffect(() => {
+        // Whenever the stored coordinate data changes, update the form fields.
+        const elevation = getElevationSwissTopo(coordinateData.coord_x, coordinateData.coord_y).then((height) => {
+            setValue("coord_z", height, { shouldValidate: true });
+            return height;
+        }
+        );
         setValue("coord_x", coordinateData.coord_x, { shouldValidate: true });
         setValue("coord_y", coordinateData.coord_y, { shouldValidate: true });
         setValue("latitude", coordinateData.latitude, { shouldValidate: true });
         setValue("longitude", coordinateData.longitude, { shouldValidate: true });
+        // setValue("coord_z", elevation);
     }, [coordinateData]);
 
-
-    console.log("CoordinateData:", coordinateData);
-    let something = useFormValues();
-    console.log("Something:", something);
-    console.log("x,y,lat,long", watch_coord_x, watch_coord_y, watch_latitude, watch_longitude);
-    // Default position if nothing is provided.
-    const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
-
-
-    const [position, setPosition] = useState<L.LatLngExpression>(() => {
-        if (isFinite(watch_latitude) && isFinite(watch_longitude)) {
-            return [watch_latitude, watch_longitude];
-        } else if (isFinite(watch_coord_x) && isFinite(watch_coord_y)) {
-            const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [watch_coord_x, watch_coord_y]);
-            return [lat, lng];
-        }
-        return defaultCoordinates;
-    });
-
-    // Helper: valid coordinate check.
-    const isValidCoordinate = (value: any): boolean =>
-        typeof value === "number" && isFinite(value);
-
-    // --- TWO-WAY UPDATING CONTROL VIA REFS ---
-    // Use refs to track which field group (XY or LatLon) was updated last.
-    const lastUpdatedRef = useRef<"xy" | "latlon" | null>(null);
-    // const prevXYRef = useRef([coord_x, coord_y]);
-    // const prevLatLonRef = useRef([latitude, longitude]);
-
-    // useEffect(() => {
-    //     if (prevXYRef.current[0] !== coord_x || prevXYRef.current[1] !== coord_y) {
-    //         lastUpdatedRef.current = "xy";
-    //         prevXYRef.current = [coord_x, coord_y];
-    //     }
-    // }, [coord_x, coord_y]);
-
-    // useEffect(() => {
-    //     if (prevLatLonRef.current[0] !== latitude || prevLatLonRef.current[1] !== longitude) {
-    //         lastUpdatedRef.current = "latlon";
-    //         prevLatLonRef.current = [latitude, longitude];
-    //     }
-    // }, [latitude, longitude]);
-
-    // Update from X / Y fields if they were updated last.
     useEffect(() => {
+        // If the X and Y fields were updated last, update the position and mark last update as "xy".
         if (lastUpdatedRef.current === "xy" && isValidCoordinate(watch_coord_x) && isValidCoordinate(watch_coord_y)) {
-            console.log("Updating from XY");
             const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [watch_coord_x, watch_coord_y]);
             // Use a small epsilon to avoid loops.
             if (Math.abs(lat - (position as number[])[0]) > 0.000001 ||
@@ -383,8 +376,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                     latitude: lat,
                     longitude: lng
                 });
-                // setValue("latitude", lat, { shouldValidate: true });
-                // setValue("longitude", lng, { shouldValidate: true });
             }
         }
     }, [watch_coord_x, watch_coord_y, setValue]);
@@ -392,7 +383,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     // Update from LatLon fields if they were updated last.
     useEffect(() => {
         if (lastUpdatedRef.current === "latlon" && isValidCoordinate(watch_latitude) && isValidCoordinate(watch_longitude)) {
-            console.log("Updating from LatLon");
             if (Math.abs(watch_latitude - (position as number[])[0]) > 0.000001 ||
                 Math.abs(watch_longitude - (position as number[])[1]) > 0.000001) {
                 const [x, y] = proj4("EPSG:4326", "EPSG:2056", [watch_longitude, watch_latitude]);
@@ -404,32 +394,10 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                     latitude: watch_latitude,
                     longitude: watch_longitude
                 });
-                // setValue("coord_x", Math.round(x), { shouldValidate: true });
-                // setValue("coord_y", Math.round(y), { shouldValidate: true });
             }
         }
     }, [watch_latitude, watch_longitude, setValue]);
 
-    // When the marker is dragged, update fields and mark last update as "latlon".
-    const updateXYFromLatLon = (lat: number, lng: number) => {
-        if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
-            const [x, y] = proj4("EPSG:4326", "EPSG:2056", [lng, lat]);
-            setCoordinateData({
-                ...coordinateData,
-                coord_x: x,
-                coord_y: y,
-                latitude: lat,
-                longitude: lng
-            });
-
-            // setValue("coord_x", Math.round(x), { shouldValidate: true });
-            // setValue("coord_y", Math.round(y), { shouldValidate: true });
-            // setValue("latitude", lat, { shouldValidate: true });
-            // setValue("longitude", lng, { shouldValidate: true });
-            setPosition([lat, lng]);
-            lastUpdatedRef.current = "latlon";
-        }
-    };
 
 
     return (
@@ -449,6 +417,9 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                                 label="X Coordinate (m: SRID 2056)"
                                 disabled={disabled}
                                 validate={[required()]}
+                                onChange={() => {
+                                    lastUpdatedRef.current = "xy";
+                                }}
                             />
                         </Grid>
                         <Grid item xs={6}>
@@ -457,6 +428,9 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                                 label="Y Coordinate (m: SRID 2056)"
                                 disabled={disabled}
                                 validate={[required()]}
+                                onChange={() => {
+                                    lastUpdatedRef.current = "xy";
+                                }}
                             />
                         </Grid>
                         <Grid item xs={6}>
@@ -484,12 +458,13 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                         <MapContainer
                             center={position}
                             zoom={13}
-                            style={{ height: "400px", width: "100%" }}
+                            style={{ height: "400px", width: "100%", zIndex: 1000 }}
                         >
                             <BaseLayers />
                             <Marker
                                 position={position}
                                 draggable={!disabled}
+                                zIndexOffset={1000}
                                 eventHandlers={{
                                     dragend(e) {
                                         const { lat, lng } = e.target.getLatLng();
@@ -500,13 +475,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                             <AreaPolygonAndMarkers areaId={props.area_id} setPolygonCoords={setAreaPolygonCoords} />
                             <RecenterButton updateXY={updateXYFromLatLon} />
                             <MapUpdater areaId={props.area_id} polygonCoords={areaPolygonCoords} />
-                            {/* {areaPolygonCoords && (
-                                <Polygon
-                                    positions={areaPolygonCoords}
-                                    pathOptions={{ color: "blue" }}
-                                />
-                            )} */}
-
                         </MapContainer>
                     </div>
                 </Grid>
@@ -516,6 +484,7 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
 };
 
 export const AreaCoordinateEntry = ({ source = "area_id" }: { source?: string }) => {
+    // This component is used to show the coordinate input fields when an area is selected.
     const { watch } = useFormContext();
     const selectedArea = watch(source);
     const isDisabled = !selectedArea;
