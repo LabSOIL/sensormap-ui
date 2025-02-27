@@ -3,6 +3,7 @@ import {
     NumberInput,
     Button,
     useGetList,
+    useRecordContext,
 } from 'react-admin';
 import { MapContainer, Marker, Polygon, Tooltip, useMap } from 'react-leaflet';
 import { useFormContext } from 'react-hook-form';
@@ -361,8 +362,20 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                 coord_y: y
             });
         }
-
-
+        // Due to rendering, it's possible that the watch items are null but the coordinateData is not.
+        // In this case, update the watch items.
+        if (!watch_coord_x && coordinateData.coord_x) {
+            setValue("coord_x", coordinateData.coord_x, { shouldValidate: true });
+        }
+        if (!watch_coord_y && coordinateData.coord_y) {
+            setValue("coord_y", coordinateData.coord_y, { shouldValidate: true });
+        }
+        if (!watch_latitude && coordinateData.latitude) {
+            setValue("latitude", coordinateData.latitude, { shouldValidate: true });
+        }
+        if (!watch_longitude && coordinateData.longitude) {
+            setValue("longitude", coordinateData.longitude, { shouldValidate: true });
+        }
     }, [watch_coord_x, watch_coord_y, watch_latitude, watch_longitude]);
 
     useEffect(() => {
@@ -376,7 +389,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         setValue("coord_y", coordinateData.coord_y, { shouldValidate: true });
         setValue("latitude", coordinateData.latitude, { shouldValidate: true });
         setValue("longitude", coordinateData.longitude, { shouldValidate: true });
-        // setValue("coord_z", elevation);
     }, [coordinateData]);
 
     useEffect(() => {
@@ -417,8 +429,12 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         }
     }, [watch_latitude, watch_longitude, setValue]);
 
+    const record = useRecordContext();
 
 
+    console.log("lat,lon,x,y", watch_latitude, watch_longitude, watch_coord_x, watch_coord_y);
+    console.log("Record lat/lon/x/y", coordinateData.latitude, coordinateData.longitude, coordinateData.coord_x, coordinateData.coord_y);
+    console.log("Record", record);
     return (
         <div
             style={{
