@@ -2,21 +2,17 @@ import {
     required,
     NumberInput,
     Button,
-    useDataProvider,
     useGetList,
 } from 'react-admin';
-import { MapContainer, Marker, Polygon, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Polygon, Tooltip, useMap } from 'react-leaflet';
 import { useFormContext } from 'react-hook-form';
 import { useState, useEffect, useRef } from 'react';
 import { Grid, Typography } from '@mui/material';
 import proj4 from 'proj4';
 import L from 'leaflet';
 import { BaseLayers } from '../maps/Layers';
-import { useWatch } from 'react-hook-form';
-
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
-import { get } from 'http';
 
 // Fix leaflet's default icon issue with webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -170,11 +166,33 @@ const AreaPolygonAndMarkers = ({ areaId, setPolygonCoords }: {
                         }
                     });
                     return (
-                        <Polygon
-                            key={area.id}
-                            positions={convertedCoords}
-                            pathOptions={{ color: area.project.color }}
-                        />
+                        <>
+                            <Polygon
+                                key={area.id}
+                                positions={convertedCoords}
+                                pathOptions={{ color: area.project.color }}
+                            >
+                                <Tooltip
+                                    permanent
+                                    interactive={false}
+                                    direction="center">
+
+                                    <span
+                                        // onClick={handleZoom}
+                                        style={{
+                                            background: 'rgba(255,255,255,0.8)',
+                                            padding: '3px 6px',
+                                            borderRadius: '4px',
+                                            fontWeight: 'bolder',
+                                            color: '#000',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {area.name}
+                                    </span>
+                                </Tooltip>
+                            </Polygon >
+                        </>
                     );
                 }
                 return null;
@@ -383,6 +401,7 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     // Update from LatLon fields if they were updated last.
     useEffect(() => {
         if (lastUpdatedRef.current === "latlon" && isValidCoordinate(watch_latitude) && isValidCoordinate(watch_longitude)) {
+
             if (Math.abs(watch_latitude - (position as number[])[0]) > 0.000001 ||
                 Math.abs(watch_longitude - (position as number[])[1]) > 0.000001) {
                 const [x, y] = proj4("EPSG:4326", "EPSG:2056", [watch_longitude, watch_latitude]);
