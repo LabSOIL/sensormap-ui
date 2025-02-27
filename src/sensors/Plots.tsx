@@ -2,6 +2,13 @@ import {
     useRecordContext,
     useGetManyReference,
     useTheme,
+    TextField,
+    FunctionField,
+    ArrayField,
+    Datagrid,
+    DateField,
+    ReferenceField,
+
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
 import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
@@ -339,37 +346,30 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
                     />
                 </Grid>
             </Grid>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Show</TableCell>
-                        <TableCell>Sensor</TableCell>
-                        <TableCell>Date From</TableCell>
-                        <TableCell>Date To</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {assignments.map((assignment) => (
-                        <TableRow
-                            key={assignment.id}
-                            onMouseEnter={() => setHighlightedAssignment(assignment.id)}
-                            onMouseLeave={() => setHighlightedAssignment(null)}
-                        >
-                            <TableCell>
-                                <Checkbox
-                                    checked={visibleAssignments[assignment.id] || false}
-                                    onChange={() => handleCheckboxChange(assignment.id)}
-                                />
-                            </TableCell>
-                            <TableCell>
-                                {assignment.sensor?.name || assignment.sensor_id}
-                            </TableCell>
-                            <TableCell>{assignment.date_from}</TableCell>
-                            <TableCell>{assignment.date_to}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <ArrayField source="assignments" sort={{ field: 'date_from', order: 'ASC' }}>
+                <Datagrid
+                    bulkActionButtons={false}
+                    rowClick={false}
+                >
+                    <FunctionField
+                        render={(record) => (
+                            <Checkbox
+                                checked={visibleAssignments[record.id] || false}
+                                onChange={() => handleCheckboxChange(record.id)}
+                                size="small"
+                                sx={{ padding: 0 }}
+                            />
+                        )}
+                    />
+                    <ReferenceField source="sensor_id" reference="sensors" link="show" >
+                        <TextField source="name" />
+                    </ReferenceField>
+                    <FunctionField source="type" render={record => record.type === 'soil_profile' ? "Soil Profile" : "Plot"} />
+                    <TextField source="name" label="Name" />
+                    <DateField source="date_from" label="From" showTime />
+                    <DateField source="date_to" label="To" showTime />
+                </Datagrid>
+            </ArrayField >
         </>
     );
 };

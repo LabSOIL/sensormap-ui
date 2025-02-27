@@ -100,20 +100,6 @@ const SensorProfileShow = () => {
                         </Grid>
                     </Grid>
                 </Grid>
-                {/* <ArrayField source="assignments">
-                    <Datagrid
-                        bulkActionButtons={false}
-                        rowClick={false}
-                    >
-                        <ReferenceField source="sensor_id" reference="sensors" link="show" >
-                            <TextField source="name" />
-                        </ReferenceField>
-                        <FunctionField source="type" render={record => record.type === 'soil_profile' ? "Soil Profile" : "Plot"} />
-                        <TextField source="name" label="Name" />
-                        <DateField source="date_from" label="From" showTime />
-                        <DateField source="date_to" label="To" showTime />
-                    </Datagrid>
-                </ArrayField> */}
             </SimpleShowLayout>
         </Show>
     );
