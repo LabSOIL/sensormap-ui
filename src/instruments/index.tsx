@@ -1,11 +1,11 @@
-import InstrumentCreate from './InstrumentCreate';
-import InstrumentEdit from './InstrumentEdit';
-import InstrumentList from './InstrumentList';
-import InstrumentShow from './InstrumentShow';
-import InstrumentChannelCreate from './channels/InstrumentChannelCreate';
-import InstrumentChannelEdit from './channels/InstrumentChannelEdit';
-import InstrumentChannelShow from './channels/InstrumentChannelShow';
-import InstrumentChannelIntegrate from './channels/InstrumentChannelIntegrate';
+import InstrumentCreate from './Create';
+import InstrumentEdit from './Edit';
+import InstrumentList from './List';
+import InstrumentShow from './Show';
+import InstrumentChannelCreate from './channels/Create';
+import InstrumentChannelEdit from './channels/Edit';
+import InstrumentChannelShow from './channels/Show';
+import InstrumentChannelIntegrate from './channels/Integrate';
 
 import BuildIcon from '@mui/icons-material/Build';
 

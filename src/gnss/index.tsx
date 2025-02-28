@@ -1,7 +1,7 @@
-import GNSSCreate from './GNSSCreate';
+import GNSSCreate from './Create';
 // import GNSSEdit from './GNSSEdit';
-import GNSSList from './GNSSList';
-import GNSSShow from './GNSSShow';
+import GNSSList from './List';
+import GNSSShow from './Show';
 import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
 
 export default {
