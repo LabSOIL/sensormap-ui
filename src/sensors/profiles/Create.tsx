@@ -9,7 +9,7 @@ import {
     SaveButton,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
-import { CoordinateInput, AreaCoordinateEntry } from '../maps/CoordinateEntry';
+import { CoordinateInput, AreaCoordinateEntry } from '../../maps/CoordinateEntry';
 import { useEffect } from 'react';
 
 

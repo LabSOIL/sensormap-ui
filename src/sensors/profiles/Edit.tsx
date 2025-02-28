@@ -8,7 +8,7 @@ import {
     Toolbar,
     SaveButton,
 } from 'react-admin';
-import { CoordinateInput } from '../maps/CoordinateEntry';
+import { CoordinateInput } from '../../maps/CoordinateEntry';
 
 
 const MyToolbar = () => (

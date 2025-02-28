@@ -17,7 +17,7 @@ import {
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
 import { Grid } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { SensorProfilePlot } from './Plots';
+import { SensorProfilePlot } from '../Plots';
 
 
 const SensorProfileShowActions = () => {
