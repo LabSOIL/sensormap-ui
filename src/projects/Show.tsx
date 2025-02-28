@@ -13,7 +13,7 @@ import {
     FunctionField,
 } from 'react-admin';
 
-import { ColorBox } from './ProjectList';
+import { ColorBox } from './List';
 
 const ProjectShowActions = () => {
     const { permissions } = usePermissions();

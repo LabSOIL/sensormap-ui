@@ -1,7 +1,7 @@
-import ProjectCreate from './ProjectCreate';
-import ProjectEdit from './ProjectEdit';
-import ProjectList from './ProjectList';
-import ProjectShow from './ProjectShow';
+import ProjectCreate from './Create';
+import ProjectEdit from './Edit';
+import ProjectList from './List';
+import ProjectShow from './Show';
 import WorkIcon from '@mui/icons-material/Work';
 
 export default {
