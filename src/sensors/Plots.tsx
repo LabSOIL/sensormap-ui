@@ -224,25 +224,10 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
         x1: assignment.date_to,
         y0: 0,
         y1: 1,
-        fillcolor: 'rgba(255,0,0,0.2)',
+        fillcolor: 'rgba(204, 179, 179, 0.2)',
         line: { width: 0 },
     }));
 
-    const assignmentAnnotations = assignments.map((assignment) => {
-        const midX = new Date(
-            (new Date(assignment.date_from).getTime() +
-                new Date(assignment.date_to).getTime()) / 2
-        );
-        return {
-            x: midX,
-            y: 0.5,
-            xref: 'x',
-            yref: 'paper',
-            text: `Assignment: ${assignment.sensor?.name || assignment.sensor_id}`,
-            showarrow: false,
-            font: { color: mode === 'dark' ? 'white' : 'black', size: 10 },
-        };
-    });
 
     const metrics = [
         { key: 'temperature_1', name: 'Temperature 1', color: 'blue' },
@@ -310,7 +295,6 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
         },
         // Always show shapes and annotations as before.
         shapes: assignmentShapes,
-        annotations: assignmentAnnotations,
     };
 
     const handleCheckboxChange = (assignmentId) => {
@@ -364,8 +348,6 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
                     <ReferenceField source="sensor_id" reference="sensors" link="show" >
                         <TextField source="name" />
                     </ReferenceField>
-                    <FunctionField source="type" render={record => record.type === 'soil_profile' ? "Soil Profile" : "Plot"} />
-                    <TextField source="name" label="Name" />
                     <DateField source="date_from" label="From" showTime />
                     <DateField source="date_to" label="To" showTime />
                 </Datagrid>

@@ -23,6 +23,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import proj4 from 'proj4';
+import { Typography } from '@mui/material';
 
 const DEFAULT_ZOOM_LEVEL = 15;
 
@@ -70,7 +71,7 @@ export const TransectCreateMap = ({ area_id }) => {
         'areas', { id: area_id }
     );
     if (isLoading) return <Loading />;
-
+    console.log(record);
     if (record.plots.length === 0) {
         notify('No plots available. Choose another area.');
     }
@@ -141,7 +142,9 @@ export const TransectCreateMap = ({ area_id }) => {
     useEffect(() => {
         if (record.plots.length > 0 && getValues('nodes').length > 1) {
             setNodePolyLine(getValues('nodes').map(
-                node => [node["latitude"], node["longitude"]]
+                node =>
+                    proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse()
+
             ));
         }
     }, [watch('nodes')]);
@@ -164,7 +167,9 @@ export const TransectCreateMap = ({ area_id }) => {
                     return (
                         <Marker
                             key={index}
-                            position={[plot["latitude"], plot["longitude"]]}
+                            position={
+                                proj4(`EPSG:${plot.coord_srid}`, 'EPSG:4326', [plot.coord_x, plot.coord_y]).reverse()
+                            }
                             icon={plotIcon}
                             eventHandlers={{
                                 click: (e) => {
@@ -184,7 +189,9 @@ export const TransectCreateMap = ({ area_id }) => {
                         <Polyline
                             key={index}
                             positions={
-                                transect.nodes.map(node => [node.latitude, node.longitude])
+                                transect.nodes.map(node =>
+                                    proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse()
+                                )
                             }
                             color="black"
                             weight={5}
@@ -202,20 +209,19 @@ export const TransectCreateMap = ({ area_id }) => {
 export const TransectShowMap = () => {
     const record = useRecordContext();
 
-    if (!record) {
-        return <Loading />;
+    if (!record) { return <Loading />; }
+    if (record.nodes && record.nodes.length === 0) {
+        return <Typography>No nodes available</Typography>;
     }
 
     // Convert coordinates to lat/lon
     const nodePolyLine = record.nodes.map(node => {
         return proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse();
     });
-
     // Get map bounds from the bounding box of all nodes in the record
     const mapBounds = record.nodes.reduce((acc, node) => {
         return acc.extend(proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse());
     }, L.latLngBounds());
-
     // We want a similar map to create, but just the plots from the record now
     // instead as it is resembling a show view
 

@@ -16,6 +16,8 @@ import {
     useNotify,
     CreateButton,
     ExportButton,
+    Count,
+    ReferenceManyCount,
 } from "react-admin";
 import { stopPropagation } from "ol/events/Event";
 import { ImportButton } from "react-admin-import-csv";
@@ -139,7 +141,40 @@ export const PlotList = () => {
                 <TextField source="name" />
                 <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
                 <FunctionField render={record => `${toTitleCase(record.gradient)}`} label="Gradient" />
-                <DateField source="last_updated" />
+                <FunctionField
+                    label="Samples"
+                    render={record => record.samples ? record.samples.length : 0}
+                />
+            <FunctionField label="Microbial fields (filled/total)" render={record => {
+                const microbialFieldsFilled: number = record.samples.reduce((acc, sample) => (
+                    acc + Number(sample.fungi_per_g ? 1 : 0) +
+                    Number(sample.bacteria_per_g ? 1 : 0) +
+                    Number(sample.archea_per_g ? 1 : 0) +
+                    Number(sample.methanogens_per_g ? 1 : 0) +
+                    Number(sample.methanotrophs_per_g ? 1 : 0)
+                ), 0);
+                const microbialFieldsTotal: number = record.samples.length * 5;
+                return `${microbialFieldsFilled}/${microbialFieldsTotal}`;
+            }} />
+
+            <FunctionField label="Composition fields (filled/total)" render={record => {
+                const compositionFieldsFilled: number = record.samples.reduce((acc, sample) => (
+                    acc + Number(sample.fe_ug_per_g ? 1 : 0) +
+                    Number(sample.na_ug_per_g ? 1 : 0) +
+                    Number(sample.al_ug_per_g ? 1 : 0) +
+                    Number(sample.k_ug_per_g ? 1 : 0) +
+                    Number(sample.ca_ug_per_g ? 1 : 0) +
+                    Number(sample.mg_ug_per_g ? 1 : 0) +
+                    Number(sample.mn_ug_per_g ? 1 : 0) +
+                    Number(sample.s_ug_per_g ? 1 : 0) +
+                    Number(sample.cl_ug_per_g ? 1 : 0) +
+                    Number(sample.p_ug_per_g ? 1 : 0) +
+                    Number(sample.si_ug_per_g ? 1 : 0)
+                ), 0);
+                const compositionFieldsTotal: number = record.samples.length * 11;
+                return `${compositionFieldsFilled}/${compositionFieldsTotal}`;
+            }} />
+                <DateField source="last_updated" showTime />
             </Datagrid>
         </List >
     );

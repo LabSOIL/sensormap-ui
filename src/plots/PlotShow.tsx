@@ -101,7 +101,7 @@ export const PlotShow = () => {
         return createPath({ type: 'show', resource: 'transects', id: id });
     }
     const handleRowClickSensor = (id, basePath, record) => {
-        return createPath({ type: 'show', resource: 'sensors', id: id });
+        return createPath({ type: 'show', resource: 'sensor_profiles', id: id });
     }
     return (
         <Show title={<PlotShowTitle />} actions={<PlotShowActions />}>
@@ -144,8 +144,12 @@ export const PlotShow = () => {
                     <Grid item xs={4}>
                         <Labeled><TextField source="topography" /></Labeled >
                     </Grid>
-                    <Grid item xs={8}>
+                    <Grid item xs={4}>
                         <Labeled><TextField source="vegetation_type" /></Labeled >
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <Labeled><DateField source="created_on" showTime /></Labeled>
                     </Grid>
                     <Grid item xs={4}>
                         <Labeled><DateField source="last_updated" showTime /></Labeled>
@@ -165,10 +169,12 @@ export const PlotShow = () => {
                         >
                             <Datagrid rowClick="show" bulkActionButtons={false}>
                                 <TextField source="name" />
-                                <NumberField source="upper_depth_cm" label="Upper Depth (cm)" />
-                                <NumberField source="lower_depth_cm" label="Lower Depth (cm)" />
+                                <FunctionField
+                                    label="Depth (cm)"
+                                    render={record => `${record.upper_depth_cm} - ${record.lower_depth_cm}`}
+                                />
                                 <NumberField source="replicate" label="Replicate" />
-                                <DateField source="last_updated" />
+                                <DateField source="last_updated" showTime />
                             </Datagrid>
                         </ReferenceManyField>
 
@@ -184,29 +190,15 @@ export const PlotShow = () => {
                         <TextField source="id" label="Transect ID" />
                     </Datagrid>
                 </ArrayField>
-                <TabbedShowLayout>
-                    <TabbedShowLayout.Tab label="Assigned Sensors">
-                        <ArrayField source="sensor_link" label="Sensors associated to this plot">
-                            <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
-                                <TextField source="name" label="Name" />
-                                <NumberField source="distance" label="Distance (m)" />
-                                <NumberField source="elevation_difference" label="Elevation difference (m)" />
-                            </Datagrid>
-                        </ArrayField>
-
-
-                    </TabbedShowLayout.Tab>
-                    <TabbedShowLayout.Tab label="Nearest sensors">
-                        <ArrayField source="sensors" label="Nearest sensors">
-                            <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
-                                <TextField source="name" label="Name" />
-                                <NumberField source="distance" label="Distance (m)" />
-                                <NumberField source="elevation_difference" label="Elevation difference (m)" />
-                            </Datagrid>
-                        </ArrayField>
-                    </TabbedShowLayout.Tab>
-                </TabbedShowLayout>
-
+                <ArrayField source="nearest_sensor_profiles" label="Nearest sensor profiles">
+                    <Datagrid rowClick={handleRowClickSensor} bulkActionButtons={false}>
+                        <ReferenceField source="id" label="Name" reference="sensor_profiles">
+                            <TextField source="name" label="Name" />
+                        </ReferenceField>
+                        <NumberField source="distance" label="Distance (m)" />
+                        <NumberField source="elevation_difference" label="Elevation difference (m)" />
+                    </Datagrid>
+                </ArrayField>
             </SimpleShowLayout>
         </Show >
     )

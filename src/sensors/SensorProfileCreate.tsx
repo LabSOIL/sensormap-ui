@@ -5,19 +5,26 @@ import {
     required,
     ReferenceInput,
     SelectInput,
-    FileInput,
-    FileField,
-    useGetOne,
+    Toolbar,
+    SaveButton,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
 import { CoordinateInput, AreaCoordinateEntry } from '../maps/CoordinateEntry';
 import { useEffect } from 'react';
 
+
+const MyToolbar = () => (
+    <Toolbar>
+        <SaveButton alwaysEnable />
+    </Toolbar>
+);
+
 const SensorProfileCreate = () => {
 
     return (
         <Create redirect="list">
-            <SimpleForm >
+            <SimpleForm toolbar={<MyToolbar />}>
+                <TextInput source="name" validate={[required()]} />
                 Define the area to which this sensor belongs:
                 <ReferenceInput source="area_id" reference="areas" >
                     <SelectInput
@@ -28,16 +35,9 @@ const SensorProfileCreate = () => {
                     />
                 </ReferenceInput>
                 <AreaCoordinateEntry source="area_id" />
-                <TextInput source="name" validate={[required()]}  />
                 <TextInput source="description" />
                 <TextInput source="comment" label="Notes/Comments" />
                 <TextInput source="serial_number" />
-                <FileInput label="Instrument data" source="attachments">
-                    <FileField
-                        source="src"
-                        title="title"
-                    />
-                </FileInput>
             </SimpleForm>
         </Create>
     )

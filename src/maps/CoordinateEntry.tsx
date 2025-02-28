@@ -296,6 +296,7 @@ const RecenterButton = ({ updateXY }: { updateXY: (lat: number, lng: number) => 
 
 export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boolean;[key: string]: any }) => {
     const { setValue, watch } = useFormContext();
+    const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
     const watch_coord_x = watch("coord_x");
     const watch_coord_y = watch("coord_y");
     const watch_coord_z = watch("coord_z");
@@ -326,7 +327,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     });
 
     // Default position if nothing is provided.
-    const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
     const updateXYFromLatLon = (lat: number, lng: number) => {
         // When the marker is dragged, update fields and mark last update as "latlon".
         if (isValidCoordinate(lat) && isValidCoordinate(lng)) {

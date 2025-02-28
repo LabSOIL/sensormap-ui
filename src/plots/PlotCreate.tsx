@@ -18,14 +18,6 @@ const PlotCreate = () => {
     return (
         <Create redirect="show">
             <SimpleForm>
-                <ImageInput
-                    source="image"
-                    label="Related image"
-                    accept="image/*"
-                    multiple={false}
-                >
-                    <ImageField source="src" title="title" />
-                </ImageInput>
                 <TextInput source="name" label="Name" validate={[required()]} />
                 <ReferenceInput source="area_id" reference="areas">
                     <SelectInput optionText="name" validate={[required()]} />
@@ -45,6 +37,14 @@ const PlotCreate = () => {
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
+                <ImageInput
+                    source="image"
+                    label="Related image"
+                    accept="image/*"
+                    multiple={false}
+                >
+                    <ImageField source="src" title="title" />
+                </ImageInput>
             </SimpleForm>
         </Create>
     );

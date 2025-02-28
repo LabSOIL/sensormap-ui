@@ -167,7 +167,7 @@ const PlotSampleArrowNavation = () => {
             target: 'plot_id',
             id: record.plot_id,
             // pagination: { page: 1, perPage: 10 },
-            sort: { field: 'upper_depth_cm', order: 'ASC' }
+            sort: { field: 'upper_depth_cm', order: 'DESC' }
         }
     );
 
