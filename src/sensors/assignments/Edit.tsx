@@ -6,20 +6,23 @@ import {
     SelectInput,
     DateTimeInput,
     required,
-    useRedirect,
     useNotify,
     useRefresh,
 } from 'react-admin';
+import { useNavigate } from 'react-router-dom';
 import SensorPlotWithOverlay from '../../plots/SensorPlotWithOverlay';
 
 const SensorProfileAssignmentEdit = () => {
-    const redirect = useRedirect();
     const notify = useNotify();
     const refresh = useRefresh();
+    const navigate = useNavigate();
 
     const onSuccess = (data) => {
-        notify(`Changes saved to Sensor: ${data.sensor.name} and Sensor Profile: ${data.sensor_profile.name}`);
-        redirect("show", "sensors", data.sensor_id, {});
+        notify(
+            `Changes saved to Sensor: ${data.sensor.name} and Sensor Profile: ${data.sensor_profile.name}`
+        );
+        // Instead of a fixed redirect, we navigate back in history.
+        navigate(-1);
         refresh();
     };
 

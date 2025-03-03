@@ -86,6 +86,7 @@ export const CreatePlotRelationship = () => {
         <plots.plot.icon />
     </IconButton>;
 };
+
 const AssignSensorButton = () => {
     const record = useRecordContext();
     if (!record) return null;

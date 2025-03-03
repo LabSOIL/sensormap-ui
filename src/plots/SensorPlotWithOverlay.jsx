@@ -79,18 +79,21 @@ const SensorPlotWithOverlay = ({ interactive = false, onDateChange }) => {
     }, [sensorprofileId, dataProvider]);
 
     // Build non-movable assignment overlays (red)
-    const assignmentShapes = assignments.map(assignment => ({
-        type: 'rect',
-        xref: 'x',
-        yref: 'paper',
-        x0: assignment.date_from,
-        x1: assignment.date_to,
-        y0: 0,
-        y1: 1,
-        fillcolor: 'rgba(255,0,0,0.2)',
-        line: { width: 0 },
-        layer: 'below'
-    }));
+    const assignmentShapes = assignments.map(assignment => {
+        const isCurrent = !interactive && dateFrom && dateTo && assignment.date_from === dateFrom && assignment.date_to === dateTo;
+        return {
+            type: 'rect',
+            xref: 'x',
+            yref: 'paper',
+            x0: assignment.date_from,
+            x1: assignment.date_to,
+            y0: 0,
+            y1: 1,
+            fillcolor: isCurrent ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.2)',
+            line: { width: 0 },
+            layer: 'below'
+        };
+    });
 
     // Define the draggable selection region (blue) only for interactive mode
     const selectionShape = interactive ? {
