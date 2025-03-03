@@ -8,23 +8,15 @@ import {
     Datagrid,
     DateField,
     ReferenceField,
-
-} from 'react-admin'; // eslint-disable-line import/no-unresolved
+} from 'react-admin';
 import { Grid, Switch, FormControlLabel } from '@mui/material';
 import Plot from 'react-plotly.js';
 import { useState } from 'react';
 import { Typography } from '@mui/material';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Checkbox,
-} from '@mui/material';
+import { Checkbox } from '@mui/material';
 
 
-export const SensorPlot = ({ highResolution, setHighResolution }) => {
+export const SensorPlot = ({ highResolution, setHighResolution }: (any)) => {
     const [theme] = useTheme();
     const record = useRecordContext();
     const [showShapes, setShowShapes] = useState(true);

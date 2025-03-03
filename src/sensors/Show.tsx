@@ -123,17 +123,6 @@ const SensorShow = (record: any) => {
                                 <TextField source="name" />
                             </Labeled>
                         </Grid>
-                        <Grid item xs={6}>
-                            <Labeled label="Area">
-                                <ReferenceField
-                                    source='area_id'
-                                    reference='areas'
-                                    link="show"
-                                >
-                                    <TextField source='name' />
-                                </ReferenceField>
-                            </Labeled>
-                        </Grid>
                         <Grid item xs={6} />
                         <Grid item xs={6}>
                             <Labeled label="Last Updated">

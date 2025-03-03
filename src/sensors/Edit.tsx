@@ -1,15 +1,11 @@
 import {
     Edit,
     SimpleForm,
-    TextField,
     TextInput,
     required,
     FileInput,
     FileField,
-    ReferenceInput,
-    SelectInput,
 } from 'react-admin';
-import { CoordinateInput } from '../maps/CoordinateEntry';
 
 
 const SensorEdit = () => {
@@ -17,12 +13,6 @@ const SensorEdit = () => {
         <Edit mutationMode="pessimistic" redirect="show">
             <SimpleForm>
                 <TextInput source="id" disabled />
-                <ReferenceInput source="area_id" reference="areas" >
-                    <SelectInput
-                        label="Area"
-                        source="area_id"
-                        optionText="name" />
-                </ReferenceInput>
                 <TextInput source="name" validate={[required()]} />
                 <TextInput source="description" />
                 <TextInput source="serial_number" />

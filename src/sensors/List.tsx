@@ -6,7 +6,6 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
-    ReferenceField,
     DateField,
 } from "react-admin";
 
@@ -33,9 +32,6 @@ const SensorList = () => {
                 rowClick="show"
             >
                 <TextField source="name" />
-                <ReferenceField source="area_id" reference="areas">
-                    <TextField source='name' />
-                </ReferenceField>
                 <DateField source='data_from' showTime />
                 <DateField source='data_to' showTime />
                 <DateField source='last_updated' showTime />
