@@ -1,3 +1,4 @@
+import React from 'react';
 import {
     Edit,
     SimpleForm,
@@ -8,8 +9,8 @@ import {
     useRedirect,
     useNotify,
     useRefresh,
-    useRecordContext,
 } from 'react-admin';
+import SensorPlotWithOverlay from '../../plots/SensorPlotWithOverlay';
 
 const SensorProfileAssignmentEdit = () => {
     const redirect = useRedirect();
@@ -21,19 +22,21 @@ const SensorProfileAssignmentEdit = () => {
         redirect("show", "sensors", data.sensor_id, {});
         refresh();
     };
+
     return (
         <Edit mutationOptions={{ onSuccess }} mutationMode="pessimistic">
             <SimpleForm>
                 <ReferenceInput source="sensor_id" reference="sensors">
                     <SelectInput optionText="name" validate={required()} />
                 </ReferenceInput>
-                <ReferenceInput source="sensorprofile_id" reference="sensor_profiles" >
+                <ReferenceInput source="sensorprofile_id" reference="sensor_profiles">
                     <SelectInput optionText="name" validate={required()} />
                 </ReferenceInput>
                 <DateTimeInput source="date_from" label="Date From" validate={required()} />
                 <DateTimeInput source="date_to" label="Date To" validate={required()} />
-            </SimpleForm >
-        </Edit >
+                <SensorPlotWithOverlay interactive={true} />
+            </SimpleForm>
+        </Edit>
     );
 };
 
