@@ -185,41 +185,30 @@ export const SensorPlot = ({ highResolution, setHighResolution }: (any)) => {
 }
 
 
-export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
+export const SensorProfilePlot = ({ highResolution, setHighResolution, visibleAssignments }) => {
     const record = useRecordContext();
     const theme = useTheme();
-    // Default to 'light' if palette or mode is not available.
     const mode = theme?.palette?.mode || 'light';
-
     if (!record) return null;
-
-    // Use assignments from the record.
     const assignments = record.assignments || [];
 
-    // Maintain a visibility flag per assignment (default true)
-    const [visibleAssignments, setVisibleAssignments] = useState(() => {
-        const init = {};
-        assignments.forEach((a) => {
-            init[a.id] = true;
-        });
-        return init;
-    });
-    // Track which assignment is highlighted (via hover)
+    // Keep local state for highlighted assignment (optional hover effect)
     const [highlightedAssignment, setHighlightedAssignment] = useState(null);
 
-    // Compute shapes and annotations exactly as before.
-    const assignmentShapes = assignments.map((assignment) => ({
-        type: 'rect',
-        xref: 'x',
-        yref: 'paper',
-        x0: assignment.date_from,
-        x1: assignment.date_to,
-        y0: 0,
-        y1: 1,
-        fillcolor: 'rgba(204, 179, 179, 0.2)',
-        line: { width: 0 },
-    }));
-
+    // Only include shapes for assignments that are visible
+    const assignmentShapes = assignments
+        .filter(assignment => visibleAssignments[assignment.id])
+        .map(assignment => ({
+            type: 'rect',
+            xref: 'x',
+            yref: 'paper',
+            x0: assignment.date_from,
+            x1: assignment.date_to,
+            y0: 0,
+            y1: 1,
+            fillcolor: 'rgba(204, 179, 179, 0.2)',
+            line: { width: 0 },
+        }));
 
     const metrics = [
         { key: 'temperature_1', name: 'Temperature 1', color: 'blue' },
@@ -233,28 +222,26 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
         color: 'purple',
     };
 
-    // Build Plotly traces per assignment.
-    // Each trace is built similarly to your original traces but now per assignment.
+    // Build Plotly traces only for visible assignments
     const traces = [];
-    assignments.forEach((assignment) => {
+    assignments.forEach(assignment => {
         if (visibleAssignments[assignment.id]) {
             const data = assignment.data || [];
-            metrics.forEach((metric) => {
+            metrics.forEach(metric => {
                 traces.push({
-                    x: data.map((d) => d.time_utc),
-                    y: data.map((d) => d[metric.key]),
+                    x: data.map(d => d.time_utc),
+                    y: data.map(d => d[metric.key]),
                     name: `${assignment.sensor?.name || assignment.sensor_id} - ${metric.name}`,
-                    // Preserve original style by not explicitly setting markers.
                     line: {
                         color: metric.color,
                         width: highlightedAssignment === assignment.id ? 4 : 2,
                     },
                 });
             });
-            // Soil moisture trace on secondary y-axis.
+            // Soil moisture on secondary y-axis
             traces.push({
-                x: data.map((d) => d.time_utc),
-                y: data.map((d) => d[soilMetric.key]),
+                x: data.map(d => d.time_utc),
+                y: data.map(d => d[soilMetric.key]),
                 name: `${assignment.sensor?.name || assignment.sensor_id} - ${soilMetric.name}`,
                 line: {
                     color: soilMetric.color,
@@ -265,7 +252,6 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
         }
     });
 
-    // Use your original layout settings.
     const layout = {
         paper_bgcolor: mode === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
         plot_bgcolor: mode === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
@@ -285,15 +271,7 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
             overlaying: 'y',
             side: 'right',
         },
-        // Always show shapes and annotations as before.
         shapes: assignmentShapes,
-    };
-
-    const handleCheckboxChange = (assignmentId) => {
-        setVisibleAssignments((prev) => ({
-            ...prev,
-            [assignmentId]: !prev[assignmentId],
-        }));
     };
 
     const handleToggleHighResolution = () => {
@@ -322,31 +300,10 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution }) => {
                     />
                 </Grid>
             </Grid>
-            <ArrayField source="assignments" sort={{ field: 'date_from', order: 'ASC' }}>
-                <Datagrid
-                    bulkActionButtons={false}
-                    rowClick={false}
-                >
-                    <FunctionField
-                        render={(record) => (
-                            <Checkbox
-                                checked={visibleAssignments[record.id] || false}
-                                onChange={() => handleCheckboxChange(record.id)}
-                                size="small"
-                                sx={{ padding: 0 }}
-                            />
-                        )}
-                    />
-                    <ReferenceField source="sensor_id" reference="sensors" link="show" >
-                        <TextField source="name" />
-                    </ReferenceField>
-                    <DateField source="date_from" label="From" showTime />
-                    <DateField source="date_to" label="To" showTime />
-                </Datagrid>
-            </ArrayField >
         </>
     );
 };
+
 
 
 export default SensorPlot;
