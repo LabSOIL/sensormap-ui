@@ -22,7 +22,7 @@ const TransectArrayInput = ({ setNodes }) => {
         if (selectedNodes) {
             setNodes(selectedNodes.map((node, index) => {
                 return {
-                    plot_id: node.id,
+                    plot_id: node.plot.id,
                     order: index
                 }
             }));
@@ -33,7 +33,7 @@ const TransectArrayInput = ({ setNodes }) => {
         <>
             <ArrayInput source="nodes" >
                 <SimpleFormIterator getItemLabel={index => `#${index + 1}`} inline >
-                    <TextInput source="name" readOnly />
+                    <TextInput source="plot.name" readOnly />
                 </SimpleFormIterator>
             </ArrayInput >
         </>
