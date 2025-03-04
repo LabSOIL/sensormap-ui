@@ -120,19 +120,15 @@ export const TransectCreateMap = ({ area_id, area }) => {
         // Takes control of moving the map to the new coordinates
         // component state of setUpdateMap is used to prevent an infinite loop
         const map = useMap();
-        if (!mapCenter || !map) return;
-
         useEffect(() => {
-            // Only fly to center if updating is permitted by variable
-            const { lat, lng, zoomLevel } = mapCenter;
-            if (updateMap) {
-                map.flyTo([lat, lng], zoomLevel);
+            if (updateMap && polygonCoordinates && polygonCoordinates.length > 0) {
+                map.fitBounds(polygonCoordinates, { padding: [20, 20] });
                 setUpdateMap(false);
             }
-        }, [record, updateMap]);
-
+        }, [updateMap, map, polygonCoordinates]);
         return null;
     };
+    
 
 
     const addNode = (plot) => {
