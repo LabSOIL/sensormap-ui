@@ -21,7 +21,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 import Legend from './Legend'; // Import the Legend component
-import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import proj4 from 'proj4';
@@ -133,6 +132,7 @@ export const TransectCreateMap = ({ area_id, area }) => {
 
     const addNode = (plot) => {
         // Wrap the plot in an object so it always has a plot property
+        console.log("Marker clicked:", plot.id);
         const newNodes = [...getValues('nodes'), { plot }];
         // Pass { shouldDirty: true } so react-hook-form marks it as changed
         setValue('nodes', newNodes, { shouldDirty: true });
@@ -168,44 +168,43 @@ export const TransectCreateMap = ({ area_id, area }) => {
                 pathOptions={{ color: record.project.color, opacity: 1, fillOpacity: 0.2 }}
                 interactive={false}
             />
-            <MarkerClusterGroup maxClusterRadius={40} chunkedLoading >
-                {plots && plots.length > 0 ? plots.map((plot, index) => {
-                    return (
-                        <Marker
-                            key={index}
-                            position={
-                                proj4(`EPSG:${plot.coord_srid}`, 'EPSG:4326', [plot.coord_x, plot.coord_y]).reverse()
-                            }
-                            icon={plotIcon}
-                            eventHandlers={{
-                                click: (e) => {
-                                    addNode(plot);
-                                },
-                            }}
-                        >
-                            <Tooltip permanent>{plot["name"]}</Tooltip>
-                            <Popup>
-                                <b>{plot["name"]}</b>
-                            </Popup>
-                        </Marker>
-                    )
-                }) : null}
-                {record.transects.map((transect, index) => (
-                    <>
-                        <Polyline
-                            key={index}
-                            positions={
-                                transect.nodes.map(node =>
-                                    proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse()
-                                )
-                            }
-                            color="black"
-                            weight={5}
-                        />
+            {plots && plots.length > 0 ? plots.map((plot, index) => {
+                return (
+                    <Marker
+                        key={index}
+                        position={
+                            proj4(`EPSG:${plot.coord_srid}`, 'EPSG:4326', [plot.coord_x, plot.coord_y]).reverse()
+                        }
+                        icon={plotIcon}
+                        eventHandlers={{
+                            click: (e) => {
+                                addNode(plot);
+                            },
+                        }}
+                    >
+                        <Tooltip permanent>{plot["name"]}</Tooltip>
+                        <Popup>
+                            <b>{plot["name"]}</b>
+                        </Popup>
+                    </Marker>
+                )
+            }) : null}
+            {record.transects.map((transect, index) => (
+                <>
+                    <Polyline
+                        key={index}
+                        positions={
+                            transect.nodes.map(node =>
+                                proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse()
+                            )
+                        }
+                        color="black"
+                        weight={5}
+                    />
 
-                    </>
-                ))}
-            </MarkerClusterGroup>
+                </>
+            ))}
+        
             {nodePolyLine && <Polyline positions={nodePolyLine} pathOptions={{ color: 'red' }} />}
             <MapRecenter />
             <Legend />
