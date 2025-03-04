@@ -1,32 +1,74 @@
-/* eslint react/jsx-key: off */
 import {
     Create,
-    DateInput,
-    minValue,
-    NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
-    TextField,
     required,
     ArrayInput,
     SimpleFormIterator,
     TextInput,
-    ChipField,
-    FunctionField,
-    useRecordContext,
+    SaveContextProvider,
+    useCreate,
+    useRedirect,
 } from 'react-admin';
 import TransectCreateMap from '../maps/Transects';
 import { useState, useEffect } from 'react';
-import { Typography } from '@mui/material';
+import { useFormContext } from 'react-hook-form';
 
+const TransectArrayInput = ({ setNodes }) => {
+    const { watch } = useFormContext();
+    const selectedNodes = watch('nodes');
+    useEffect(() => {
+        if (selectedNodes) {
+            setNodes(selectedNodes.map((node, index) => {
+                return {
+                    plot_id: node.id,
+                    order: index
+                }
+            }));
+        }
+    }, [selectedNodes]);
+
+    return (
+        <>
+            <ArrayInput source="nodes" >
+                <SimpleFormIterator getItemLabel={index => `#${index + 1}`} inline >
+                    <TextInput source="name" readOnly />
+                </SimpleFormIterator>
+            </ArrayInput >
+        </>
+    )
+};
 const TransectCreate = () => {
     const [selectedArea, setSelectedArea] = useState(null);
-    const record = useRecordContext();
+    const [create, { data: createData, isPending, error }] = useCreate();
+    const [nodes, setNodes] = useState([]);
+    const redirect = useRedirect();
+    const save = data => {
+        create('transects', {
+            data: {
+                name: data.name,
+                description: data.description,
+                area_id: data.area_id,
+                nodes: nodes
+            }
+        });
+    }
+    
+    useEffect(() => {
+        if (createData && !isPending && !error) {
+            redirect('show', 'transects', createData.id);
+        }
+        
+    }, [createData]);
+    
+    const saving = false;
+    const mutationMode = "pessimistic";
+    
     return (
-        <Create redirect="show">
-            <SimpleForm >
-                <TextField source="id" />
+        <SaveContextProvider value={{ save, saving, mutationMode }}>
+            <SimpleForm>
+                <TextInput source="name" validate={[required()]} />
                 <ReferenceInput source="area_id" reference="areas" >
                     <SelectInput
                         optionText={(record) => `${record.name} (${record.plots.length} plots)`}
@@ -34,14 +76,11 @@ const TransectCreate = () => {
                         onChange={(record) => { setSelectedArea(record.target.value) }} />
                 </ReferenceInput>
                 {selectedArea ? <TransectCreateMap area_id={selectedArea} /> : null}
-                <ArrayInput source="nodes" >
-                    <SimpleFormIterator getItemLabel={index => `#${index + 1}`} inline >
-                        <TextInput source="name" readOnly />
-                    </SimpleFormIterator>
-                </ArrayInput>
+                <TransectArrayInput setNodes={setNodes} />
             </SimpleForm>
-        </Create >
-    )
-};
+        </SaveContextProvider>
+    );
+}
+
 
 export default TransectCreate;

@@ -3,6 +3,8 @@ import {
     Loading,
     useNotify,
     useRecordContext,
+    Link,
+    useCreatePath,
 } from 'react-admin';
 import {
     MapContainer,
@@ -64,14 +66,21 @@ const calculateCentroid = (polygon) => {
     return { lat: centroidX, lng: centroidY };
 };
 
-export const TransectCreateMap = ({ area_id }) => {
+export const TransectCreateMap = ({ area_id, area }) => {
     const { setValue, getValues, watch } = useFormContext();
     const notify = useNotify();
-    const { data: record, isLoading, error } = useGetOne(
-        'areas', { id: area_id }
-    );
+
+    // Use the provided area if available, otherwise fetch it by id
+    const { data: fetchedArea, isLoading, error } = area 
+        ? { data: area, isLoading: false, error: null } 
+        : useGetOne('areas', { id: area_id });
+    const record = fetchedArea;
+
     if (isLoading) return <Loading />;
-    console.log(record);
+    if (!record || !record.geom) {
+        notify('Area geometry not available', { type: 'warning' });
+        return null;
+    }
     if (record.plots.length === 0) {
         notify('No plots available. Choose another area.');
     }
@@ -127,11 +136,12 @@ export const TransectCreateMap = ({ area_id }) => {
 
 
     const addNode = (plot) => {
-        // Adds a node to the form context state
-        const newNodes = [...getValues('nodes'), plot];
-
-        setValue('nodes', newNodes);
-    }
+        // Wrap the plot in an object so it always has a plot property
+        const newNodes = [...getValues('nodes'), { plot }];
+        // Pass { shouldDirty: true } so react-hook-form marks it as changed
+        setValue('nodes', newNodes, { shouldDirty: true });
+    };
+    
 
     const clearNodes = () => {
         // Clears all nodes from the form context state
@@ -143,7 +153,7 @@ export const TransectCreateMap = ({ area_id }) => {
         if (record.plots.length > 0 && getValues('nodes').length > 1) {
             setNodePolyLine(getValues('nodes').map(
                 node =>
-                    proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse()
+                    proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse()
 
             ));
         }
@@ -190,7 +200,7 @@ export const TransectCreateMap = ({ area_id }) => {
                             key={index}
                             positions={
                                 transect.nodes.map(node =>
-                                    proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse()
+                                    proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse()
                                 )
                             }
                             color="black"
@@ -208,6 +218,7 @@ export const TransectCreateMap = ({ area_id }) => {
 };
 export const TransectShowMap = () => {
     const record = useRecordContext();
+    const createPath = useCreatePath();
 
     if (!record) { return <Loading />; }
     if (record.nodes && record.nodes.length === 0) {
@@ -216,11 +227,11 @@ export const TransectShowMap = () => {
 
     // Convert coordinates to lat/lon
     const nodePolyLine = record.nodes.map(node => {
-        return proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse();
+        return proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse();
     });
     // Get map bounds from the bounding box of all nodes in the record
     const mapBounds = record.nodes.reduce((acc, node) => {
-        return acc.extend(proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse());
+        return acc.extend(proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse());
     }, L.latLngBounds());
     // We want a similar map to create, but just the plots from the record now
     // instead as it is resembling a show view
@@ -234,19 +245,21 @@ export const TransectShowMap = () => {
         >
             <BaseLayers />
 
-            {record.nodes && record.nodes.length > 0 ? record.nodes.map((plot, index) => {
-                const sourceProj = `EPSG:${plot.coord_srid}`;
+            {record.nodes && record.nodes.length > 0 ? record.nodes.map((node, index) => {
+                const sourceProj = `EPSG:${node.plot.coord_srid}`;
                 const destProj = 'EPSG:4326';
-                const [lon, lat] = proj4(sourceProj, destProj, [plot.coord_x, plot.coord_y]);
+                const [lon, lat] = proj4(sourceProj, destProj, [node.plot.coord_x, node.plot.coord_y]);
                 return (
                     <Marker
                         key={index}
                         position={[lat, lon]}
                         icon={plotIcon}
                     >
-                        <Tooltip permanent>{plot["name"]}</Tooltip>
+                        <Tooltip permanent>{node.plot.name}</Tooltip>
                         <Popup>
-                            <b>{plot["name"]}</b>
+                            <b>{node.plot.name}</b>
+                            <p>{node.plot.description}</p>
+                            <Link to={createPath({ resource: 'plots', id: node.plot.id, type: 'show' })}>Go to plot</Link>
                         </Popup>
                     </Marker>
                 )

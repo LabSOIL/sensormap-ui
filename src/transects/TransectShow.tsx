@@ -12,6 +12,7 @@ import {
     Datagrid,
     ArrayField,
     useCreatePath,
+    ReferenceField,
 } from "react-admin";
 import { Grid, } from '@mui/material';
 import { TransectShowMap } from "../maps/Transects";
@@ -40,22 +41,25 @@ export const TransectShow = () => {
     const createPath = useCreatePath();
 
     const handleRowClick = (id, basePath, record) => {
-        return createPath({ type: 'show', resource: 'plots', id: record.id });
+        return createPath({ type: 'show', resource: 'plots', id: record.plot_id });
     }
     return (
         <Show title={<TransectTitle />} actions={<TransectActions />}>
             <SimpleShowLayout>
-                <TextField source="id" label="Transect ID" />
+                <TextField source="name" />
+                <ReferenceField source="area_id" reference="areas">
+                    <TextField source="name" />
+                </ReferenceField>
                 <DateField source="last_updated" label="Last updated" showTime />
                 <Grid container spacing={2}>
                     <Grid item xs={6}>
                         <ArrayField source="nodes">
                             <Datagrid rowClick={handleRowClick} bulkActionButtons={false}>
-                                <TextField source="id" label="Plot ID" />
-                                <TextField source="name" label="Plot name" />
-                                <TextField label="X" source="coord_x" />
-                                <TextField label="Y" source="coord_y" />
-                                <TextField label="Elevation" source="coord_z" />
+                                <TextField source="plot.name" label="Plot name" />
+                                <TextField label="X (m)" source="plot.coord_x" />
+                                <TextField label="Y (m)" source="plot.coord_y" />
+                                <TextField label="Elevation (m)" source="plot.coord_z" />
+                                <TextField label="Order" source="order" />
                             </Datagrid>
                         </ArrayField>
                     </Grid>

@@ -30,7 +30,7 @@ const PlotShowTitle = () => {
     const record = useRecordContext();
     // the record can be empty while loading
     if (!record) return null;
-    return <span>{record.place} SoilProfile</span>;
+    return <span>Plot: {record.name} ({record.area.name} {record.gradient})</span>;
 };
 
 const PlotShowActions = () => {
@@ -187,7 +187,8 @@ export const PlotShow = () => {
                 </Grid>
                 <ArrayField source="transects">
                     <Datagrid rowClick={handleRowClick} bulkActionButtons={false}>
-                        <TextField source="id" label="Transect ID" />
+                        <TextField source="name" />
+                        <TextField source="description" />
                     </Datagrid>
                 </ArrayField>
                 <ArrayField source="nearest_sensor_profiles" label="Nearest sensor profiles">

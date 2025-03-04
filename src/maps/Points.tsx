@@ -178,7 +178,7 @@ export const LocationFieldPoints = () => {
                     <>
                         <Polyline
                             key={index}
-                            positions={transect.nodes.map(node => proj4(`EPSG:${node.coord_srid}`, 'EPSG:4326', [node.coord_x, node.coord_y]).reverse())}
+                            positions={transect.nodes.map(node => proj4(`EPSG:${node.plot.coord_srid}`, 'EPSG:4326', [node.plot.coord_x, node.plot.coord_y]).reverse())}
                             color="black"
                             weight={5}
                         />
@@ -186,8 +186,8 @@ export const LocationFieldPoints = () => {
                             <Marker
                                 position={
                                     calculateMiddlePosition(
-                                        proj4(`EPSG:${transect.nodes[0].coord_srid}`, 'EPSG:4326', [transect.nodes[0].coord_x, transect.nodes[0].coord_y]).reverse(),
-                                        proj4(`EPSG:${transect.nodes[1].coord_srid}`, 'EPSG:4326', [transect.nodes[1].coord_x, transect.nodes[1].coord_y]).reverse()
+                                        proj4(`EPSG:${transect.nodes[0].plot.coord_srid}`, 'EPSG:4326', [transect.nodes[0].plot.coord_x, transect.nodes[0].plot.coord_y]).reverse(),
+                                        proj4(`EPSG:${transect.nodes[1].plot.coord_srid}`, 'EPSG:4326', [transect.nodes[1].plot.coord_x, transect.nodes[1].plot.coord_y]).reverse()
                                     )
                                 }
                                 icon={L.AwesomeMarkers.icon({

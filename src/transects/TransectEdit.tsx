@@ -1,170 +1,113 @@
-/* eslint react/jsx-key: off */
 import {
-    DateInput,
     Edit,
-    NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
     TextInput,
     required,
-    Button,
+    ArrayInput,
+    SimpleFormIterator,
+    useRedirect,
+    useUpdate,
+    SaveContextProvider,
+    useNotify,
+    useRecordContext,
     Toolbar,
     SaveButton,
-    ImageInput,
-    ImageField,
-    useRecordContext,
 } from 'react-admin';
+import TransectCreateMap from '../maps/Transects';
+import { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useState } from 'react';
-import { Typography } from '@mui/material';
-import { apiUrl } from '../App';
 
+const TransectArrayInput = ({ setNodes }) => {
+    const { watch } = useFormContext();
+    const selectedNodes = watch('nodes');
+    useEffect(() => {
+        if (selectedNodes) {
+            setNodes(
+                selectedNodes.map((node, index) => ({
+                    plot_id: node.plot.id,
+                    order: index,
+                }))
+            );
+        }
+    }, [selectedNodes, setNodes]);
+    return (
+        <ArrayInput source="nodes">
+            <SimpleFormIterator getItemLabel={(index) => `#${index + 1}`} inline>
+                <TextInput source="plot.name" readOnly />
+            </SimpleFormIterator>
+        </ArrayInput>
+    );
+};
 const MyToolbar = () => (
     <Toolbar>
         <SaveButton alwaysEnable />
     </Toolbar>
 );
 
-const ElevationInput = () => {
-    const formContext = useFormContext();
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [successResponse, setSuccessResponse] = useState(false);
-
-    const updateElevation = () => {
-        const x = formContext.getValues('coord_x');
-        const y = formContext.getValues('coord_y');
-        const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;
-        fetch(url)
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                if (data.success === false) {
-                    setErrorMessage(`Error fetching elevation: ${data.error.message}`);
-                } else {
-                    setErrorMessage(null);
-                    setSuccessResponse(true);
-                    formContext.setValue('coord_z', data.height);
-                }
-            })
-    }
-
-    return (<>
-        <Button
-            label="Get from Digital Elevation Model"
-            variant="outlined"
-            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
-            onClick={(event) => {
-                updateElevation();
-            }}
-        />
-        <Typography
-            variant="caption"
-            color={'error'}
-        >
-            {errorMessage ? errorMessage : null}
-        </Typography>
-        <NumberInput source="coord_z" label="Elevation (m)" />
-    </>
-    )
-}
-const SlopeInput = () => {
-    const formContext = useFormContext();
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [successResponse, setSuccessResponse] = useState(false);
-
-    const updateSlope = () => {
-        const x = formContext.getValues('coord_x');
-        const y = formContext.getValues('coord_y');
-        const url = `${apiUrl}/utils/slope?x=${x}&y=${y}`;
-
-        fetch(url)
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                if (data.success === false) {
-                    setErrorMessage(`Error fetching slope: ${data.error.message}`);
-                } else {
-                    setErrorMessage(null);
-                    setSuccessResponse(true);
-                    formContext.setValue('slope', data.slope_class);
-                }
-            })
-    }
-
-    return (<>
-        <Button
-            label="Get from Swiss Hillside map"
-            variant="outlined"
-            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
-            onClick={(event) => {
-                updateSlope();
-            }}
-        />
-        <Typography
-            variant="caption"
-            color={'error'}
-        >
-            {errorMessage ? errorMessage : null}
-        </Typography>
-        <TextInput source="slope" label="Slope" />
-    </>
-    )
-}
-const ImageFieldPreview = ({ source }) => {
+const TransectEditForm = () => {
     const record = useRecordContext();
-    if (!record || !record[source]) {
-        return null;
-    }
-    const base64Image = record[source];
-    return (
-        <div style={{ textAlign: 'left', margin: '0 10px' }}>
-            <img src={`${base64Image}`} style={{ maxWidth: '30%', height: 'auto' }} />
-        </div>
-    );
+    const [update, { isPending }] = useUpdate();
+    if (!record) { return null; }
+    const [selectedArea, setSelectedArea] = useState(record?.area_id);
+    const [nodes, setNodes] = useState([]);
 
-};
-const PlotEdit = () => {
+    const redirect = useRedirect();
+    const notify = useNotify();
+
+    const save = (data) => {
+        update(
+            'transects',
+            {
+                id: record.id,
+                data: {
+                    name: data.name,
+                    description: data.description,
+                    area_id: data.area_id,
+                    nodes: nodes,
+                },
+                previousData: record,
+            },
+            {
+                onSuccess: () => {
+                    redirect('show', 'transects', record.id);
+                },
+                onError: (error) => {
+                    console.error("Update error", error);
+                    notify("Error updating transect", { type: 'warning' });
+                },
+            }
+        );
+    };
+    
+    const saving = false;
+    const mutationMode = "pessimistic";
+    
     return (
-        <Edit redirect="show">
-            <SimpleForm toolbar={<MyToolbar />}>
+        <SaveContextProvider value={{ save, saving, mutationMode }}>
+        <SimpleForm onSubmit={save}>
                 <TextInput source="id" disabled />
-                <ImageFieldPreview source="image" />
-                <ImageInput
-                    source="image"
-                    label="Related image"
-                    accept="image/*"
-                    multiple={false}
-                >
-                    <ImageField source="src" title="title" />
-                </ImageInput>
-                <TextInput
-                    source="plot_iterator"
-                    label="ID"
-                    validate={[required()]}
-                    helperText={<>The ID given to the plot that is unique within the area. <br />Example: 1 will become BF01 in Binntal Flat</>}
-                />
-                <ReferenceInput source="area_id" reference="areas" >
-                    <SelectInput optionText="name" validate={[required()]} />
+                <TextInput source="name" validate={[required()]} />
+                <ReferenceInput source="area_id" reference="areas">
+                    <SelectInput
+                        optionText={(record) => `${record.name} (${record.plots.length} plots)`}
+                        validate={[required()]}
+                        onChange={(record) => setSelectedArea(record.target.value)}
+                    />
                 </ReferenceInput>
-                <SelectInput source="gradient" choices={[
-                    { id: 'flat', name: 'Flat' },
-                    { id: 'slope', name: 'Slope' },
-                ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
-                <DateInput source="created_on" label="Description Date" />
-                <NumberInput source="coord_x" label="X Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
-                <NumberInput source="coord_y" label="Y Coordinate" helperText="in metres; SRID 2056 (Swiss CH1903+ / LV95)" validate={[required()]} />
-                <ElevationInput />
-                <TextInput source="description_horizon" label="Horizon description" multiline />
-                <TextInput source="vegetation_type" label="Vegetation Type" />
-                <TextInput source="topography" />
-                <TextInput source="aspect" label="Aspect" />
-                <SlopeInput />
+                {selectedArea ? <TransectCreateMap area_id={selectedArea} /> : null}
+                <TransectArrayInput setNodes={setNodes} />
             </SimpleForm>
-        </Edit>
-    )
+        </SaveContextProvider>
+        
+    );
 };
 
-export default PlotEdit;
+const TransectEdit = (props) => (
+    <Edit {...props}>
+        <TransectEditForm />
+    </Edit>
+);
+
+export default TransectEdit;
