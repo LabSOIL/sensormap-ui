@@ -225,8 +225,8 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                     if (transect.nodes && Array.isArray(transect.nodes) && transect.nodes.length > 1) {
                         // Create one marker per transect using the midpoint between the first two nodes
                         const pos = calculateMiddlePosition(
-                            proj4(`EPSG:${transect.nodes[0].coord_srid}`, 'EPSG:4326', [transect.nodes[0].coord_x, transect.nodes[0].coord_y]).reverse(),
-                            proj4(`EPSG:${transect.nodes[1].coord_srid}`, 'EPSG:4326', [transect.nodes[1].coord_x, transect.nodes[1].coord_y]).reverse()
+                            proj4(`EPSG:${transect.nodes[0].plot.coord_srid}`, 'EPSG:4326', [transect.nodes[0].plot.coord_x, transect.nodes[0].plot.coord_y]).reverse(),
+                            proj4(`EPSG:${transect.nodes[1].plot.coord_srid}`, 'EPSG:4326', [transect.nodes[1].plot.coord_x, transect.nodes[1].plot.coord_y]).reverse()
                         );
                         markers.push({
                             id: `transect-${transect.id}`,
@@ -255,8 +255,8 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
             area.transects.forEach(transect => {
                 if (transect.nodes && transect.nodes.length > 1) {
                     const positions = transect.nodes.map(node => {
-                        if (node.coord_x && node.coord_y) {
-                            const [lng, lat] = convertCoordinates(node.coord_x, node.coord_y);
+                        if (node.plot.coord_x && node.plot.coord_y) {
+                            const [lng, lat] = convertCoordinates(node.plot.coord_x, node.plot.coord_y);
                             return [lat, lng];
                         }
                         return null;
@@ -309,6 +309,7 @@ const FrontendMap = ({ height = "60%", width = "80%" }) => {
                 scrollWheelZoom={true}
                 style={{ height: '100%', width: '100%' }}
                 maxBounds={swissBounds}
+                maxZoom={20}
                 minZoom={9}
             >
                 <MapEvents setZoomLevel={setZoomLevel} setCurrentMapBounds={setCurrentMapBounds} />
