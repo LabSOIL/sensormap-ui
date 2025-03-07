@@ -136,7 +136,7 @@ export const PlotList = () => {
             >
                 <TextField source="name" />
                 <FieldWrapper label="Area"><AreaNameField /></FieldWrapper>
-                <FunctionField render={record => `${toTitleCase(record.gradient)}`} label="Gradient" />
+                <FunctionField render={record => `${toTitleCase(record.gradient || '')}`} label="Gradient" />
                 <FunctionField
                     label="Samples"
                     render={record => record.samples ? record.samples.length : 0}

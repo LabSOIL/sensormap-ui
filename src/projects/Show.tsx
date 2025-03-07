@@ -37,10 +37,15 @@ const ProjectShow = () => (
                 <Datagrid rowClick="show">
                     <TextField source="name" />
                     <TextField source="description" />
-
+                    <ReferenceManyCount
+                        label="Transects"
+                        reference="transects"
+                        target="area_id"
+                        link
+                    />
                     <ReferenceManyCount
                         label="Sensors"
-                        reference="sensors"
+                        reference="sensor_profiles"
                         target="area_id"
                         link
                     />
