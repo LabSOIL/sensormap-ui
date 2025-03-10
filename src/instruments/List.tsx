@@ -58,7 +58,7 @@ export const InstrumentList = () => {
                 <TextField source="description" />
                 <TextField source="project.name" label="Project" />
                 <DateField source="last_updated" showTime />
-                <FunctionField label="Channels (filtered/total)" render={record => `${record.channels.filter(channel => channel.baseline_values.length > 0).length}/${record.channels.length}`} />
+                <FunctionField label="Channels (filtered/total)" render={record => `${record.channel_qty_filled}/${record.channels.length}`} />
                 <FunctionField label="Total samples" render={channelSamples} />
             </Datagrid>
         </List >
