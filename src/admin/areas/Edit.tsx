@@ -1,5 +1,6 @@
 /* eslint react/jsx-key: off */
 import {
+    BooleanInput,
     Edit,
     ReferenceInput,
     SelectInput,
@@ -27,6 +28,7 @@ const AreaEdit = () => {
                         validate={required()}
                     />
                 </ReferenceInput>
+                <BooleanInput source="is_public" label="Visible on public website" defaultValue={false} />
             </SimpleForm>
         </Edit>
     )

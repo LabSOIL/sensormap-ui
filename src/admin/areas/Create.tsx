@@ -11,6 +11,7 @@ import {
     useRedirect,
     ReferenceInput,
     SelectInput,
+    BooleanInput,
 } from 'react-admin';
 import { useState } from 'react';
 import { LocationFieldAreasCreate } from '../maps/Areas';
@@ -35,6 +36,7 @@ const AreaCreate = () => {
                         validate={required()}
                     />
                 </ReferenceInput>
+                <BooleanInput source="is_public" label="Visible on public website" defaultValue={false} />
             </SimpleForm>
         </Create >
 

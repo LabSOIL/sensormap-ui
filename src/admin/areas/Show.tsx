@@ -9,7 +9,8 @@ import {
     usePermissions,
     ReferenceField,
     DateField,
-    Labeled
+    Labeled,
+    BooleanField
 } from "react-admin";
 import { LocationFieldPoints } from '../maps/Points';
 import { Grid } from '@mui/material';
@@ -105,6 +106,11 @@ export const AreaShow = () => {
                                     target="area_id"
                                     link
                                 />
+                            </Labeled>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Labeled label="Visible on public website" >
+                                <BooleanField source="is_public"/>
                             </Labeled>
                         </Grid>
                     </Grid>
