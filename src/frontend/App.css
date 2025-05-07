@@ -1,4 +1,3 @@
-
 /* src/App.css */
 html, body, #root, .App {
   height: 100%;
@@ -56,6 +55,7 @@ html, body, #root, .App {
 
 .sidebar nav {
   opacity: 0;
+  padding-top: 5rem;
   visibility: hidden;
   transition: opacity 0.2s ease;
 }
@@ -68,12 +68,12 @@ html, body, #root, .App {
 
 .sidebar nav ul {
   list-style: none;
-  padding: 1rem;
+  padding-left: 1rem;
   margin: 0;
 }
 
 .sidebar nav li {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.1rem;
 }
 
 .menu-btn,
@@ -97,6 +97,16 @@ html, body, #root, .App {
   margin-top: 0.5rem;
 }
 
+/* Highlight the selected catchment in the submenu */
+.sub-menu li.active-area > .submenu-btn {
+  font-weight: bold;
+  color: #2b8cbe;
+}
+
+.sub-menu li > .submenu-btn:hover {
+  color: #2b8cbe;
+}
+
 /* SECTIONS */
 .sections {
   flex: 1;
@@ -116,7 +126,6 @@ html, body, #root, .App {
 }
 
 /* COVER */
-
 .section.cover {
   position: relative;
   overflow: hidden;
@@ -195,15 +204,6 @@ html, body, #root, .App {
   z-index: 2;
 }
 
-.attribution-background {
-  position: absolute;
-  bottom: 0.2rem;
-  right: 1rem;
-  margin: 10;
-  color: #504f4f;
-  font-size: 1.5rem;
-  z-index: 2;
-}
 .map-wrapper {
   width: 100%;
   display: flex;
