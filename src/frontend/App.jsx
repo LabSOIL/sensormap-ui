@@ -104,6 +104,9 @@ export default function App() {
               <Marker position={[BINN.lat, BINN.lng]} />
             </MapContainer>
           </div>
+          <button className="down-arrow" onClick={() => scrollToSection('data')} aria-label="Scroll down">
+            ↓
+          </button>
         </section>
 
         {/* DATA */}
@@ -114,6 +117,9 @@ export default function App() {
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             </MapContainer>
           </div>
+            <button className="down-arrow" onClick={() => scrollToSection('experimental')} aria-label="Scroll down">
+                ↓
+            </button>
         </section>
 
         {/* EXPERIMENTAL */}
