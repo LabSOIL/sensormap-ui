@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Grid, Typography } from '@mui/material';
 import proj4 from 'proj4';
 import L from 'leaflet';
-import { BaseLayers } from '../maps/Layers';
+import { BaseLayers } from './Layers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
 import { get } from 'http';

@@ -1,10 +1,10 @@
-FROM node:22.2.0-alpine AS builder
+FROM node:23.4.0
 
 # Set the working directory in the container
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-COPY . .
+COPY package.json yarn.lock /app/
+COPY . /app/
 
 # Start your Yarn application
 CMD yarn dev

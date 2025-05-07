@@ -15,7 +15,6 @@ import Keycloak, {
 import { httpClient } from 'ra-keycloak';
 import { keycloakAuthProvider } from './authProvider';
 import MyLayout from './layout/Layout';
-import users from './users';
 import sensors from './sensors';
 import areas from "./areas";
 import plots from './plots';
