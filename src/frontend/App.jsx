@@ -241,29 +241,52 @@ export default function App() {
       </aside>
 
       <main className="sections">
-        {/* COVER */}
-        <section
-          className="section cover"
-          data-section="cover"
-          ref={el => (sectionsRef.current[0] = el)}
-        >
-          <div className="cover-content">
-            <h1>
-              Soil organic carbon<br/>
-              in Swiss Alpine environments
-            </h1>
+        /* COVER */}
+            <section
+              className="section cover"
+              data-section="cover"
+              ref={el => (sectionsRef.current[0] = el)}
+            >
+              <div className="cover-content">
+                <h1>
+                  Soil organic carbon<br/>
+                  in Swiss alpine environments
+                </h1>
+              </div>
+              <button
+                className="down-arrow"
+                onClick={() => scrollToSection('catchment')}
+                aria-label="Scroll down"
+              >
+                ↓
+              </button>
+              <div className="attribution">
+            <a
+              href="https://www.epfl.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="/epfl.png"
+                alt="EPFL Logo"
+                style={{ height: '2rem', marginRight: '1rem' }}
+              />
+            </a>
+            <a
+              href="https://www.snf.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="/snsf.svg"
+                alt="SNSF Logo"
+                style={{ height: '2rem' }}
+              />
+            </a>
           </div>
-          <button
-            className="down-arrow"
-            onClick={() => scrollToSection('catchment')}
-            aria-label="Scroll down"
-          >
-            ↓
-          </button>
-          <p className="attribution">EPFL SNSF</p>
-        </section>
+            </section>
 
-        {/* CATCHMENT */}
+            {/* CATCHMENT */}
         <section
           className="section"
           data-section="catchment"
