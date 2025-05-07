@@ -189,20 +189,6 @@ export default function App() {
             ↓
           </button>
           <p className="attribution">EPFL SNSF</p>
-          <footer
-            className="attribution-background"
-            style={{ fontSize: 'small', textAlign: 'left' }}
-          >
-            Background by{' '}
-            <a
-              href="https://www.freepik.com/free-vector/flat-design-mountain-outline-illustration_42102784.htm"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'inherit' }}
-            >
-              Freepik
-            </a>
-          </footer>
         </section>
 
         {/* CATCHMENT */}
