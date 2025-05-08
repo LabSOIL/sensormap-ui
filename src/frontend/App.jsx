@@ -4,8 +4,8 @@ import './App.css';
 import {
   MapContainer,
   Popup,
-  Marker,
   Polygon,
+  CircleMarker,
   Tooltip,
   useMap
 } from 'react-leaflet';
@@ -17,174 +17,230 @@ import { BaseLayers } from './maps/Layers';
 
 const initialMenuItemsConfig = [
   { key: 'cover', label: 'Home' },
-  { key: 'catchment', label: 'Catchment View', subItems: [] },
-  { key: 'data', label: 'Data View' },
+  { key: 'catchment', label: 'Catchment', subItems: [] },
+  { key: 'data', label: 'Data', subItems: [] },
   { key: 'experimental', label: 'Experimental View' },
 ];
 
-// Helpers to convert GeoJSON [lng,lat] → Leaflet [lat,lng]
+const dataOptions = [
+  { key: 'SOC', color: '#e41a1c' },
+  { key: 'pH', color: '#377eb8' },
+  { key: 'T', color: '#4daf4a' },
+  { key: 'Soil moisture', color: '#984ea3' },
+];
+
 const flipCoordinates = coords => coords.map(([lng, lat]) => [lat, lng]);
 const flipPolygonCoordinates = geom =>
   geom.coordinates.map(ring => flipCoordinates(ring));
-// Component to handle fitting map to all areas or the active one
-function CatchmentLayers({ areas, activeAreaId, onAreaClick }) {
-    const map = useMap();
 
-    useEffect(() => {
-        if (!areas.length) return;
+function Legend({ selectedData }) {
+  const map = useMap();
+  const rangeMap = {
+    'pH': [0, 14],
+    'SOC Stocks': [0, 100],
+    'T': [0, 100],
+    'Soil moisture': [0, 100],
+  };
 
-        let coords = [];
+  useEffect(() => {
+    // remove old legend
+    document.querySelectorAll('.info.legend').forEach(el => el.remove());
+    if (!selectedData) return;
 
-        if (activeAreaId) {
-            const area = areas.find(a => a.id === activeAreaId);
-            if (area?.geom?.coordinates) {
-                const rings = flipPolygonCoordinates(area.geom);
-                coords = rings.flat();
-            }
-        } else {
-            areas.forEach(a => {
-                if (a.geom?.coordinates) {
-                    const rings = flipPolygonCoordinates(a.geom);
-                    coords.push(...rings.flat());
-                }
-            });
-        }
+    const { color } = dataOptions.find(o => o.key === selectedData);
+    const [min, max] = rangeMap[selectedData] || [0, 100];
+    const mid = Math.round((min + max) / 2);
 
-        if (coords.length) {
-            const bounds = L.latLngBounds(coords);
-            map.fitBounds(bounds.pad(0.2));
-        }
-    }, [activeAreaId, areas, map]);
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'info legend');
+      div.innerHTML = `
+        <h4>${selectedData}</h4>
+        <div style="display:flex; align-items:center;">
+          <div class="legend-scale" style="
+            background: linear-gradient(to top, #ffffff, ${color});
+          "></div>
+          <div class="legend-labels">
+            <span>${max}</span>
+            <span>${mid}</span>
+            <span>${min}</span>
+          </div>
+        </div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
+    return () => map.removeControl(legend);
+  }, [map, selectedData]);
 
-    useEffect(() => {
-        const handleZoomEnd = () => {
-            const zoomLevel = map.getZoom();
-            if (zoomLevel >= 12) { // Adjusted zoom level threshold from 14 to 12
-                const center = map.getCenter();
-                const lat = center.lat;
-                const lng = center.lng;
+  return null;
+}
 
-                const nearbyArea = areas.find(area => {
-                    if (!area.geom?.coordinates) return false;
-                    const bounds = L.latLngBounds(flipPolygonCoordinates(area.geom).flat());
-                    return bounds.contains([lat, lng]);
-                });
+function CatchmentLayers({
+  areas,
+  activeAreaId,
+  dataOption,
+  onAreaClick,
+  recenterSignal,
+  onRecenterHandled
+}) {
+  const map = useMap();
 
-                if (nearbyArea && nearbyArea.id !== activeAreaId) {
-                    onAreaClick(nearbyArea.id);
-                }
-            }
-        };
+  useEffect(() => {
+    if (!areas.length || !recenterSignal) return;
+    let coords = [];
 
-        map.on('zoomend', handleZoomEnd);
-        return () => {
-            map.off('zoomend', handleZoomEnd);
-        };
-    }, [map, areas, activeAreaId, onAreaClick]);
+    if (activeAreaId) {
+      const a = areas.find(x => x.id === activeAreaId);
+      if (a?.geom?.coordinates) coords = flipPolygonCoordinates(a.geom).flat();
+    } else {
+      areas.forEach(a => {
+        if (a.geom?.coordinates) coords.push(...flipPolygonCoordinates(a.geom).flat());
+      });
+    }
 
-    return (
-        <>
-            <BaseLayers />
+    if (coords.length) map.fitBounds(L.latLngBounds(coords).pad(0.2));
+    onRecenterHandled();
+  }, [areas, activeAreaId, map, recenterSignal, onRecenterHandled]);
 
-            {areas.map(area =>
-                area.geom?.coordinates ? (
-                    <React.Fragment key={area.id}>
-                        <Polygon
-                            positions={flipPolygonCoordinates(area.geom)}
-                            pathOptions={{
-                                fillOpacity: area.id === activeAreaId ? 0.5 : 0.25,
-                                color: area.id === activeAreaId ? '#2b8cbe' : '#3388ff',
-                            }}
-                            eventHandlers={{
-                                click: () => onAreaClick(area.id),
-                            }}
-                        >
-                            <Tooltip
-                                permanent
-                                interactive
-                                eventHandlers={{ click: () => onAreaClick(area.id) }}
-                            >
-                                {area.name}
-                            </Tooltip>
-                        </Polygon>
+  useEffect(() => {
+    const onZoom = () => {
+      if (map.getZoom() < 10) return;
+      const c = map.getCenter();
+      const near = areas.find(a => {
+        if (!a.geom?.coordinates) return false;
+        return L.latLngBounds(flipPolygonCoordinates(a.geom).flat())
+          .contains([c.lat, c.lng]);
+      });
+      if (near && near.id !== activeAreaId) onAreaClick(near.id);
+    };
+    map.on('zoomend', onZoom);
+    return () => map.off('zoomend', onZoom);
+  }, [map, areas, activeAreaId, onAreaClick]);
 
-                        {area.id === activeAreaId &&
-                            area.plots?.map(plot => {
-                                const coord = plot.geom?.['4326'];
-                                if (!coord) return null;
-                                const { x: lon, y: lat } = coord;
-                                return (
-                                    <Marker key={plot.id} position={[lat, lon]}>
-                                        <Popup>
-                                            {plot.name}
-                                        </Popup>
-                                    </Marker>
-                                );
-                            })}
-                    </React.Fragment>
-                ) : null
-            )}
-        </>
-    );
+  const defaultColor = '#3388ff';
+  const markerColor = dataOption
+    ? dataOptions.find(o => o.key === dataOption).color
+    : defaultColor;
+
+  return (
+    <>
+      <BaseLayers />
+      {areas.map(area =>
+        area.geom?.coordinates ? (
+          <React.Fragment key={area.id}>
+            <Polygon
+              positions={flipPolygonCoordinates(area.geom)}
+              pathOptions={{
+                fillOpacity: area.id === activeAreaId ? 0.5 : 0.25,
+                color: area.id === activeAreaId ? '#2b8cbe' : defaultColor,
+              }}
+              eventHandlers={{ click: () => onAreaClick(area.id, true) }}
+            >
+              {area.id !== activeAreaId && (
+                <Tooltip
+                  permanent
+                  interactive
+                  eventHandlers={{ click: () => onAreaClick(area.id, true) }}
+                >
+                  {area.name}
+                </Tooltip>
+              )}
+            </Polygon>
+
+            {area.id === activeAreaId && area.plots?.map(plot => {
+              const coord = plot.geom?.['4326'];
+              if (!coord) return null;
+              const { x: lon, y: lat } = coord;
+              return (
+                <CircleMarker
+                  key={plot.id}
+                  center={[lat, lon]}
+                  pathOptions={{
+                    color: markerColor,
+                    fillColor: markerColor,
+                    fillOpacity: 1
+                  }}
+                  radius={8}
+                >
+                  <Popup>{plot.name}</Popup>
+                </CircleMarker>
+              );
+            })}
+          </React.Fragment>
+        ) : null
+      )}
+      <Legend selectedData={dataOption} />
+    </>
+  );
 }
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('cover');
   const [activeAreaId, setActiveAreaId] = useState(null);
+  const [selectedData, setSelectedData] = useState(null);
   const [menuItems, setMenuItems] = useState(initialMenuItemsConfig);
   const [areas, setAreas] = useState([]);
+  const [shouldRecenter, setShouldRecenter] = useState(false);
   const sectionsRef = useRef([]);
 
-  const scrollToSection = key => {
+  const scrollTo = key => {
     const idx = menuItems.findIndex(i => i.key === key);
     sectionsRef.current[idx]?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch areas + build submenu
   useEffect(() => {
     fetch('/api/public/areas')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json() })
       .then(data => {
         setAreas(data);
-        const subItems = data.map(area => ({
-          key: area.id,
-          label: area.name
-        }));
-        setMenuItems(curr =>
-          curr.map(item =>
-            item.key === 'catchment'
-              ? { ...item, subItems }
-              : item
-          )
-        );
+        const subs = data.map(a => ({ key: a.id, label: a.name }));
+        setMenuItems(m => m.map(i => i.key === 'catchment' ? { ...i, subItems: subs } : i));
+        setShouldRecenter(true);
       })
-      .catch(err => console.error('Error fetching areas:', err));
+      .catch(console.error);
   }, []);
 
-  // IntersectionObserver to highlight sidebar sections
   useEffect(() => {
-    const io = new IntersectionObserver(
-      entries => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            setActiveSection(e.target.dataset.section);
-          }
-        });
-      },
-      { threshold: 0.6 }
-    );
+    setMenuItems(m => m.map(i =>
+      i.key === 'data'
+        ? {
+          ...i,
+          subItems: activeAreaId
+            ? dataOptions.map(o => ({ key: o.key, label: o.key }))
+            : []
+        }
+        : i
+    ));
+  }, [activeAreaId]);
+
+  useEffect(() => {
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => e.isIntersecting && setActiveSection(e.target.dataset.section));
+    }, { threshold: 0.6 });
     sectionsRef.current.forEach(el => el && io.observe(el));
     return () => io.disconnect();
   }, []);
 
-  // Open sidebar when not on cover
   useEffect(() => {
     if (activeSection !== 'cover') setSidebarOpen(true);
   }, [activeSection]);
+
+  const selectArea = (id, recenter = false) => {
+    if (recenter) setShouldRecenter(true);
+    setActiveAreaId(id);
+    setSelectedData(dataOptions[0].key);
+  };
+  const clearArea = () => {
+    setActiveAreaId(null);
+    setSelectedData(null);
+    setShouldRecenter(true);
+    scrollTo('catchment');
+  };
+  const selectData = key => setSelectedData(key);
+
+  const activeArea = areas.find(a => a.id === activeAreaId);
 
   return (
     <div className="App">
@@ -194,42 +250,51 @@ export default function App() {
           onClick={() => setSidebarOpen(o => !o)}
           aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
         >
-          {sidebarOpen ? <ChevronLeftIcon fontSize="large" /> : <ChevronRightIcon fontSize="large" />}
+          {sidebarOpen
+            ? <ChevronLeftIcon fontSize="large" />
+            : <ChevronRightIcon fontSize="large" />}
         </button>
         <nav>
           <ul>
             {menuItems.map(item => (
-              <li
-                key={item.key}
-                className={activeSection === item.key ? 'active' : ''}
-              >
+              <li key={item.key} className={activeSection === item.key ? 'active' : ''}>
                 <button
-                  onClick={() => {
-                    if (item.key === 'catchment' && activeSection === 'catchment') {
-                      setActiveAreaId(null);
-                    }
-                    scrollToSection(item.key);
-                  }}
                   className="menu-btn"
-                >
-                  {item.label}
-                </button>
-                {item.subItems && activeSection === item.key && (
+                  onClick={() => item.key !== 'data' && scrollTo(item.key)}
+                >{item.label}</button>
+
+                {item.key === 'catchment' && (
                   <ul className="sub-menu">
-                    {item.subItems.map(sub => (
-                      <li
-                        key={sub.key}
-                        className={sub.key === activeAreaId ? 'active-area' : ''}
-                      >
+                    {activeAreaId
+                      ? <li className="active-area">
+                        <span className="selected-area">
+                          {activeArea?.name}
+                          <button
+                            className="remove-selected"
+                            onClick={clearArea}
+                          >✕</button>
+                        </span>
+                      </li>
+                      : item.subItems.map(s => (
+                        <li key={s.key}>
+                          <button
+                            className="submenu-btn"
+                            onClick={() => selectArea(s.key, true)}
+                          >{s.label}</button>
+                        </li>
+                      ))
+                    }
+                  </ul>
+                )}
+
+                {item.key === 'data' && activeAreaId && (
+                  <ul className="sub-menu">
+                    {item.subItems.map(s => (
+                      <li key={s.key}>
                         <button
-                          onClick={() => {
-                            setActiveAreaId(sub.key);
-                            scrollToSection('catchment');
-                          }}
-                          className="submenu-btn"
-                        >
-                          {sub.label}
-                        </button>
+                          className={`submenu-btn ${selectedData === s.key ? 'active-data' : ''}`}
+                          onClick={() => selectData(s.key)}
+                        >{s.label}</button>
                       </li>
                     ))}
                   </ul>
@@ -241,145 +306,71 @@ export default function App() {
       </aside>
 
       <main className="sections">
-        /* COVER */}
-            <section
-              className="section cover"
-              data-section="cover"
-              ref={el => (sectionsRef.current[0] = el)}
-            >
-              <div className="cover-content">
-                <h1>
-                  Soil organic carbon<br/>
-                  in Swiss alpine environments
-                </h1>
-              </div>
-              <button
-                className="down-arrow"
-                onClick={() => scrollToSection('catchment')}
-                aria-label="Scroll down"
-              >
-                ↓
-              </button>
-              <div className="attribution">
-            <a
-              href="https://www.epfl.ch"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="/epfl.png"
-                alt="EPFL Logo"
-                style={{ height: '2rem', marginRight: '1rem' }}
-              />
+        {/* COVER */}
+        <section
+          className="section cover"
+          data-section="cover"
+          ref={el => sectionsRef.current[0] = el}
+        >
+          <div className="cover-content">
+            <h1>
+              Soil organic carbon<br />
+              in Swiss alpine environments
+            </h1>
+          </div>
+          <button
+            className="down-arrow"
+            onClick={() => scrollTo('catchment')}
+            aria-label="Scroll down"
+          >↓</button>
+          <div className="attribution">
+            <a href="https://www.epfl.ch" target="_blank" rel="noopener noreferrer">
+              <img src="/epfl.png" alt="EPFL Logo" style={{ height: '2rem', marginRight: '1rem' }} />
             </a>
-            <a
-              href="https://www.snf.ch"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="/snsf.svg"
-                alt="SNSF Logo"
-                style={{ height: '2rem' }}
-              />
+            <a href="https://www.snf.ch" target="_blank" rel="noopener noreferrer">
+              <img src="/snsf.svg" alt="SNSF Logo" style={{ height: '2rem' }} />
             </a>
           </div>
-            </section>
+        </section>
 
-            {/* CATCHMENT */}
+        {/* CATCHMENT */}
         <section
           className="section"
           data-section="catchment"
-          ref={el => (sectionsRef.current[1] = el)}
+          ref={el => sectionsRef.current[1] = el}
         >
-          <h2>Catchment View</h2>
+          <h2>{activeArea ? activeArea.name : 'Catchment'}</h2>
           <div className="map-wrapper">
-            <MapContainer
-              scrollWheelZoom
-              className="leaflet-container"
-            >
+            <MapContainer scrollWheelZoom className="leaflet-container">
               <CatchmentLayers
                 areas={areas}
                 activeAreaId={activeAreaId}
-                onAreaClick={id => {
-                  setActiveAreaId(id);
-                  scrollToSection('catchment');
-                }}
+                dataOption={selectedData}
+                onAreaClick={selectArea}
+                recenterSignal={shouldRecenter}
+                onRecenterHandled={() => setShouldRecenter(false)}
               />
             </MapContainer>
           </div>
-          <button
-            className="down-arrow"
-            onClick={() => scrollToSection('data')}
-            aria-label="Scroll down"
-          >
-            ↓
-          </button>
-        </section>
-
-        {/* DATA */}
-        <section
-          className="section"
-          data-section="data"
-          ref={el => (sectionsRef.current[2] = el)}
-        >
-          <h2>Data View</h2>
-          <div className="map-wrapper">
-            <MapContainer
-              center={[46.326, 7.808]}
-              zoom={10}
-              scrollWheelZoom
-              className="leaflet-container"
-            >
-              <BaseLayers />
-              {areas.map(area =>
-                area.geom?.coordinates ? (
-                  <Polygon
-                    key={area.id}
-                    positions={flipPolygonCoordinates(area.geom)}
-                    pathOptions={{ fillOpacity: 0.25, color: '#3388ff' }}
-                  >
-                    <Tooltip permanent>{area.name}</Tooltip>
-                  </Polygon>
-                ) : null
-              )}
-            </MapContainer>
-          </div>
-          <button
-            className="down-arrow"
-            onClick={() => scrollToSection('experimental')}
-            aria-label="Scroll down"
-          >
-            ↓
-          </button>
         </section>
 
         {/* EXPERIMENTAL */}
         <section
           className="section"
           data-section="experimental"
-          ref={el => (sectionsRef.current[3] = el)}
+          ref={el => sectionsRef.current[2] = el}
         >
           <h2>Experimental View</h2>
           <div className="map-wrapper">
-            <MapContainer
-              center={[46.326, 7.808]}
-              zoom={12}
-              scrollWheelZoom
-              className="leaflet-container"
-            >
+            <MapContainer center={[46.326, 7.808]} zoom={12} scrollWheelZoom className="leaflet-container">
               <BaseLayers />
-              {areas.map(area =>
-                area.geom?.coordinates ? (
-                  <Polygon
-                    key={area.id}
-                    positions={flipPolygonCoordinates(area.geom)}
-                    pathOptions={{ fillOpacity: 0.25, color: '#3388ff' }}
-                  >
-                    <Tooltip permanent>{area.name}</Tooltip>
-                  </Polygon>
-                ) : null
-              )}
+              {areas.map(a => a.geom?.coordinates && (
+                <Polygon
+                  key={a.id}
+                  positions={flipPolygonCoordinates(a.geom)}
+                  pathOptions={{ fillOpacity: 0.25, color: '#3388ff' }}
+                />
+              ))}
             </MapContainer>
           </div>
         </section>
