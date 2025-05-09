@@ -9,23 +9,45 @@ import {
     SimpleForm,
     TextInput,
     required,
-    NumberField,
     minValue,
-    useGetOne,
     useNotify,
-    useRefresh,
-    useRedirect,
-    useMutation,
-    usePermissions,
-    TextField,
+    useRecordContext,
 } from 'react-admin';
-import { useFormContext } from 'react-hook-form';
-import { Grid } from '@mui/material';
-import { useState, useEffect } from 'react';
 
+export const SoilClassificationInput = () => {
+    const record = useRecordContext();
+    const [plotId, setPlotId] = React.useState(record?.plot_id);
+
+    React.useEffect(() => {
+        if (!record?.plot_id) {
+            const formElement = document.querySelector('input[name="plot_id"]') as HTMLInputElement;
+            if (formElement) {
+                setPlotId(formElement.value);
+            }
+        }
+    }, [record]);
+
+    if (!plotId) return null;
+
+    return (
+        <ReferenceInput
+            source="soil_classification_id"
+            reference="soil_classifications"
+            sort={{ field: 'name', order: 'ASC' }}
+            filter={{ area_id: plotId }} // Filter by area_id
+        >
+            <SelectInput
+                label="Soil Classification"
+                source="soil_classification_id"
+                optionText={(record) => `${record.soil_type?.name} (${record.area?.name})`}
+            />
+        </ReferenceInput>
+    );
+};
 
 const PlotSampleEdit = () => {
     const notify = useNotify();
+
     const onError = (error) => {
         if (error.status === 409) {
             notify("Either the sample name is not unique, or a sample with the same replicate, upper and lower depth already exists.");
@@ -51,7 +73,7 @@ const PlotSampleEdit = () => {
                         readOnly
                     />
                 </ReferenceInput>
-
+                <SoilClassificationInput />
 
                 <TextInput source="name" validate={[required()]} />
                 <NumberInput source="replicate" label="Replicate" validate={[required()]} defaultValue={1} />

@@ -11,6 +11,10 @@ import {
     usePermissions,
     DateField,
     Labeled,
+    ReferenceArrayField,
+    ReferenceManyField,
+    Datagrid,
+    ReferenceField,
 } from "react-admin";
 
 
@@ -69,6 +73,31 @@ export const SoilTypeShow = () => (
                         link
                     /></Labeled>
                 </Grid>
+                {/* // Show all of the related soil Classifications and their FE value */}
+                <Grid item xs={6}>
+                    <Labeled>
+                        <ReferenceManyField
+                            label="Soil Classifications"
+                            reference="soil_classifications"
+                            target="soil_type_id"
+                        >
+                            <Datagrid bulkActionButtons={false} rowClick="show">
+                                <ReferenceField
+                                    label="Area"
+                                    reference="areas"
+                                    source="area_id"
+                                >
+                                    <TextField source="name" />
+                                </ReferenceField>
+                                <TextField source='depth_upper_cm' label='Depth Upper (cm)' />
+                                <TextField source='depth_lower_cm' label='Depth Lower (cm)' />
+                                <TextField source="fe_abundance_g_per_cm3" label="Fe Abundance (g/cm³)" />
+                                <DateField source="created_on" />
+                            </Datagrid>
+                        </ReferenceManyField>
+                    </Labeled>
+                </Grid>
+
                 <Grid item xs={6}>
                     <ImageField source="image" />
                 </Grid>

@@ -20,6 +20,32 @@ import { useFormContext } from 'react-hook-form';
 import { Grid } from '@mui/material';
 
 
+export const SoilClassificationInput = () => {
+    const { watch } = useFormContext();
+    const plotId = watch('plot_id');
+
+    const { data: plot, isLoading } = useGetOne('plots', { id: plotId }, { enabled: !!plotId });
+
+    const areaId = plot?.area?.id;
+
+    return (
+        <ReferenceInput
+            source="soil_classification_id"
+            reference="soil_classifications"
+            sort={{ field: 'name', order: 'ASC' }}
+            filter={{ area_id: areaId }}
+            disabled={!plotId || isLoading} // Disable until a plot is chosen or loading is complete
+        >
+            <SelectInput
+                label="Soil Classification"
+                source="soil_classification_id"
+                optionText={(record) => `${record.soil_type?.name} (${record.area?.name})`}
+            />
+        </ReferenceInput>
+    );
+};
+
+
 const SampleToolbar = () => {
     const notify = useNotify();
     const { reset } = useFormContext();
@@ -109,7 +135,7 @@ const PlotSampleCreate = () => {
                         <SampleDetails />
                     </Grid>
                 </Grid>
-
+                <SoilClassificationInput />
                 <TextInput source="name" validate={[required()]} />
                 <NumberInput source="replicate" label="Replicate" validate={[required()]} defaultValue={1} />
                 <NumberInput

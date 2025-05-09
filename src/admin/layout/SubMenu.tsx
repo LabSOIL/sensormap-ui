@@ -12,8 +12,8 @@ type SubmenuProps = {
     children: React.ReactNode
 }
 
-const Submenu = ({text, icon, children}: SubmenuProps) => {
-    const [open, setOpen] = React.useState(false);
+const Submenu = ({ text, icon, children }: SubmenuProps) => {
+    const [open, setOpen] = React.useState(true); // Set default state to true
 
     const handleClick = () => {
         setOpen(!open);
@@ -29,6 +29,9 @@ const Submenu = ({text, icon, children}: SubmenuProps) => {
         <Collapse in={open} timeout="auto" unmountOnExit sx={{
             '& .RaMenuItemLink-icon': {
                 paddingLeft: 1
+            },
+            '& .MuiCollapse-wrapperInner': {
+                paddingLeft: 4 // Increase this value for more indentation
             }
         }}>
             {children}

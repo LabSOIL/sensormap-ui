@@ -16,7 +16,7 @@ import {
     SingleFieldList,
     SimpleList,
 } from "react-admin";
-import { LocationFieldPoints } from '../maps/Points';
+import { LocationFieldPoints } from '../../maps/Points';
 import { Grid, Typography } from '@mui/material';
 
 

@@ -24,7 +24,7 @@ const assignments = {
     icon: SensorAssignmentIcon,
     recordRepresentation: 'name',
     options: {
-        label: 'Sensor assignments',
+        label: 'Assignments',
     },
 }
 const profile = {
@@ -34,6 +34,9 @@ const profile = {
     show: SensorProfileShow,
     icon: DeviceThermostatIcon,
     // recordRepresentation: 'name',
+    options: {
+        label: 'Profiles',
+    },
 };
 const sensor = {
     create: SensorCreate,
@@ -43,7 +46,7 @@ const sensor = {
     icon: SensorsIcon,
     // recordRepresentation: 'name',
     options: {
-        label: 'Sensor instruments',
+        label: 'Instruments',
     },
 };
 

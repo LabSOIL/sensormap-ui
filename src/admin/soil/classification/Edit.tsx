@@ -1,74 +1,52 @@
 /* eslint react/jsx-key: off */
 import {
-    Create,
+    ArrayInput,
     DateInput,
+    Edit,
     NumberInput,
     ReferenceInput,
     SelectInput,
     SimpleForm,
-    TextField,
-    Button,
-    minValue,
+    SimpleFormIterator,
+    Toolbar,
+    SaveButton,
     TextInput,
     required,
-    ArrayInput,
-    SimpleFormIterator,
-    ImageField,
+    Button,
+    minValue,
     ImageInput,
+    ImageField,
+    useRecordContext,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { Typography } from '@mui/material';
-import CoordinateInput, { AreaCoordinateEntry } from '../maps/CoordinateEntry';
+import CoordinateInput, { AreaCoordinateEntry } from '../../maps/CoordinateEntry';
 
-const ElevationInput = () => {
-    const formContext = useFormContext();
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [successResponse, setSuccessResponse] = useState(false);
+const MyToolbar = () => (
+    <Toolbar>
+        <SaveButton alwaysEnable />
+    </Toolbar>
+);
 
-    const updateElevation = () => {
-        const x = formContext.getValues('coord_x');
-        const y = formContext.getValues('coord_y');
-        const url = `https://api3.geo.admin.ch/rest/services/height?easting=${x}&northing=${y}&sr=2056&format=json&geometryFormat=geojson`;
-        fetch(url)
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                if (data.success === false) {
-                    setErrorMessage(`Error fetching elevation: ${data.error.message}`);
-                } else {
-                    setErrorMessage(null);
-                    setSuccessResponse(true);
-                    formContext.setValue('coord_z', data.height);
-                }
-            })
+const ImageFieldPreview = ({ source }) => {
+    const record = useRecordContext();
+    if (!record || !record[source]) {
+        return null;
     }
-
-    return (<>
-        <Button
-            label="Get from Digital Elevation Model"
-            variant="outlined"
-            color={errorMessage ? 'error' : successResponse ? 'success' : 'primary'}
-            onClick={(event) => {
-                updateElevation();
-            }}
-        />
-        <Typography
-            variant="caption"
-            color={'error'}
-        >
-            {errorMessage ? errorMessage : null}
-        </Typography>
-        <NumberInput source="coord_z" label="Elevation (m)" />
-    </>
-    )
-}
-
-const SoilProfileCreate = () => {
+    const base64Image = record[source];
     return (
-        <Create redirect="show">
-            <SimpleForm >
+        <div style={{ textAlign: 'left', margin: '0 10px' }}>
+            <img src={`${base64Image}`} style={{ maxWidth: '30%', height: 'auto' }} />
+        </div>
+    );
+
+};
+const SoilClassificationEdit = () => {
+    return (
+        <Edit redirect="show" >
+            <SimpleForm toolbar={<MyToolbar />}>
+                <TextInput source="id" disabled />
                 <TextInput source="name" validate={[required()]} />
                 <ReferenceInput source="area_id" reference="areas" >
                     <SelectInput optionText="name" validate={[required()]} />
@@ -80,18 +58,19 @@ const SoilProfileCreate = () => {
                 ]} defaultValue={'flat'} helperText="Flat or Slope" validate={[required()]} />
                 <DateInput source="created_on" label="Description Date" />
                 <ReferenceInput source="soil_type_id" reference="soil_types">
-                    <SelectInput optionText="name" validate={[required()]} />
+                    <SelectInput optionText="name" />
                 </ReferenceInput>
                 <TextInput source="vegetation_type" label="Vegetation Type" />
                 <TextInput source="topography" />
                 <TextInput source="aspect" label="Aspect" />
-                <TextInput source="parent_material" label="Parent Material" />
+                <TextInput source="parent_material" label="Parent material" />
                 <ArrayInput source="description_horizon" label="Horizon description" helperText="Add a new row for another title and description" >
                     <SimpleFormIterator inline>
                         <TextInput source="title" validate={[required()]} />
                         <TextInput source="description" validate={[required()]} multiline />
                     </SimpleFormIterator>
                 </ArrayInput>
+                <ImageFieldPreview source="soil_diagram" />
                 <ImageInput
                     source="soil_diagram"
                     label="Soil diagram"
@@ -100,6 +79,7 @@ const SoilProfileCreate = () => {
                 >
                     <ImageField source="src" title="title" />
                 </ImageInput>
+                <ImageFieldPreview source="photo" />
                 <ImageInput
                     source="photo"
                     label="Photo"
@@ -109,9 +89,10 @@ const SoilProfileCreate = () => {
                     <ImageField source="src" title="title" />
                 </ImageInput>
             </SimpleForm>
-        </Create >
+
+        </Edit >
 
     )
 };
 
-export default SoilProfileCreate;
+export default SoilClassificationEdit;

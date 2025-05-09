@@ -110,6 +110,7 @@ const App = () => {
                             <Resource name="sensordata" {...sensors.sensordata} />
                             <Resource name="soil_profiles" {...soil.profile} />
                             <Resource name="soil_types" {...soil.type} />
+                            <Resource name="soil_classifications" {...soil.classification} />
                             <Resource name="transects" {...transects} />
                             <Resource name="gnss" {...gnss} />
                             <Resource name="instruments" {...instruments.instrument} />

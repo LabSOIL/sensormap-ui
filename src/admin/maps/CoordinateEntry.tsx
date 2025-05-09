@@ -222,7 +222,7 @@ const getElevationSwissTopo = async (x: number, y: number): Promise<number | und
     }
 };
 
-const ElevationInput = ({ disabled }: { disabled: boolean }) => {
+const ElevationInput = ({ disabled = false, is_required = true }: { disabled?: boolean; is_required?: boolean }) => {
     const formContext = useFormContext();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successResponse, setSuccessResponse] = useState(false);
@@ -258,7 +258,7 @@ const ElevationInput = ({ disabled }: { disabled: boolean }) => {
                 source="coord_z"
                 label="Elevation (m)"
                 disabled={disabled}
-                validate={[required()]}
+                validate={is_required ? [required()] : undefined}
             />
         </>
     );
@@ -293,8 +293,7 @@ const RecenterButton = ({ updateXY }: { updateXY: (lat: number, lng: number) => 
         </div>
     );
 };
-
-export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boolean;[key: string]: any }) => {
+export const CoordinateInput = ({ disabled = false, is_required = true, ...props }: { disabled?: boolean; is_required?: boolean;[key: string]: any }) => {
     const { setValue, watch } = useFormContext();
     const defaultCoordinates: L.LatLngExpression = [46.224413762594594, 7.359968915183943];
     const watch_coord_x = watch("coord_x");
@@ -304,40 +303,34 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     const watch_longitude = watch("longitude");
     const [areaPolygonCoords, setAreaPolygonCoords] = useState<L.LatLngExpression[] | null>(null);
     const [coordinateData, setCoordinateData] = useState({
-        coord_x: watch("coord_x"),
-        coord_y: watch("coord_y"),
-        coord_z: watch("coord_z"),
-        latitude: watch("latitude"),
-        longitude: watch("longitude"),
+        coord_x: watch_coord_x || null,
+        coord_y: watch_coord_y || null,
+        coord_z: watch_coord_z || null,
+        latitude: watch_latitude || null,
+        longitude: watch_longitude || null,
     });
 
-    // Helpers to check if a value is a valid coordinate.
     const isValidCoordinate = (value: any): boolean => typeof value === "number" && isFinite(value);
-    const lastUpdatedRef = useRef<"xy" | "latlon" | null>(null);  // Tracks which fields were updated last.
+    const lastUpdatedRef = useRef<"xy" | "latlon" | null>(null);
 
     const [position, setPosition] = useState<L.LatLngExpression>(() => {
-        // If the record has coordinates, use them
-        if (isFinite(watch_latitude) && isFinite(watch_longitude)) {
+        if (isValidCoordinate(watch_latitude) && isValidCoordinate(watch_longitude)) {
             return [watch_latitude, watch_longitude];
-        } else if (isFinite(watch_coord_x) && isFinite(watch_coord_y)) {
+        } else if (isValidCoordinate(watch_coord_x) && isValidCoordinate(watch_coord_y)) {
             const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [watch_coord_x, watch_coord_y]);
             return [lat, lng];
         }
         return defaultCoordinates;
     });
 
-    // Default position if nothing is provided.
     const updateXYFromLatLon = (lat: number, lng: number) => {
-        // When the marker is dragged, update fields and mark last update as "latlon".
         if (isValidCoordinate(lat) && isValidCoordinate(lng)) {
             const [x, y] = proj4("EPSG:4326", "EPSG:2056", [lng, lat]);
-
             getElevationSwissTopo(x, y).then((z) => {
                 setCoordinateData({
-                    ...coordinateData,
                     coord_x: x,
                     coord_y: y,
-                    coord_z: z,
+                    coord_z: z || null,
                     latitude: lat,
                     longitude: lng,
                 });
@@ -345,37 +338,31 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
             setPosition([lat, lng]);
             lastUpdatedRef.current = "latlon";
         }
-    }
-
-
+    };
 
     useEffect(() => {
-        // This useEffect manages when the X and Y fields are updated, and
-        // sometimes the X and Y are given as record data at first render, if so, set the lat/lon
-        if ((coordinateData.coord_x && coordinateData.coord_y) && (!coordinateData.latitude || !coordinateData.longitude)) {
+        if (coordinateData.coord_x && coordinateData.coord_y && (!coordinateData.latitude || !coordinateData.longitude)) {
             const [lat, lon] = proj4("EPSG:2056", "EPSG:4326", [coordinateData.coord_x, coordinateData.coord_y]);
             getElevationSwissTopo(coordinateData.coord_x, coordinateData.coord_y).then((z) => {
                 setCoordinateData({
                     ...coordinateData,
                     latitude: lat,
                     longitude: lon,
-                    coord_z: z,
+                    coord_z: z || null,
                 });
             });
         }
-        if ((coordinateData.latitude && coordinateData.longitude) && (!coordinateData.coord_x || !coordinateData.coord_y)) {
+        if (coordinateData.latitude && coordinateData.longitude && (!coordinateData.coord_x || !coordinateData.coord_y)) {
             const [x, y] = proj4("EPSG:4326", "EPSG:2056", [coordinateData.longitude, coordinateData.latitude]);
             getElevationSwissTopo(x, y).then((z) => {
                 setCoordinateData({
                     ...coordinateData,
                     coord_x: x,
                     coord_y: y,
-                    coord_z: z,
+                    coord_z: z || null,
                 });
             });
         }
-        // Due to rendering, it's possible that the watch items are null but the coordinateData is not.
-        // In this case, update the watch items.
         if (!watch_coord_x && coordinateData.coord_x) {
             setValue("coord_x", coordinateData.coord_x, { shouldValidate: true });
         }
@@ -391,46 +378,27 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
         if (!watch_longitude && coordinateData.longitude) {
             setValue("longitude", coordinateData.longitude, { shouldValidate: true });
         }
-    }, [watch_coord_x, watch_coord_y, watch_coord_z, watch_latitude, watch_longitude]);
+    }, [coordinateData, watch_coord_x, watch_coord_y, watch_coord_z, watch_latitude, watch_longitude]);
 
     useEffect(() => {
-        // Whenever the stored coordinate data changes, update the form fields.
-        getElevationSwissTopo(coordinateData.coord_x, coordinateData.coord_y).then((height) => {
-            setValue("coord_z", height, { shouldValidate: true });
-        }
-        );
-        setValue("coord_x", coordinateData.coord_x, { shouldValidate: true });
-        setValue("coord_y", coordinateData.coord_y, { shouldValidate: true });
-        setValue("latitude", coordinateData.latitude, { shouldValidate: true });
-        setValue("longitude", coordinateData.longitude, { shouldValidate: true });
-    }, [coordinateData]);
-
-    useEffect(() => {
-        // If the X and Y fields were updated last, update the position and mark last update as "xy".
         if (lastUpdatedRef.current === "xy" && isValidCoordinate(watch_coord_x) && isValidCoordinate(watch_coord_y)) {
             const [lng, lat] = proj4("EPSG:2056", "EPSG:4326", [watch_coord_x, watch_coord_y]);
-            // Use a small epsilon to avoid loops.
-            if (Math.abs(lat - (position as number[])[0]) > 0.000001 ||
-                Math.abs(lng - (position as number[])[1]) > 0.000001) {
+            if (Math.abs(lat - (position as number[])[0]) > 0.000001 || Math.abs(lng - (position as number[])[1]) > 0.000001) {
                 setPosition([lat, lng]);
                 setCoordinateData({
                     ...coordinateData,
                     coord_x: watch_coord_x,
                     coord_y: watch_coord_y,
                     latitude: lat,
-                    longitude: lng
+                    longitude: lng,
                 });
-                // Get elevation too
             }
         }
-    }, [watch_coord_x, watch_coord_y, setValue]);
+    }, [watch_coord_x, watch_coord_y]);
 
-    // Update from LatLon fields if they were updated last.
     useEffect(() => {
         if (lastUpdatedRef.current === "latlon" && isValidCoordinate(watch_latitude) && isValidCoordinate(watch_longitude)) {
-
-            if (Math.abs(watch_latitude - (position as number[])[0]) > 0.000001 ||
-                Math.abs(watch_longitude - (position as number[])[1]) > 0.000001) {
+            if (Math.abs(watch_latitude - (position as number[])[0]) > 0.000001 || Math.abs(watch_longitude - (position as number[])[1]) > 0.000001) {
                 const [x, y] = proj4("EPSG:4326", "EPSG:2056", [watch_longitude, watch_latitude]);
                 setPosition([watch_latitude, watch_longitude]);
                 setCoordinateData({
@@ -438,11 +406,11 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                     coord_x: x,
                     coord_y: y,
                     latitude: watch_latitude,
-                    longitude: watch_longitude
+                    longitude: watch_longitude,
                 });
             }
         }
-    }, [watch_latitude, watch_longitude, setValue]);
+    }, [watch_latitude, watch_longitude]);
 
     return (
         <div
@@ -452,7 +420,6 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
             }}
         >
             <Grid container spacing={2} alignItems="center">
-                {/* Left side: Input fields */}
                 <Grid item xs={5}>
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
@@ -460,7 +427,7 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                                 source="coord_x"
                                 label="X Coordinate (m: SRID 2056)"
                                 disabled={disabled}
-                                validate={[required()]}
+                                validate={is_required ? [required()] : undefined}
                                 onChange={() => {
                                     lastUpdatedRef.current = "xy";
                                 }}
@@ -471,7 +438,7 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                                 source="coord_y"
                                 label="Y Coordinate (m: SRID 2056)"
                                 disabled={disabled}
-                                validate={[required()]}
+                                validate={is_required ? [required()] : undefined}
                                 onChange={() => {
                                     lastUpdatedRef.current = "xy";
                                 }}
@@ -492,11 +459,10 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <ElevationInput disabled={disabled} />
+                            <ElevationInput disabled={disabled} is_required={is_required} />
                         </Grid>
                     </Grid>
                 </Grid>
-                {/* Right side: Map and reposition button */}
                 <Grid item xs={7}>
                     <div style={{ position: 'relative' }}>
                         <MapContainer
@@ -527,12 +493,12 @@ export const CoordinateInput = ({ disabled = false, ...props }: { disabled?: boo
     );
 };
 
-export const AreaCoordinateEntry = ({ source = "area_id" }: { source?: string }) => {
+export const AreaCoordinateEntry = ({ source = "area_id", is_required = true }: { source?: string; is_required?: boolean }) => {
     // This component is used to show the coordinate input fields when an area is selected.
     const { watch } = useFormContext();
     const selectedArea = watch(source);
     const isDisabled = !selectedArea;
-    return <CoordinateInput area_id={selectedArea} disabled={isDisabled} />;
+    return <CoordinateInput area_id={selectedArea} disabled={isDisabled} is_required={is_required} />;
 };
 
 export default CoordinateInput;

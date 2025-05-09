@@ -21,7 +21,7 @@ import {
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { Typography } from '@mui/material';
-import CoordinateInput, { AreaCoordinateEntry } from '../maps/CoordinateEntry';
+import CoordinateInput, { AreaCoordinateEntry } from '../../maps/CoordinateEntry';
 
 const MyToolbar = () => (
     <Toolbar>

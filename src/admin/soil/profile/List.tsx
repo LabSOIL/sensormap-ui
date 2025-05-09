@@ -10,7 +10,7 @@ import {
     TextInput,
     DateField,
 } from "react-admin";
-import { postFilters } from "../filters/list";
+import { postFilters } from "../../filters/list";
 
 const SoilProfileListActions = () => {
     const { permissions } = usePermissions();

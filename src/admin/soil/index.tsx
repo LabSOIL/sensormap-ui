@@ -1,14 +1,20 @@
-import SoilTypeCreate from './SoilTypeCreate';
-import SoilTypeEdit from './SoilTypeEdit';
-import SoilTypeList from './SoilTypeList';
-import SoilTypeShow from './SoilTypeShow';
-import SoilProfileCreate from './SoilProfileCreate';
-import SoilProfileEdit from './SoilProfileEdit';
-import SoilProfileList from './SoilProfileList';
-import SoilProfileShow from './SoilProfileShow';
+import SoilTypeCreate from './type/Create';
+import SoilTypeEdit from './type/Edit';
+import SoilTypeList from './type/List';
+import SoilTypeShow from './type/Show';
+import SoilProfileCreate from './profile/Create';
+import SoilProfileEdit from './profile/Edit';
+import SoilProfileList from './profile/List';
+import SoilProfileShow from './profile/Show';
 import FilterHdrIcon from '@mui/icons-material/FilterHdr';
 import TerrainIcon from '@mui/icons-material/Terrain';
 import GrassIcon from '@mui/icons-material/Grass';
+import SoilClassificationCreate from './classification/Create';
+import SoilClassificationEdit from './classification/Edit';
+import SoilClassificationList from './classification/List';
+import SoilClassificationShow from './classification/Show';
+import SearchIcon from '@mui/icons-material/Search';
+
 
 const SoilProfile = {
     create: SoilProfileCreate,
@@ -16,7 +22,10 @@ const SoilProfile = {
     list: SoilProfileList,
     show: SoilProfileShow,
     recordRepresentation: 'name',
-    icon: FilterHdrIcon
+    icon: FilterHdrIcon,
+    options: {
+        label: 'Profiles',
+    },
 };
 
 const SoilType = {
@@ -25,10 +34,26 @@ const SoilType = {
     list: SoilTypeList,
     show: SoilTypeShow,
     recordRepresentation: 'name',
-    icon: GrassIcon
+    icon: GrassIcon,
+    options: {
+        label: 'Types',
+    },
+};
+
+const SoilClassification = {
+    create: SoilClassificationCreate,
+    edit: SoilClassificationEdit,
+    list: SoilClassificationList,
+    show: SoilClassificationShow,
+    recordRepresentation: 'name',
+    icon: SearchIcon,
+    options: {
+        label: 'Classifications',
+    },
 };
 
 export default {
     profile: SoilProfile,
     type: SoilType,
+    classification: SoilClassification,
 };
