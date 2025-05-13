@@ -134,8 +134,9 @@ function CatchmentLayers({
 
   useEffect(() => {
     if (!areas.length || !recenterSignal) return;
-    let coords = [];
 
+    // build your coords array as before
+    let coords = [];
     if (activeAreaId) {
       const a = areas.find(x => x.id === activeAreaId);
       if (a?.geom?.coordinates) coords = flipPolygonCoordinates(a.geom).flat();
@@ -145,9 +146,25 @@ function CatchmentLayers({
       });
     }
 
-    if (coords.length) map.fitBounds(L.latLngBounds(coords).pad(0.2));
-    onRecenterHandled();
+    const doFly = () => {
+      if (coords.length) {
+        map.flyToBounds(
+          L.latLngBounds(coords).pad(0.2),
+          { duration: 1 }
+        );
+      }
+      onRecenterHandled();
+    };
+
+    // if the map is already loaded, fly immediately; otherwise wait for load
+    if (map._loaded) {
+      doFly();
+    } else {
+      map.once('load', doFly);
+    }
   }, [areas, activeAreaId, map, recenterSignal, onRecenterHandled]);
+
+
 
   useEffect(() => {
     const onZoom = () => {
@@ -417,7 +434,12 @@ export default function App() {
         >
           <h2>{activeArea ? activeArea.name : 'Catchment'}</h2>
           <div className="map-wrapper">
-            <MapContainer scrollWheelZoom className="leaflet-container">
+            <MapContainer
+              center={[46.326, 7.808]}
+              zoom={10}
+              scrollWheelZoom
+              className="leaflet-container"
+            >
               <CatchmentLayers
                 areas={areas}
                 activeAreaId={activeAreaId}
