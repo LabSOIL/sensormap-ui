@@ -27,53 +27,89 @@ const dataOptions = [
   { key: 'T', color: '#4daf4a' },
   { key: 'Soil moisture', color: '#984ea3' },
 ];
+const dataAccessors = {
+  SOC: plot => plot.socStock,
+  pH: plot => plot.pH,
+  T: plot => plot.temperature,
+  'Soil moisture': plot => plot.soilMoisture,
+};
 
 const flipCoordinates = coords => coords.map(([lng, lat]) => [lat, lng]);
 const flipPolygonCoordinates = geom =>
   geom.coordinates.map(ring => flipCoordinates(ring));
 
-function Legend({ selectedData }) {
+function Legend({ selectedData, areas, activeAreaId }) {
   const map = useMap();
-  const rangeMap = {
-    'pH': [0, 14],
-    'SOC Stocks': [0, 100],
-    'T': [0, 100],
-    'Soil moisture': [0, 100],
+
+
+  const getColorOnScale = (value, min, max) => {
+    const ratio = (value - min) / (max - min);
+    const hue = (1 - ratio) * 120;
+    return `hsl(${hue}, 100%, 50%)`;
   };
 
   useEffect(() => {
+    // clear old legend
     document.querySelectorAll('.info.legend').forEach(el => el.remove());
     if (!selectedData) return;
 
-    const { color } = dataOptions.find(o => o.key === selectedData);
-    const [min, max] = rangeMap[selectedData] || [0, 100];
-    const mid = Math.round((min + max) / 2);
+    // pull out the right accessor
+    const accessor = dataAccessors[selectedData];
+    if (!accessor) return;
 
+    // gather plot values
+    let plots = [];
+    if (activeAreaId) {
+      const area = areas.find(a => a.id === activeAreaId);
+      plots = area?.plots || [];
+    } else {
+      plots = areas.flatMap(a => a.plots);
+    }
+    const values = plots.map(accessor).filter(v => typeof v === 'number');
+    if (!values.length) return;
+
+    // integer min, mid, max
+    const minVal = Math.floor(Math.min(...values));
+    const maxVal = Math.ceil(Math.max(...values));
+    const midVal = Math.round((minVal + maxVal) / 2);
+
+    // colour endpoints
+    const staticColor = dataOptions.find(o => o.key === selectedData)?.color;
+    let gradientStyle;
+    if (selectedData === 'SOC') {
+      const start = getColorOnScale(minVal, minVal, maxVal);
+      const end = getColorOnScale(maxVal, minVal, maxVal);
+      gradientStyle = `background: linear-gradient(to top, ${start}, ${end});`;
+    } else {
+      gradientStyle = `background: linear-gradient(to top, #ffffff, ${staticColor});`;
+    }
+
+    // build and add the Leaflet control
     const legend = L.control({ position: 'bottomright' });
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'info legend');
       div.innerHTML = `
         <h4>${selectedData}</h4>
         <div style="display:flex; align-items:center;">
-          <div class="legend-scale" style="
-            background: linear-gradient(to top, #ffffff, ${color});
-          "></div>
-          <div class="legend-labels">
-            <span>${max}</span>
-            <span>${mid}</span>
-            <span>${min}</span>
+          <div class="legend-scale"
+               style="${gradientStyle} width:1rem; height:6rem; margin-right:0.5rem;"></div>
+          <div class="legend-labels"
+               style="display:flex; flex-direction:column; justify-content:space-between; height:6rem;">
+            <span>${maxVal}</span>
+            <span>${midVal}</span>
+            <span>${minVal}</span>
           </div>
         </div>
       `;
       return div;
     };
     legend.addTo(map);
+
     return () => map.removeControl(legend);
-  }, [map, selectedData]);
+  }, [map, selectedData, areas, activeAreaId]);
 
   return null;
 }
-
 function CatchmentLayers({
   areas,
   activeAreaId,
@@ -182,7 +218,11 @@ function CatchmentLayers({
           </React.Fragment>
         ) : null
       )}
-      <Legend selectedData={dataOption} />
+      <Legend
+        selectedData={dataOption}
+        areas={areas}
+        activeAreaId={activeAreaId}
+      />
     </>
   );
 }
