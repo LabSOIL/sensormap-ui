@@ -110,6 +110,8 @@ function Legend({ selectedData, areas, activeAreaId }) {
 
   return null;
 }
+
+
 function CatchmentLayers({
   areas,
   activeAreaId,
@@ -120,11 +122,11 @@ function CatchmentLayers({
   onRecenterHandled
 }) {
   const map = useMap();
+  const [hasZoomed, setHasZoomed] = useState(false);
   const defaultColor = '#3388ff';
   const markerStatic = dataOption
     ? dataOptions.find(o => o.key === dataOption).color
     : defaultColor;
-
   const [minStock, maxStock] = stockRange;
   const getColor = value => {
     const ratio = (value - minStock) / (maxStock - minStock);
@@ -134,8 +136,8 @@ function CatchmentLayers({
 
   useEffect(() => {
     if (!areas.length || !recenterSignal) return;
+    setHasZoomed(false);
 
-    // build your coords array as before
     let coords = [];
     if (activeAreaId) {
       const a = areas.find(x => x.id === activeAreaId);
@@ -152,34 +154,23 @@ function CatchmentLayers({
           L.latLngBounds(coords).pad(0.2),
           { duration: 1 }
         );
+        map.once('moveend', () => {
+          setHasZoomed(true);
+          onRecenterHandled();
+        });
+      } else {
+        // nothing to fly to
+        setHasZoomed(true);
+        onRecenterHandled();
       }
-      onRecenterHandled();
     };
 
-    // if the map is already loaded, fly immediately; otherwise wait for load
     if (map._loaded) {
       doFly();
     } else {
       map.once('load', doFly);
     }
   }, [areas, activeAreaId, map, recenterSignal, onRecenterHandled]);
-
-
-
-  useEffect(() => {
-    const onZoom = () => {
-      if (map.getZoom() < 10) return;
-      const c = map.getCenter();
-      const near = areas.find(a => {
-        if (!a.geom?.coordinates) return false;
-        return L.latLngBounds(flipPolygonCoordinates(a.geom).flat())
-          .contains([c.lat, c.lng]);
-      });
-      if (near && near.id !== activeAreaId) onAreaClick(near.id);
-    };
-    map.on('zoomend', onZoom);
-    return () => map.off('zoomend', onZoom);
-  }, [map, areas, activeAreaId, onAreaClick]);
 
   return (
     <>
@@ -196,50 +187,37 @@ function CatchmentLayers({
               eventHandlers={{ click: () => onAreaClick(area.id, true) }}
             >
               {area.id !== activeAreaId && (
-                <Tooltip
-                  permanent
-                  interactive
-                  eventHandlers={{ click: () => onAreaClick(area.id, true) }}
-                >
+                <Tooltip permanent interactive eventHandlers={{ click: () => onAreaClick(area.id, true) }}>
                   {area.name}
                 </Tooltip>
               )}
             </Polygon>
 
-            {area.id === activeAreaId &&
-              area.plots.map(plot => {
-                const coord = plot.geom?.['4326'];
-                if (!coord) return null;
-                const { x: lon, y: lat } = coord;
-                const socValue = plot.socStock;
-                const color = dataOption === 'SOC' ? getColor(socValue) : markerStatic;
+            {area.id === activeAreaId && hasZoomed && area.plots.map(plot => {
+              const coord = plot.geom?.['4326'];
+              if (!coord) return null;
+              const { x: lon, y: lat } = coord;
+              const socValue = plot.socStock;
+              const color = dataOption === 'SOC' ? getColor(socValue) : markerStatic;
 
-                return (
-                  <CircleMarker
-                    key={plot.id}
-                    center={[lat, lon]}
-                    pathOptions={{
-                      color,
-                      fillColor: color,
-                      fillOpacity: 1
-                    }}
-                    radius={Math.sqrt(socValue)}
-                  >
-                    <Popup>
-                      <strong>{plot.name}</strong><br />
-                      SOC stock: {socValue.toFixed(1)} Mg ha⁻¹
-                    </Popup>
-                  </CircleMarker>
-                );
-              })}
+              return (
+                <CircleMarker
+                  key={plot.id}
+                  center={[lat, lon]}
+                  pathOptions={{ color, fillColor: color, fillOpacity: 1 }}
+                  radius={Math.sqrt(socValue)}
+                >
+                  <Popup>
+                    <strong>{plot.name}</strong><br />
+                    SOC stock: {socValue.toFixed(1)} Mg ha⁻¹
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
           </React.Fragment>
         ) : null
       )}
-      <Legend
-        selectedData={dataOption}
-        areas={areas}
-        activeAreaId={activeAreaId}
-      />
+      <Legend selectedData={dataOption} areas={areas} activeAreaId={activeAreaId} />
     </>
   );
 }
@@ -262,10 +240,7 @@ export default function App() {
 
   useEffect(() => {
     fetch('/api/public/areas')
-      .then(r => {
-        if (!r.ok) throw new Error(r.status);
-        return r.json();
-      })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => {
         const enriched = data.map(area => ({
           ...area,
@@ -274,25 +249,22 @@ export default function App() {
             socStock: plot.aggregated_samples['1'].soc_stock_megag_per_hectare
           }))
         }));
-
-        // compute global min & max
         const allStocks = enriched.flatMap(a => a.plots.map(p => p.socStock));
-        const minStock = Math.min(...allStocks);
-        const maxStock = Math.max(...allStocks);
-
         setAreas(enriched);
-        setStockRange([minStock, maxStock]);
-
-        const subs = enriched.map(a => ({ key: a.id, label: a.name }));
-        setMenuItems(m =>
-          m.map(i =>
-            i.key === 'catchment' ? { ...i, subItems: subs } : i
-          )
-        );
+        setStockRange([Math.min(...allStocks), Math.max(...allStocks)]);
         setShouldRecenter(true);
       })
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (activeSection === 'catchment' && areas.length) {
+      const subs = areas.map(a => ({ key: a.id, label: a.name }));
+      setMenuItems(m =>
+        m.map(i => i.key === 'catchment' ? { ...i, subItems: subs } : i)
+      );
+    }
+  }, [activeSection, areas]);
 
 
   useEffect(() => {
