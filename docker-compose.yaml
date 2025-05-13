@@ -38,8 +38,8 @@ services:
       - soil-api-data:/app/target  # Store builds in docker volume
       - ../soil-api/Cargo.toml:/app/Cargo.toml
       - ../soil-api/Cargo.lock:/app/Cargo.lock
-      - ../crudcrate:/crudcrate
-      - ../crudcrate-derive:/crudcrate-derive
+      - ~/projects/personal/crudcrate:/crudcrate
+      - ~/projects/personal/crudcrate:/crudcrate-derive
     labels:
       - "traefik.http.routers.soil-api.rule=Host(`soil`) && PathPrefix(`/api`)"
       - "traefik.http.services.soil-api.loadbalancer.server.port=3000"

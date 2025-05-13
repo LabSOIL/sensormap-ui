@@ -22,7 +22,7 @@ import { Typography } from '@mui/material';
 import CoordinateInput, { AreaCoordinateEntry } from '../../maps/CoordinateEntry';
 
 
-const SoilClassificationCreate = () => {
+const SoilProfileCreate = () => {
     return (
         <Create redirect="show">
             <SimpleForm >
@@ -71,4 +71,4 @@ const SoilClassificationCreate = () => {
     )
 };
 
-export default SoilClassificationCreate;
+export default SoilProfileCreate;

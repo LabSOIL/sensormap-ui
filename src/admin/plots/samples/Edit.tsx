@@ -16,30 +16,22 @@ import {
 
 export const SoilClassificationInput = () => {
     const record = useRecordContext();
-    const [plotId, setPlotId] = React.useState(record?.plot_id);
-
-    React.useEffect(() => {
-        if (!record?.plot_id) {
-            const formElement = document.querySelector('input[name="plot_id"]') as HTMLInputElement;
-            if (formElement) {
-                setPlotId(formElement.value);
-            }
-        }
-    }, [record]);
-
-    if (!plotId) return null;
+    if (!record) return null;
 
     return (
         <ReferenceInput
             source="soil_classification_id"
             reference="soil_classifications"
             sort={{ field: 'name', order: 'ASC' }}
-            filter={{ area_id: plotId }} // Filter by area_id
+            filter={{ area_id: record.plot.area_id }} // Filter by area_id
         >
             <SelectInput
                 label="Soil Classification"
                 source="soil_classification_id"
-                optionText={(record) => `${record.soil_type?.name} (${record.area?.name})`}
+                optionText={(record) => {
+                    const date = new Date(record.created_on).toLocaleDateString();
+                    return `${date} ${record.soil_type?.name} (${record.area?.name} ${record.depth_upper_cm} - ${record.depth_lower_cm} cm)`;
+                }}
             />
         </ReferenceInput>
     );

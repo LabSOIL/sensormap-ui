@@ -16,6 +16,7 @@ import {
     useGetOne,
     Button,
     useGetManyReference,
+    ReferenceField,
 } from "react-admin";
 import { Grid, Typography } from '@mui/material';
 import { SedimentChart, MicrobialPieChart } from './Charts';
@@ -172,6 +173,9 @@ const PlotSampleArrowNavation = () => {
     );
 
     if (isPendingSamples || !samples) return null;
+    // Sort samples by upper_depth_cm in ascending order
+    samples.sort((a, b) => a.upper_depth_cm - b.upper_depth_cm);
+
 
     // Group samples by their depth range
     const groupedSamples = samples.reduce((acc, sample) => {
@@ -293,7 +297,23 @@ export const PlotSampleShow = () => (
                         <NumberField source="mfc" />
                     </Labeled>
                 </Grid>
-
+                <Grid item xs={3}>
+                    <Labeled label="Soil Classification">
+                        <ReferenceField source="soil_classification_id" reference="soil_classifications">
+                            <TextField source="soil_type.name" link />
+                        </ReferenceField>
+                    </Labeled>
+                </Grid>
+                <Grid item xs={3}>
+                    <Labeled label="FE Abundance (g/cm3)">
+                        <NumberField source="fe_abundance_g_per_cm3" />
+                    </Labeled>
+                </Grid>
+                <Grid item xs={3}>
+                    <Labeled label="SOC Stock (g/cm3)">
+                        <NumberField source="soc_stock_g_per_cm3" />
+                    </Labeled>
+                </Grid>
             </Grid>
             <TabbedShowLayout>
                 <TabbedShowLayout.Tab label="Soil Texture">

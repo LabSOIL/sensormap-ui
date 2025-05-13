@@ -22,8 +22,64 @@ import {
     useCreatePath,
     TabbedShowLayout,
 } from "react-admin";
-import { Grid, Typography } from '@mui/material';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
+import {
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
+    Typography,
+    Box,
+    Grid,
+} from '@mui/material';
+
+const AggregatedSamplesTable = () => {
+    const record = useRecordContext();
+    if (!record?.aggregated_samples) return null;
+
+    const rows = Object.entries(record.aggregated_samples).map(
+        ([group, values]) => ({ group, ...values })
+    );
+
+    return (
+        <Box mt={2}>
+            <Typography variant="h6" gutterBottom>
+                Sample summary
+            </Typography>
+            <Table size="small">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Replicate set</TableCell>
+                        <TableCell align="right">Samples</TableCell>
+                        <TableCell align="right">Mean C</TableCell>
+                        <TableCell align="right">Total Depth (cm)</TableCell>
+                        <TableCell align="right">SOC g/cm³</TableCell>
+                        <TableCell align="right">SOC Mg/ha</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {rows.map(row => (
+                        <TableRow key={row.group}>
+                            <TableCell component="th" scope="row">
+                                {row.group}
+                            </TableCell>
+                            <TableCell align="right">{row.sample_count}</TableCell>
+                            <TableCell align="right">{row.mean_c.toFixed(3)}</TableCell>
+                            <TableCell align="right">{row.total_depth}</TableCell>
+                            <TableCell align="right">
+                                {row.soc_stock_to_total_depth_g_per_cm3.toFixed(3)}
+                            </TableCell>
+                            <TableCell align="right">
+                                {row.soc_stock_megag_per_hectare.toFixed(3)}
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </Box>
+    );
+};
 
 
 const PlotShowTitle = () => {
@@ -177,14 +233,14 @@ export const PlotShow = () => {
                                 <DateField source="last_updated" showTime />
                             </Datagrid>
                         </ReferenceManyField>
-
+                        <AggregatedSamplesTable />
                     </Grid>
                     <Grid item xs={6}>
                         <Typography variant="h6" textAlign="center" gutterBottom>Plot illustration</Typography>
                         <ImageField source="image" />
                     </Grid>
-
                 </Grid>
+
                 <ArrayField source="transects">
                     <Datagrid rowClick={handleRowClick} bulkActionButtons={false}>
                         <TextField source="name" />

@@ -39,7 +39,10 @@ export const SoilClassificationInput = () => {
             <SelectInput
                 label="Soil Classification"
                 source="soil_classification_id"
-                optionText={(record) => `${record.soil_type?.name} (${record.area?.name})`}
+                optionText={(record) => {
+                    const date = new Date(record.created_on).toLocaleDateString();
+                    return `${date} ${record.soil_type?.name} (${record.area?.name} ${record.depth_upper_cm} - ${record.depth_lower_cm} cm)`;
+                }}
             />
         </ReferenceInput>
     );

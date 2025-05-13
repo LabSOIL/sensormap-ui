@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import {
@@ -43,7 +42,6 @@ function Legend({ selectedData }) {
   };
 
   useEffect(() => {
-    // remove old legend
     document.querySelectorAll('.info.legend').forEach(el => el.remove());
     if (!selectedData) return;
 
@@ -80,11 +78,23 @@ function CatchmentLayers({
   areas,
   activeAreaId,
   dataOption,
+  stockRange,
   onAreaClick,
   recenterSignal,
   onRecenterHandled
 }) {
   const map = useMap();
+  const defaultColor = '#3388ff';
+  const markerStatic = dataOption
+    ? dataOptions.find(o => o.key === dataOption).color
+    : defaultColor;
+
+  const [minStock, maxStock] = stockRange;
+  const getColor = value => {
+    const ratio = (value - minStock) / (maxStock - minStock);
+    const hue = (1 - ratio) * 120;
+    return `hsl(${hue}, 100%, 50%)`;
+  };
 
   useEffect(() => {
     if (!areas.length || !recenterSignal) return;
@@ -118,11 +128,6 @@ function CatchmentLayers({
     return () => map.off('zoomend', onZoom);
   }, [map, areas, activeAreaId, onAreaClick]);
 
-  const defaultColor = '#3388ff';
-  const markerColor = dataOption
-    ? dataOptions.find(o => o.key === dataOption).color
-    : defaultColor;
-
   return (
     <>
       <BaseLayers />
@@ -148,25 +153,32 @@ function CatchmentLayers({
               )}
             </Polygon>
 
-            {area.id === activeAreaId && area.plots?.map(plot => {
-              const coord = plot.geom?.['4326'];
-              if (!coord) return null;
-              const { x: lon, y: lat } = coord;
-              return (
-                <CircleMarker
-                  key={plot.id}
-                  center={[lat, lon]}
-                  pathOptions={{
-                    color: markerColor,
-                    fillColor: markerColor,
-                    fillOpacity: 1
-                  }}
-                  radius={8}
-                >
-                  <Popup>{plot.name}</Popup>
-                </CircleMarker>
-              );
-            })}
+            {area.id === activeAreaId &&
+              area.plots.map(plot => {
+                const coord = plot.geom?.['4326'];
+                if (!coord) return null;
+                const { x: lon, y: lat } = coord;
+                const socValue = plot.socStock;
+                const color = dataOption === 'SOC' ? getColor(socValue) : markerStatic;
+
+                return (
+                  <CircleMarker
+                    key={plot.id}
+                    center={[lat, lon]}
+                    pathOptions={{
+                      color,
+                      fillColor: color,
+                      fillOpacity: 1
+                    }}
+                    radius={Math.sqrt(socValue)}
+                  >
+                    <Popup>
+                      <strong>{plot.name}</strong><br />
+                      SOC stock: {socValue.toFixed(1)} Mg ha⁻¹
+                    </Popup>
+                  </CircleMarker>
+                );
+              })}
           </React.Fragment>
         ) : null
       )}
@@ -189,18 +201,42 @@ export default function App() {
     const idx = menuItems.findIndex(i => i.key === key);
     sectionsRef.current[idx]?.scrollIntoView({ behavior: 'smooth' });
   };
+  const [stockRange, setStockRange] = useState([0, 0]);
 
   useEffect(() => {
     fetch('/api/public/areas')
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json() })
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
       .then(data => {
-        setAreas(data);
-        const subs = data.map(a => ({ key: a.id, label: a.name }));
-        setMenuItems(m => m.map(i => i.key === 'catchment' ? { ...i, subItems: subs } : i));
+        const enriched = data.map(area => ({
+          ...area,
+          plots: area.plots.map(plot => ({
+            ...plot,
+            socStock: plot.aggregated_samples['1'].soc_stock_megag_per_hectare
+          }))
+        }));
+
+        // compute global min & max
+        const allStocks = enriched.flatMap(a => a.plots.map(p => p.socStock));
+        const minStock = Math.min(...allStocks);
+        const maxStock = Math.max(...allStocks);
+
+        setAreas(enriched);
+        setStockRange([minStock, maxStock]);
+
+        const subs = enriched.map(a => ({ key: a.id, label: a.name }));
+        setMenuItems(m =>
+          m.map(i =>
+            i.key === 'catchment' ? { ...i, subItems: subs } : i
+          )
+        );
         setShouldRecenter(true);
       })
       .catch(console.error);
   }, []);
+
 
   useEffect(() => {
     setMenuItems(m => m.map(i =>
@@ -346,6 +382,7 @@ export default function App() {
                 areas={areas}
                 activeAreaId={activeAreaId}
                 dataOption={selectedData}
+                stockRange={stockRange}
                 onAreaClick={selectArea}
                 recenterSignal={shouldRecenter}
                 onRecenterHandled={() => setShouldRecenter(false)}
