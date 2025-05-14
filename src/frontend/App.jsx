@@ -41,7 +41,6 @@ const flipPolygonCoordinates = geom =>
 function Legend({ selectedData, areas, activeAreaId }) {
   const map = useMap();
 
-
   const getColorOnScale = (value, min, max) => {
     const ratio = (value - min) / (max - min);
     const hue = (1 - ratio) * 120;
@@ -49,15 +48,12 @@ function Legend({ selectedData, areas, activeAreaId }) {
   };
 
   useEffect(() => {
-    // clear old legend
     document.querySelectorAll('.info.legend').forEach(el => el.remove());
     if (!selectedData) return;
 
-    // pull out the right accessor
     const accessor = dataAccessors[selectedData];
     if (!accessor) return;
 
-    // gather plot values
     let plots = [];
     if (activeAreaId) {
       const area = areas.find(a => a.id === activeAreaId);
@@ -68,12 +64,10 @@ function Legend({ selectedData, areas, activeAreaId }) {
     const values = plots.map(accessor).filter(v => typeof v === 'number');
     if (!values.length) return;
 
-    // integer min, mid, max
     const minVal = Math.floor(Math.min(...values));
     const maxVal = Math.ceil(Math.max(...values));
     const midVal = Math.round((minVal + maxVal) / 2);
 
-    // colour endpoints
     const staticColor = dataOptions.find(o => o.key === selectedData)?.color;
     let gradientStyle;
     if (selectedData === 'SOC') {
@@ -84,7 +78,6 @@ function Legend({ selectedData, areas, activeAreaId }) {
       gradientStyle = `background: linear-gradient(to top, #ffffff, ${staticColor});`;
     }
 
-    // build and add the Leaflet control
     const legend = L.control({ position: 'bottomright' });
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'info legend');
@@ -110,7 +103,6 @@ function Legend({ selectedData, areas, activeAreaId }) {
 
   return null;
 }
-
 
 function CatchmentLayers({
   areas,
@@ -159,7 +151,6 @@ function CatchmentLayers({
           onRecenterHandled();
         });
       } else {
-        // nothing to fly to
         setHasZoomed(true);
         onRecenterHandled();
       }
@@ -197,19 +188,26 @@ function CatchmentLayers({
               const coord = plot.geom?.['4326'];
               if (!coord) return null;
               const { x: lon, y: lat } = coord;
-              const socValue = plot.socStock;
-              const color = dataOption === 'SOC' ? getColor(socValue) : markerStatic;
+              const value = dataOption === 'SOC' ? plot.socStock : dataAccessors[dataOption](plot);
+              const color = dataOption === 'SOC' ? getColor(value) : markerStatic;
 
               return (
                 <CircleMarker
                   key={plot.id}
                   center={[lat, lon]}
                   pathOptions={{ color, fillColor: color, fillOpacity: 1 }}
-                  radius={Math.sqrt(socValue)}
+                  radius={Math.sqrt(plot.socStock)}
                 >
                   <Popup>
                     <strong>{plot.name}</strong><br />
-                    SOC stock: {socValue.toFixed(1)} Mg ha⁻¹
+                    Total depth: {plot.totalDepth} cm<br />
+                    Samples: {plot.sampleCount}<br />
+                    <hr />
+                    Mean C: {plot.meanC.toFixed(2)} %<br />
+                    SOC stock: {plot.socStock.toFixed(1)} Mg ha⁻¹<br />
+                    {/* pH: {plot.pH.toFixed(2)}<br /> */}
+                    {/* Temperature: {plot.temperature.toFixed(1)} °C<br /> */}
+                    {/* Soil moisture: {plot.soilMoisture.toFixed(1)} %<br /> */}
                   </Popup>
                 </CircleMarker>
               );
@@ -231,11 +229,6 @@ export default function App() {
   const [areas, setAreas] = useState([]);
   const [shouldRecenter, setShouldRecenter] = useState(false);
   const sectionsRef = useRef([]);
-
-  const scrollTo = key => {
-    const idx = menuItems.findIndex(i => i.key === key);
-    sectionsRef.current[idx]?.scrollIntoView({ behavior: 'smooth' });
-  };
   const [stockRange, setStockRange] = useState([0, 0]);
 
   useEffect(() => {
@@ -244,10 +237,19 @@ export default function App() {
       .then(data => {
         const enriched = data.map(area => ({
           ...area,
-          plots: area.plots.map(plot => ({
-            ...plot,
-            socStock: plot.aggregated_samples['1'].soc_stock_megag_per_hectare
-          }))
+          plots: area.plots.map(plot => {
+            const s = plot.aggregated_samples['1'];
+            return {
+              ...plot,
+              socStock: s.soc_stock_megag_per_hectare,
+              meanC: s.mean_c,
+              totalDepth: s.total_depth,
+              pH: s.pH,
+              temperature: s.temperature,
+              soilMoisture: s.soil_moisture,
+              sampleCount: s.sample_count
+            };
+          })
         }));
         const allStocks = enriched.flatMap(a => a.plots.map(p => p.socStock));
         setAreas(enriched);

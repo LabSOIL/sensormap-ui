@@ -39,7 +39,6 @@ body,
 .sidebar-toggle {
   position: absolute;
   top: 1rem;
-  right: -1rem;
   background: none;
   border: none;
   color: #333;
