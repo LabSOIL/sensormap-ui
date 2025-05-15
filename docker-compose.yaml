@@ -44,33 +44,25 @@ services:
       - "traefik.http.routers.soil-api.rule=Host(`soil`) && PathPrefix(`/api`)"
       - "traefik.http.services.soil-api.loadbalancer.server.port=3000"
 
-  # Left here in case python version is needed to start
-  # soil-api-python:
-  #   build:
-  #     context: ../soil-api-python
-  #   environment:
-  #     - DB_HOST=sensormap-db
-  #     - DB_PORT=5432
-  #     - DB_USER=postgres
-  #     - DB_PASSWORD=psql
-  #     - DB_NAME=postgres
-  #     - DB_PREFIX=postgresql+asyncpg
-  #   ports:
-  #     - 8005:8000
-  #   depends_on:
-  #       - sensormap-db
-  #   volumes:
-  #     - ../soil-api-python/app:/app/app
-
   sensormap-ui:
     build:
       context: .
-      dockerfile: Dockerfile.dev  # Uses the dockerfile containing yarn dev
+      dockerfile: Dockerfile.dev
     labels:
       - "traefik.http.routers.sensormap-ui.rule=Host(`soil`)"
       - "traefik.http.services.sensormap-ui.loadbalancer.server.port=5173"
     volumes:
       - ../sensormap-ui:/app
+
+  alpinesoc-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    labels:
+      - "traefik.http.routers.alpinesoc-ui.rule=Host(`alpinesoc`)"
+      - "traefik.http.services.alpinesoc-ui.loadbalancer.server.port=5173"
+    volumes:
+      - ../alpinesoc-ui:/app
 
   sensormap-db:
     image: postgis/postgis:16-master
