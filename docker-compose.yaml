@@ -41,7 +41,7 @@ services:
       - ~/projects/personal/crudcrate:/crudcrate
       - ~/projects/personal/crudcrate:/crudcrate-derive
     labels:
-      - "traefik.http.routers.soil-api.rule=Host(`soil`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.soil-api.rule=(Host(`soil`) || Host(`alpinesoc`)) && PathPrefix(`/api`)"
       - "traefik.http.services.soil-api.loadbalancer.server.port=3000"
 
   sensormap-ui:

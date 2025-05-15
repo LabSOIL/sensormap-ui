@@ -9,6 +9,7 @@ import {
     ReferenceField,
     TextField,
     DateField,
+    NumberField,
 } from 'react-admin';
 import { Box } from '@mui/material';
 import SensorPlotWithOverlay from '../../plots/SensorPlotWithOverlay';
@@ -38,9 +39,13 @@ const SensorProfileAssignmentShow = (props) => (
             </ReferenceField>
             <DateField source="date_from" label="From" showTime />
             <DateField source="date_to" label="To" showTime />
+            <NumberField source="depth_cm_sensor1" label="Depth (cm) Sensor 1" />
+            <NumberField source="depth_cm_sensor2" label="Depth (cm) Sensor 2" />
+            <NumberField source="depth_cm_sensor3" label="Depth (cm) Sensor 3" />
             <Box mt={2}>
                 <SensorPlotWithOverlay interactive={false} />
             </Box>
+
         </SimpleShowLayout>
     </Show>
 );

@@ -7,6 +7,7 @@ import {
     SelectInput,
     Toolbar,
     SaveButton,
+    NumberInput,
 } from 'react-admin';
 import { CoordinateInput } from '../../maps/CoordinateEntry';
 

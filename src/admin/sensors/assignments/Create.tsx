@@ -8,6 +8,7 @@ import {
     required,
     useNotify,
     useRedirect,
+    NumberInput,
 } from 'react-admin';
 import SensorPlotWithOverlay from '../../plots/SensorPlotWithOverlay';
 
@@ -31,6 +32,9 @@ const SensorProfileAssignmentCreate = (props) => {
                 </ReferenceInput>
                 <DateTimeInput source="date_from" label="Date From" validate={required()} />
                 <DateTimeInput source="date_to" label="Date To" validate={required()} />
+                <NumberInput source="depth_cm_sensor1" label="Depth (cm) Sensor 1" />
+                <NumberInput source="depth_cm_sensor2" label="Depth (cm) Sensor 2" />
+                <NumberInput source="depth_cm_sensor3" label="Depth (cm) Sensor 3" />
                 <SensorPlotWithOverlay interactive={true} />
             </SimpleForm>
         </Create>
