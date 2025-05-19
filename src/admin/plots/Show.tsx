@@ -23,6 +23,7 @@ import {
     TabbedShowLayout,
 } from "react-admin";
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
+import InfoIcon from '@mui/icons-material/Info';
 import {
     Table,
     TableHead,
@@ -32,6 +33,7 @@ import {
     Typography,
     Box,
     Grid,
+    Tooltip,
 } from '@mui/material';
 
 const AggregatedSamplesTable = () => {
@@ -56,6 +58,11 @@ const AggregatedSamplesTable = () => {
                         <TableCell align="right">Total Depth (cm)</TableCell>
                         <TableCell align="right">SOC g/cm³</TableCell>
                         <TableCell align="right">SOC Mg/ha</TableCell>
+                        <TableCell align="right">
+                            <Tooltip title="The pH is taken from the topmost sample">
+                                <span>pH <InfoIcon fontSize="small" style={{ verticalAlign: 'middle', marginLeft: 4, opacity: 0.7 }} /></span>
+                            </Tooltip>
+                        </TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -72,6 +79,9 @@ const AggregatedSamplesTable = () => {
                             </TableCell>
                             <TableCell align="right">
                                 {row.soc_stock_megag_per_hectare.toFixed(3)}
+                            </TableCell>
+                            <TableCell align="right">
+                                {row.ph.toFixed(2)}
                             </TableCell>
                         </TableRow>
                     ))}
