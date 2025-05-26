@@ -146,6 +146,11 @@ const SensorProfileShowContent = ({
                     </ReferenceField>
                     <DateField source="date_from" label="From" showTime />
                     <DateField source="date_to" label="To" showTime />
+                    <TextField source="depth_cm_sensor1" label="Depth Temperature 1 (cm)" />
+                    <TextField source="depth_cm_sensor2" label="Depth Temperature 2 (cm)" />
+                    <TextField source="depth_cm_sensor3" label="Depth Temperature 3 (cm)" />
+                    <TextField source="depth_cm_moisture" label="Depth Moisture 1 (cm)" />
+
                 </Datagrid>
             </ArrayField>
         </>
