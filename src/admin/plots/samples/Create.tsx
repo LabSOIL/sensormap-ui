@@ -153,7 +153,7 @@ const PlotSampleCreate = () => {
                     validate={[required(), minValue(0)]}
                     helperText={<>Lower-most depth in centimeters relative to the surface where the sample was taken</>}
                 />
-                <NumberInput source="sample_weight" label="Sample Weight (g)" validate={[required()]} />
+                <NumberInput source="sample_weight" label="Sample Weight (g)" />
                 <NumberInput source="subsample_weight" label="Subsample Weight" />
                 <NumberInput source="subsample_replica_weight" label="Subsample Replica Weight" />
                 <NumberInput source="ph" label="pH" />
