@@ -19,6 +19,7 @@ import {
 import { Grid, Typography, Checkbox } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { SensorProfilePlot } from '../Plots';
+import { useDataProvider } from 'react-admin';
 
 const SensorProfileShowActions = () => {
     const { permissions } = usePermissions();
@@ -34,6 +35,30 @@ const SensorProfileShowActions = () => {
     );
 };
 
+
+export const SoilTypeOutput = ({ soilTypeId }) => {
+    const dataProvider = useDataProvider();
+    const [soilTypeName, setSoilTypeName] = useState('');
+
+    useEffect(() => {
+        const fetchSoilType = async () => {
+            if (!soilTypeId) {
+                setSoilTypeName('');
+                return;
+            }
+            try {
+                const response = await dataProvider.getSensorSoilTypes();
+                const found = response.data.find(type => type.id === soilTypeId);
+                setSoilTypeName(found ? found.name : '');
+            } catch (error) {
+                setSoilTypeName('');
+            }
+        };
+        fetchSoilType();
+    }, [dataProvider, soilTypeId]);
+
+    return <span>{soilTypeName}</span>;
+};
 // This component uses useRecordContext so it can initialize and render profile details.
 const SensorProfileShowContent = ({
     createPath,
@@ -44,6 +69,9 @@ const SensorProfileShowContent = ({
 }) => {
     const record = useRecordContext();
 
+    if (!record) {
+        return null; // Return null if no record is available
+    }
     // On first render, initialize visibleAssignments for each assignment to true.
     useEffect(() => {
         if (record && record.assignments && Object.keys(visibleAssignments).length === 0) {
@@ -54,6 +82,45 @@ const SensorProfileShowContent = ({
             setVisibleAssignments(initial);
         }
     }, [record, setVisibleAssignments, visibleAssignments]);
+
+    // Calculate data summary for the new format
+    const dataSummary = (() => {
+        const hasTemperatureData = record.temperature_by_depth_cm && Object.keys(record.temperature_by_depth_cm).length > 0;
+        const hasMoistureData = record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0;
+        const hasLegacyData = record.data_by_depth_cm && Object.keys(record.data_by_depth_cm).length > 0;
+        
+        if (hasTemperatureData || hasMoistureData) {
+            const tempDepths = hasTemperatureData ? Object.keys(record.temperature_by_depth_cm).map(d => parseInt(d)) : [];
+            const moistureDepths = hasMoistureData ? Object.keys(record.moisture_vwc_by_depth_cm).map(d => parseInt(d)) : [];
+            const allDepths = [...new Set([...tempDepths, ...moistureDepths])].sort((a, b) => a - b);
+            
+            const tempDataPoints = hasTemperatureData ? 
+                Object.values(record.temperature_by_depth_cm).reduce((sum, points) => sum + points.length, 0) : 0;
+            const moistureDataPoints = hasMoistureData ? 
+                Object.values(record.moisture_vwc_by_depth_cm).reduce((sum, points) => sum + points.length, 0) : 0;
+            
+            return {
+                hasNewFormat: true,
+                hasTemperatureData,
+                hasMoistureData,
+                depths: allDepths,
+                totalDataPoints: tempDataPoints + moistureDataPoints
+            };
+        } else if (hasLegacyData) {
+            return {
+                hasNewFormat: false,
+                isLegacyDepthGrouped: true,
+                depths: Object.keys(record.data_by_depth_cm).map(d => parseInt(d)).sort((a, b) => a - b),
+                totalDataPoints: Object.values(record.data_by_depth_cm).reduce((sum, points) => sum + points.length, 0)
+            };
+        } else {
+            return {
+                hasNewFormat: false,
+                isLegacyDepthGrouped: false,
+                legacyDataCount: record.assignments?.reduce((sum, assignment) => sum + (assignment.data?.length || 0), 0) || 0
+            };
+        }
+    })();
 
     return (
         <>
@@ -91,6 +158,62 @@ const SensorProfileShowContent = ({
                         <Labeled label="Elevation (m)">
                             <TextField source="coord_z" />
                         </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Soil Type">
+                            <SoilTypeOutput soilTypeId={record.soil_type_vwc} />
+                        </Labeled>
+                    </Grid>
+                    
+                    {/* Data format summary */}
+                    <Grid item xs={12}>
+                        <Typography variant="h6" style={{ marginTop: '16px', marginBottom: '8px' }}>
+                            Data Summary
+                        </Typography>
+                        {dataSummary.hasNewFormat ? (
+                            <>
+                                <Typography variant="body2">
+                                    Depths monitored: {dataSummary.depths.join(', ')}cm
+                                </Typography>
+                                <Typography variant="body2">
+                                    {dataSummary.hasTemperatureData && dataSummary.hasMoistureData && 
+                                        `Temperature & VWC data: ${dataSummary.totalDataPoints.toLocaleString()} points`}
+                                    {dataSummary.hasTemperatureData && !dataSummary.hasMoistureData && 
+                                        `Temperature data: ${dataSummary.totalDataPoints.toLocaleString()} points`}
+                                    {!dataSummary.hasTemperatureData && dataSummary.hasMoistureData && 
+                                        `VWC data: ${dataSummary.totalDataPoints.toLocaleString()} points`}
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                    {dataSummary.hasMoistureData ? 
+                                        'VWC calculations applied to moisture data.' : 
+                                        'Temperature data grouped by depth.'}
+                                </Typography>
+                            </>
+                        ) : dataSummary.isLegacyDepthGrouped ? (
+                            <>
+                                <Typography variant="body2" color="info.main">
+                                    Using legacy depth-grouped format
+                                </Typography>
+                                <Typography variant="body2">
+                                    Depths: {dataSummary.depths.join(', ')}cm
+                                </Typography>
+                                <Typography variant="body2">
+                                    Data points: {dataSummary.totalDataPoints.toLocaleString()}
+                                </Typography>
+                            </>
+                        ) : (
+                            <>
+                                <Typography variant="body2" color="warning.main">
+                                    ⚠ Using raw sensor data format
+                                </Typography>
+                                <Typography variant="body2">
+                                    Raw data points: {dataSummary.legacyDataCount.toLocaleString()}
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                    Individual sensor readings. Consider updating to depth-grouped format.
+                                </Typography>
+                            </>
+                        )}
                     </Grid>
                 </Grid>
 

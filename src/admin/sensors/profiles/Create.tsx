@@ -11,7 +11,8 @@ import {
 import { useFormContext } from 'react-hook-form';
 import { CoordinateInput, AreaCoordinateEntry } from '../../maps/CoordinateEntry';
 import { useEffect } from 'react';
-
+import { SoilTypeInput } from './Edit';
+import Soil from '../../soil';
 
 const MyToolbar = () => (
     <Toolbar>
@@ -34,6 +35,7 @@ const SensorProfileCreate = () => {
                         validate={required()}
                     />
                 </ReferenceInput>
+                <SoilTypeInput />
                 <AreaCoordinateEntry source="area_id" />
                 <TextInput source="description" />
                 <TextInput source="comment" label="Notes/Comments" />

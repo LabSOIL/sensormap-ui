@@ -66,12 +66,12 @@ services:
 
   sensormap-db:
     image: postgis/postgis:16-master
-    command: >
-      postgres
-      -c log_destination=stderr
-      -c logging_collector=off
-      -c log_statement=all
-      -c log_min_duration_statement=0
+    # command: >
+    #   postgres
+    #   -c log_destination=stderr
+    #   -c logging_collector=off
+    #   -c log_statement=all
+    #   -c log_min_duration_statement=0
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=psql

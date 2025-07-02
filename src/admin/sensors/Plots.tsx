@@ -15,7 +15,6 @@ import { useState } from 'react';
 import { Typography } from '@mui/material';
 import { Checkbox } from '@mui/material';
 
-
 export const SensorPlot = ({ highResolution, setHighResolution }: (any)) => {
     const [theme] = useTheme();
     const record = useRecordContext();
@@ -210,47 +209,100 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution, visibleAs
             line: { width: 0 },
         }));
 
-    const metrics = [
-        { key: 'temperature_1', name: 'Temperature 1', color: 'blue' },
-        { key: 'temperature_2', name: 'Temperature 2', color: 'red' },
-        { key: 'temperature_3', name: 'Temperature 3', color: 'green' },
-        { key: 'temperature_average', name: 'Temperature Average', color: 'orange' },
-    ];
-    const soilMetric = {
-        key: 'soil_moisture_count',
-        name: 'Soil Moisture',
-        color: 'purple',
-    };
-
-    // Build Plotly traces only for visible assignments
+    // Build Plotly traces from the new data structure
     const traces = [];
-    assignments.forEach(assignment => {
-        if (visibleAssignments[assignment.id]) {
-            const data = assignment.data || [];
-            metrics.forEach(metric => {
+    
+    // Temperature traces grouped by depth from temperature_by_depth_cm
+    if (record.temperature_by_depth_cm && Object.keys(record.temperature_by_depth_cm).length > 0) {
+        Object.entries(record.temperature_by_depth_cm).forEach(([depth, dataPoints]) => {
+            traces.push({
+                x: dataPoints.map(d => d.time_utc),
+                y: dataPoints.map(d => d.y),
+                name: `Temperature at ${depth}cm depth`,
+                line: { color: `hsl(${(parseInt(depth) * 30) % 360}, 70%, 50%)` },
+                type: 'scatter',
+                mode: 'lines',
+            });
+        });
+    }
+
+    // VWC moisture traces grouped by depth from moisture_vwc_by_depth_cm
+    if (record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0) {
+        Object.entries(record.moisture_vwc_by_depth_cm).forEach(([depth, dataPoints]) => {
+            traces.push({
+                x: dataPoints.map(d => d.time_utc),
+                y: dataPoints.map(d => d.y),
+                name: `VWC at ${depth}cm depth`,
+                line: { color: `hsl(${(parseInt(depth) * 30 + 180) % 360}, 70%, 50%)` },
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2', // Use secondary y-axis for moisture
+            });
+        });
+    }
+
+    // Fallback: If no new data structure, show legacy assignment data or data_by_depth_cm
+    const hasNewData = (record.temperature_by_depth_cm && Object.keys(record.temperature_by_depth_cm).length > 0) ||
+                       (record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0);
+
+    if (!hasNewData) {
+        // Try legacy data_by_depth_cm first
+        if (record.data_by_depth_cm && Object.keys(record.data_by_depth_cm).length > 0) {
+            Object.entries(record.data_by_depth_cm).forEach(([depth, dataPoints]) => {
                 traces.push({
-                    x: data.map(d => d.time_utc),
-                    y: data.map(d => d[metric.key]),
-                    name: `${assignment.sensor?.name || assignment.sensor_id} - ${metric.name}`,
-                    line: {
-                        color: metric.color,
-                        width: highlightedAssignment === assignment.id ? 4 : 2,
-                    },
+                    x: dataPoints.map(d => d.time_utc),
+                    y: dataPoints.map(d => d.y),
+                    name: `Temperature at ${depth}cm depth (legacy)`,
+                    line: { color: `hsl(${(parseInt(depth) * 30) % 360}, 70%, 50%)` },
+                    type: 'scatter',
+                    mode: 'lines',
                 });
             });
-            // Soil moisture on secondary y-axis
-            traces.push({
-                x: data.map(d => d.time_utc),
-                y: data.map(d => d[soilMetric.key]),
-                name: `${assignment.sensor?.name || assignment.sensor_id} - ${soilMetric.name}`,
-                line: {
-                    color: soilMetric.color,
-                    width: highlightedAssignment === assignment.id ? 4 : 2,
-                },
-                yaxis: 'y2',
+        } else {
+            // Fallback to assignment-based data
+            const metrics = [
+                { key: 'temperature_1', name: 'Temperature 1', color: 'blue' },
+                { key: 'temperature_2', name: 'Temperature 2', color: 'red' },
+                { key: 'temperature_3', name: 'Temperature 3', color: 'green' },
+                { key: 'temperature_average', name: 'Temperature Average', color: 'orange' },
+            ];
+            const soilMetric = {
+                key: 'soil_moisture_count',
+                name: 'Soil Moisture (Raw)',
+                color: 'purple',
+            };
+
+            assignments.forEach(assignment => {
+                if (visibleAssignments[assignment.id]) {
+                    const data = assignment.data || [];
+                    metrics.forEach(metric => {
+                        traces.push({
+                            x: data.map(d => d.time_utc),
+                            y: data.map(d => d[metric.key]),
+                            name: `${assignment.sensor?.name || assignment.sensor_id} - ${metric.name}`,
+                            line: {
+                                color: metric.color,
+                                width: highlightedAssignment === assignment.id ? 4 : 2,
+                            },
+                        });
+                    });
+                    // Soil moisture on secondary y-axis (raw counts)
+                    traces.push({
+                        x: data.map(d => d.time_utc),
+                        y: data.map(d => d[soilMetric.key]),
+                        name: `${assignment.sensor?.name || assignment.sensor_id} - ${soilMetric.name}`,
+                        line: {
+                            color: soilMetric.color,
+                            width: highlightedAssignment === assignment.id ? 4 : 2,
+                        },
+                        yaxis: 'y2',
+                    });
+                }
             });
         }
-    });
+    }
+
+    const hasMoistureData = record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0;
 
     const layout = {
         paper_bgcolor: mode === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
@@ -265,13 +317,17 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution, visibleAs
             gridcolor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
         },
         yaxis2: {
-            title: 'Soil Moisture',
+            title: hasMoistureData ? 'Volumetric Water Content (VWC)' : 'Soil Moisture (Raw Counts)',
             titlefont: { color: 'rgb(148, 103, 189)' },
             tickfont: { color: 'rgb(148, 103, 189)' },
             overlaying: 'y',
             side: 'right',
+            range: hasMoistureData ? [0, 1] : undefined, // VWC is between 0 and 1
         },
         shapes: assignmentShapes,
+        title: hasNewData 
+            ? 'Sensor Data Grouped by Depth' 
+            : 'Legacy Sensor Data View',
     };
 
     const handleToggleHighResolution = () => {
@@ -299,6 +355,16 @@ export const SensorProfilePlot = ({ highResolution, setHighResolution, visibleAs
                         label={<Typography variant="body2">High resolution</Typography>}
                     />
                 </Grid>
+                {hasNewData && (
+                    <Grid item>
+                        <Typography variant="body2" color="textSecondary">
+                            {hasMoistureData ? 
+                                'Showing temperature and VWC data grouped by depth' : 
+                                'Showing temperature data grouped by depth'
+                            }
+                        </Typography>
+                    </Grid>
+                )}
             </Grid>
         </>
     );

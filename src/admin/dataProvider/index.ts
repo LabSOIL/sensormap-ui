@@ -239,6 +239,10 @@ const dataProvider = (
         return httpClient(url, {
             method: 'DELETE',
         }).then(({ json }) => ({ data: json }));
+    },
+    getSensorSoilTypes: async () => {
+        const url = `${apiUrl}/public/sensors/soil_types`;
+        return httpClient(url).then(({ json }) => ({ data: json }));
     }
 });
 
