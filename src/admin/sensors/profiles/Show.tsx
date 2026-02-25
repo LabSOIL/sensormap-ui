@@ -2,6 +2,7 @@ import {
     Show,
     SimpleShowLayout,
     TextField,
+    NumberField,
     ReferenceField,
     useRecordContext,
     EditButton,
@@ -160,11 +161,49 @@ const SensorProfileShowContent = ({
                         </Labeled>
                     </Grid>
                     <Grid item xs={6}>
-                        <Labeled label="Soil Type">
-                            <SoilTypeOutput soilTypeId={record.soil_type_vwc} />
+                        <Labeled label="Profile Type">
+                            <TextField source="profile_type" />
                         </Labeled>
                     </Grid>
-                    
+                    {record.profile_type === 'tms' && (
+                        <Grid item xs={6}>
+                            <Labeled label="Soil Type">
+                                <SoilTypeOutput soilTypeId={record.soil_type_vwc} />
+                            </Labeled>
+                        </Grid>
+                    )}
+                    {record.profile_type === 'chamber' && (
+                        <>
+                            <Grid item xs={6}>
+                                <Labeled label="Chamber Volume (ml)">
+                                    <NumberField source="volume_ml" />
+                                </Labeled>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Labeled label="Collar Area (cm²)">
+                                    <NumberField source="area_cm2" />
+                                </Labeled>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Labeled label="Instrument Model">
+                                    <TextField source="instrument_model" />
+                                </Labeled>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Labeled label="Chamber ID">
+                                    <TextField source="chamber_id_external" />
+                                </Labeled>
+                            </Grid>
+                        </>
+                    )}
+                    {(record.profile_type === 'chamber' || record.profile_type === 'redox') && (
+                        <Grid item xs={6}>
+                            <Labeled label="Position Number">
+                                <NumberField source="position" />
+                            </Labeled>
+                        </Grid>
+                    )}
+
                     {/* Data format summary */}
                     <Grid item xs={12}>
                         <Typography variant="h6" style={{ marginTop: '16px', marginBottom: '8px' }}>

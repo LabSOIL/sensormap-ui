@@ -6,7 +6,7 @@ import {
     TextInput,
     required,
 } from 'react-admin';
-import { ColorInput } from 'react-admin-color-picker';
+import ColorInput from './ColorInput';
 
 
 const ProjectCreate = () => {

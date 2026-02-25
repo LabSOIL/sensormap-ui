@@ -32,8 +32,8 @@ const SensorProfileList = () => {
                 rowClick="show"
             >
                 <TextField source="name" />
+                <TextField source="profile_type" label="Type" />
                 <TextField source="description" />
-                <TextField source="comment" />
                 <ReferenceField source="area_id" reference="areas">
                     <TextField source="name" />
                 </ReferenceField>

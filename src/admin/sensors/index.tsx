@@ -16,6 +16,16 @@ import SensorAssignmentEdit from './assignments/Edit';
 import SensorAssignmentList from './assignments/List';
 import SensorAssignmentShow from './assignments/Show';
 import SensorAssignmentIcon from '@mui/icons-material/Assignment';
+import FluxDataCreate from './flux_data/Create';
+import FluxDataEdit from './flux_data/Edit';
+import FluxDataList from './flux_data/List';
+import FluxDataShow from './flux_data/Show';
+import RedoxDataCreate from './redox_data/Create';
+import RedoxDataEdit from './redox_data/Edit';
+import RedoxDataList from './redox_data/List';
+import RedoxDataShow from './redox_data/Show';
+import Co2Icon from '@mui/icons-material/Co2';
+import ScienceIcon from '@mui/icons-material/Science';
 const assignments = {
     create: SensorAssignmentCreate,
     edit: SensorAssignmentEdit,
@@ -56,9 +66,29 @@ const sensordata = {
     show: SensorDataShow,
 };
 
+const flux_data = {
+    create: FluxDataCreate,
+    edit: FluxDataEdit,
+    list: FluxDataList,
+    show: FluxDataShow,
+    icon: Co2Icon,
+    options: { label: 'Flux Data' },
+};
+
+const redox_data = {
+    create: RedoxDataCreate,
+    edit: RedoxDataEdit,
+    list: RedoxDataList,
+    show: RedoxDataShow,
+    icon: ScienceIcon,
+    options: { label: 'Redox Data' },
+};
+
 export default {
     sensor,
     sensordata,
     profile,
     assignments,
+    flux_data,
+    redox_data,
 };

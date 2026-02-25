@@ -28,7 +28,7 @@ const MapEvents = ({ setZoomLevel, setCurrentMapBounds }) => {
 // Renders an area polygon with an enhanced label (tooltip)
 const ZoomablePolygon = ({ area }) => {
     const map = useMap();
-    if (!area.geom) return null;
+    if (!area.geom || !area.geom.coordinates || !area.geom.coordinates.length) return null;
     const positions = area.geom.coordinates[0].map(coord => [coord[1], coord[0]]);
     const bounds = L.latLngBounds(positions);
     const handleZoom = () => {

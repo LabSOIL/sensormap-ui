@@ -2,16 +2,18 @@ import {
     Edit,
     SimpleForm,
     TextInput,
+    NumberInput,
     required,
     ReferenceInput,
     SelectInput,
     Toolbar,
     SaveButton,
-    NumberInput,
     useDataProvider,
 } from 'react-admin';
+import { useWatch } from 'react-hook-form';
 import { CoordinateInput } from '../../maps/CoordinateEntry';
 import { useEffect, useState } from 'react';
+import { PROFILE_TYPE_CHOICES } from './Create';
 
 
 const MyToolbar = () => (
@@ -96,6 +98,27 @@ export const SoilTypeInput = () => {
         />
     );
 }
+const EditProfileTypeFields = () => {
+    const profileType = useWatch({ name: 'profile_type' });
+
+    return (
+        <>
+            {profileType === 'tms' && <SoilTypeInput />}
+            {profileType === 'chamber' && (
+                <>
+                    <NumberInput source="volume_ml" label="Chamber Volume (ml)" />
+                    <NumberInput source="area_cm2" label="Collar Area (cm²)" />
+                    <TextInput source="instrument_model" label="Instrument Model" />
+                    <TextInput source="chamber_id_external" label="Chamber ID" />
+                </>
+            )}
+            {(profileType === 'chamber' || profileType === 'redox') && (
+                <NumberInput source="position" label="Position Number" />
+            )}
+        </>
+    );
+};
+
 const SensorProfileEdit = () => {
     return (
         <Edit>
@@ -108,10 +131,14 @@ const SensorProfileEdit = () => {
                         optionText="name" />
                 </ReferenceInput>
                 <TextInput source="name" validate={[required()]} />
+                <SelectInput
+                    source="profile_type"
+                    label="Profile Type"
+                    choices={PROFILE_TYPE_CHOICES}
+                    validate={required()}
+                />
+                <EditProfileTypeFields />
                 <TextInput source="description" />
-                <TextInput source="serial_number" />
-                <TextInput source="comment" label="Notes/Comments" multiline />
-                <SoilTypeInput />
                 <CoordinateInput updateElevationOnMount={false} />
             </SimpleForm>
         </Edit>

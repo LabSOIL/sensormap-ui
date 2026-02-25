@@ -1,14 +1,20 @@
 # Development docker-compose. Assuming the API folders are relative to this
-# repository, point /etc/hosts to soil 127.0.0.1 and connect to http://soil:88
+# repository, point /etc/hosts to 127.0.0.1 for each UI hostname:
+#   127.0.0.1  soil alpinesoc rewetflux
+# Then connect to http://soil:88, http://alpinesoc:88, or http://rewetflux:88
 
 services:
   traefik:
-    image: traefik:v2.9.6
+    image: traefik:v3.6
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--core.defaultRuleSyntax=v2"
+    environment:
+      - DOCKER_API_VERSION=1.44
     ports:
       - "88:80"
+      - "8888:80"
       - "8088:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -41,7 +47,7 @@ services:
       - ~/projects/personal/crudcrate:/crudcrate
       - ~/projects/personal/crudcrate:/crudcrate-derive
     labels:
-      - "traefik.http.routers.soil-api.rule=(Host(`soil`) || Host(`alpinesoc`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.soil-api.rule=(Host(`soil`) || Host(`alpinesoc`) || Host(`rewetflux`)) && PathPrefix(`/api`)"
       - "traefik.http.services.soil-api.loadbalancer.server.port=3000"
 
   sensormap-ui:
@@ -63,6 +69,16 @@ services:
       - "traefik.http.services.alpinesoc-ui.loadbalancer.server.port=5173"
     volumes:
       - ../alpinesoc-ui:/app
+
+  rewetflux-ui:
+    build:
+      context: ../rewetflux/rewetflux-ui
+      dockerfile: Dockerfile.dev
+    labels:
+      - "traefik.http.routers.rewetflux-ui.rule=Host(`rewetflux`)"
+      - "traefik.http.services.rewetflux-ui.loadbalancer.server.port=5173"
+    volumes:
+      - ../rewetflux/rewetflux-ui:/app
 
   sensormap-db:
     image: postgis/postgis:16-master
