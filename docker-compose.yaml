@@ -1,6 +1,6 @@
 # Development docker-compose. Assuming the API folders are relative to this
 # repository, point /etc/hosts to 127.0.0.1 for each UI hostname:
-#   127.0.0.1  soil alpinesoc rewetflux
+#   127.0.0.1  soil alpinesoc rewetflux soil-keycloak
 # Then connect to http://soil:88, http://alpinesoc:88, or http://rewetflux:88
 
 services:
@@ -14,10 +14,32 @@ services:
       - DOCKER_API_VERSION=1.44
     ports:
       - "88:80"
-      - "8888:80"
       - "8088:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  soil-keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KC_DB: dev-file
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8888
+      KC_HOSTNAME: soil-keycloak
+      KC_HOSTNAME_PORT: 88
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./keycloak-realm-dev.json:/opt/keycloak/data/import/realm-export.json:ro
+    labels:
+      - "traefik.http.routers.soil-keycloak.rule=Host(`soil-keycloak`)"
+      - "traefik.http.routers.soil-keycloak.priority=50"
+      - "traefik.http.services.soil-keycloak.loadbalancer.server.port=8888"
 
   soil-api:
     build:
@@ -30,9 +52,10 @@ services:
       - DB_PASSWORD=psql
       - DB_NAME=postgres
       - DB_PREFIX=postgresql
-      - KEYCLOAK_UI_ID=${KEYCLOAK_CLIENT_ID}
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_UI_ID=sensormap-frontend-local
+      - KEYCLOAK_REALM=SOIL
+      - KEYCLOAK_URL=http://soil-keycloak:8888/
+      - KEYCLOAK_BROWSER_URL=http://soil-keycloak:88/
       - DEPLOYMENT=local
       - APP_NAME=soil-api
     ports:
@@ -46,6 +69,8 @@ services:
       - ../soil-api/Cargo.lock:/app/Cargo.lock
       - ~/projects/personal/crudcrate:/crudcrate
       - ~/projects/personal/crudcrate:/crudcrate-derive
+      - ../moisturevals/soil-sensor-toolbox:/moisturevals/soil-sensor-toolbox
+      - ../soil-api/migration:/app/migration
     labels:
       - "traefik.http.routers.soil-api.rule=(Host(`soil`) || Host(`alpinesoc`) || Host(`rewetflux`)) && PathPrefix(`/api`)"
       - "traefik.http.services.soil-api.loadbalancer.server.port=3000"
@@ -81,7 +106,7 @@ services:
       - ../rewetflux/rewetflux-ui:/app
 
   sensormap-db:
-    image: postgis/postgis:16-master
+    image: timescale/timescaledb-ha:pg16
     # command: >
     #   postgres
     #   -c log_destination=stderr

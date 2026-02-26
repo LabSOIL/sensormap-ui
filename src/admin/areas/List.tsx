@@ -8,7 +8,6 @@ import {
     ExportButton,
     useRecordContext,
     FunctionField,
-    BooleanField,
 } from "react-admin";
 import { LocationFieldAreas } from '../maps/Areas';
 import { postFilters } from "../filters/list";
@@ -54,7 +53,6 @@ export const AreaList = () => {
                 <FunctionField render={record => `${record.soil_profiles.length}`} label="Soil Profiles" />
                 <FunctionField render={record => `${record.transects.length}`} label="Transects" />
                 <FunctionField render={() => <ColorBox />} label="Project" />
-                <BooleanField source="is_public" label="Public" />
             </Datagrid>
             <LocationFieldAreas />
         </List>

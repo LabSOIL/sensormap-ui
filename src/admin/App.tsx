@@ -24,6 +24,10 @@ import transects from './transects';
 import gnss from './gnss';
 import axios from 'axios';
 import instruments from './instruments';
+import websites from './websites';
+import areaWebsites from './area_websites';
+import websitePlotExclusions from './website_plot_exclusions';
+import websiteSensorExclusions from './website_sensor_exclusions';
 import Dashboard from './Dashboard';
 import './App.css';
 
@@ -119,6 +123,10 @@ const App = () => {
                             <Resource name="instrument_channels" {...instruments.channels} >
                                 <Route path=":id/integrate" element={<instruments.channels.integrate />} />
                             </Resource>
+                            <Resource name="websites" {...websites} />
+                            <Resource name="area_websites" {...areaWebsites} />
+                            <Resource name="website_plot_exclusions" {...websitePlotExclusions} />
+                            <Resource name="website_sensor_exclusions" {...websiteSensorExclusions} />
                         </>
                     ) : null}
                 </>

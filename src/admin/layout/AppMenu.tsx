@@ -35,6 +35,7 @@ export const MyMenu = () => (
         </SubMenu>
 
         <hr style={{ width: '70%' }} />
+        <Menu.ResourceItem name="websites" />
         <Menu.ResourceItem name="instruments" />
     </Menu>
 );

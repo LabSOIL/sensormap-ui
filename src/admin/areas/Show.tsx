@@ -10,10 +10,12 @@ import {
     ReferenceField,
     DateField,
     Labeled,
-    BooleanField
+    ReferenceManyField,
+    SingleFieldList,
+    ChipField,
 } from "react-admin";
 import { LocationFieldPoints } from '../maps/Points';
-import { Grid } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 
 
@@ -109,9 +111,18 @@ export const AreaShow = () => {
                             </Labeled>
                         </Grid>
                         <Grid item xs={6}>
-                            <Labeled label="Visible on public website" >
-                                <BooleanField source="is_public"/>
+                            <Labeled label="Visible on Websites">
+                                <ReferenceManyField reference="area_websites" target="area_id">
+                                    <SingleFieldList linkType={false}>
+                                        <ReferenceField source="website_id" reference="websites" link="show">
+                                            <ChipField source="name" />
+                                        </ReferenceField>
+                                    </SingleFieldList>
+                                </ReferenceManyField>
                             </Labeled>
+                            <Typography variant="body2" color="textSecondary">
+                                To manage website visibility, go to the website's page (Websites menu) and use Area Assignments.
+                            </Typography>
                         </Grid>
                     </Grid>
 
