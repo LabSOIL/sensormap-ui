@@ -10,8 +10,9 @@ import {
     TextField,
     DateField,
     NumberField,
+    Labeled,
 } from 'react-admin';
-import { Box } from '@mui/material';
+import { Grid } from '@mui/material';
 import SensorPlotWithOverlay from '../../plots/SensorPlotWithOverlay';
 
 const ShowActions = () => {
@@ -31,21 +32,52 @@ const ShowActions = () => {
 const SensorProfileAssignmentShow = (props) => (
     <Show {...props} actions={<ShowActions />}>
         <SimpleShowLayout>
-            <ReferenceField source="sensor_id" reference="sensors">
-                <TextField source="name" />
-            </ReferenceField>
-            <ReferenceField source="sensorprofile_id" reference="sensor_profiles">
-                <TextField source="name" />
-            </ReferenceField>
-            <DateField source="date_from" label="From" showTime />
-            <DateField source="date_to" label="To" showTime />
-            <NumberField source="depth_cm_sensor1" label="Depth (cm) Sensor 1" />
-            <NumberField source="depth_cm_sensor2" label="Depth (cm) Sensor 2" />
-            <NumberField source="depth_cm_sensor3" label="Depth (cm) Sensor 3" />
-            <Box mt={2}>
-                <SensorPlotWithOverlay interactive={false} />
-            </Box>
-
+            <Grid container spacing={2}>
+                <Grid item xs={2}>
+                    <Grid item xs={6}>
+                        <Labeled label="Sensor">
+                            <ReferenceField source="sensor_id" reference="sensors">
+                                <TextField source="name" />
+                            </ReferenceField>
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Sensor Profile">
+                            <ReferenceField source="sensorprofile_id" reference="sensor_profiles">
+                                <TextField source="name" />
+                            </ReferenceField>
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="From">
+                            <DateField source="date_from" showTime />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="To">
+                            <DateField source="date_to" showTime />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Depth (cm) Sensor 1">
+                            <NumberField source="depth_cm_sensor1" />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Depth (cm) Sensor 2">
+                            <NumberField source="depth_cm_sensor2" />
+                        </Labeled>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Labeled label="Depth (cm) Sensor 3">
+                            <NumberField source="depth_cm_sensor3" />
+                        </Labeled>
+                    </Grid>
+                </Grid>
+                <Grid item xs={10}>
+                    <SensorPlotWithOverlay interactive={false} />
+                </Grid>
+            </Grid>
         </SimpleShowLayout>
     </Show>
 );

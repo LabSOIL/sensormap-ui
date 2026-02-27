@@ -14,17 +14,6 @@ import {
     DeleteButton,
     usePermissions,
 } from 'react-admin'; // eslint-disable-line import/no-unresolved
-import {
-    LineChart,
-    Line,
-    Label,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-} from 'recharts';
-
 
 const SensorDataShowActions = () => {
     const { permissions } = usePermissions();

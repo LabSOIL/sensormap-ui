@@ -121,12 +121,6 @@ services:
       - 5433:5432
     volumes:
       - sensormap-db-data:/var/lib/postgresql/data
-
-  api-cache:
-    image: redis:7.4.0
-    ports:
-      - 6379:6379
-
 volumes:
   sensormap-db-data:
   soil-api-data:

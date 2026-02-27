@@ -2,40 +2,155 @@ import {
     useRecordContext,
     useGetManyReference,
     useTheme,
-    TextField,
-    FunctionField,
-    ArrayField,
-    Datagrid,
-    DateField,
-    ReferenceField,
+    useDataProvider,
 } from 'react-admin';
 import { Grid, Switch, FormControlLabel } from '@mui/material';
-import Plot from 'react-plotly.js';
-import { useState } from 'react';
-import { Typography } from '@mui/material';
-import { Checkbox } from '@mui/material';
+import { useState, useRef, useEffect } from 'react';
+import { Typography, CircularProgress } from '@mui/material';
+import uPlot from 'uplot';
+import 'uplot/dist/uPlot.min.css';
 
-export const SensorPlot = ({ highResolution, setHighResolution }: (any)) => {
-    const [theme] = useTheme();
+// --- Tooltip helpers ---
+
+const TOOLTIP_STYLE: Record<string, string> = {
+    position: 'absolute',
+    display: 'none',
+    background: 'rgba(0,0,0,0.85)',
+    color: '#fff',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontFamily: 'system-ui, sans-serif',
+    pointerEvents: 'none',
+    zIndex: '100',
+    lineHeight: '1.5',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+};
+
+function makeCursorHook(
+    tooltipRef: React.RefObject<HTMLDivElement | null>,
+    containerRef: React.RefObject<HTMLDivElement | null>,
+) {
+    return (u: uPlot) => {
+        const container = containerRef.current;
+        if (!container) return;
+        // Lazy tooltip creation — handles race when container wasn't ready
+        if (!tooltipRef.current) {
+            const el = document.createElement('div');
+            Object.assign(el.style, TOOLTIP_STYLE);
+            container.appendChild(el);
+            (tooltipRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+        }
+        const tt = tooltipRef.current!;
+        if (!tt) return;
+        const { left, top, idx } = u.cursor;
+        if (idx == null) { tt.style.display = 'none'; return; }
+        const ts = u.data[0][idx];
+        let html = `<b>${new Date(ts * 1000).toLocaleString()}</b>`;
+        for (let i = 1; i < u.series.length; i++) {
+            if (!u.series[i].show) continue;
+            const val = u.data[i][idx];
+            html += `<br><span style="display:inline-block;width:12px;height:4px;background:${u.series[i].stroke(u, i)};margin:0 4px 2px;vertical-align:middle;border-radius:1px"></span> ${u.series[i].label}: ${val != null ? Number(val).toFixed(2) : '\u2014'}`;
+        }
+        tt.innerHTML = html;
+        tt.style.display = 'block';
+        const overRect = u.over.getBoundingClientRect();
+        const cRect = container.getBoundingClientRect();
+        const cx = overRect.left - cRect.left + left;
+        const cy = overRect.top - cRect.top + top;
+        const ttW = tt.offsetWidth;
+        tt.style.left = (cx + ttW + 20 > cRect.width ? cx - ttW - 10 : cx + 15) + 'px';
+        tt.style.top = Math.max(cy - tt.offsetHeight / 2, 0) + 'px';
+    };
+}
+
+// --- Data conversion helpers ---
+
+function sensorToAligned(data: any[]): (number | null)[][] | null {
+    if (!data || !data.length) return null;
+    // Sort by timestamp to guarantee monotonic x-axis
+    const sorted = [...data].sort(
+        (a, b) => new Date(a.time_utc).getTime() - new Date(b.time_utc).getTime()
+    );
+    return [
+        sorted.map(d => new Date(d.time_utc).getTime() / 1000),
+        sorted.map(d => d.temperature_1),
+        sorted.map(d => d.temperature_2),
+        sorted.map(d => d.temperature_3),
+        sorted.map(d => d.temperature_average),
+        sorted.map(d => d.soil_moisture_count),
+    ];
+}
+
+function profileToAligned(record: any) {
+    const tempByDepth = record.temperature_by_depth_cm || {};
+    const vwcByDepth = record.moisture_vwc_by_depth_cm || {};
+    const tempDepths = Object.keys(tempByDepth).sort((a, b) => Number(a) - Number(b));
+    const vwcDepths = Object.keys(vwcByDepth).sort((a, b) => Number(a) - Number(b));
+
+    if (!tempDepths.length && !vwcDepths.length) {
+        return { aligned: null, tempDepths: [], vwcDepths: [] };
+    }
+
+    // Build union of all timestamps using Maps for correct alignment + sorting
+    const tsSet = new Set<number>();
+    const allMaps: Map<number, number>[] = [];
+
+    tempDepths.forEach(depth => {
+        const m = new Map<number, number>();
+        tempByDepth[depth].forEach((p: any) => {
+            const ts = Math.round(new Date(p.time_utc).getTime() / 1000);
+            tsSet.add(ts);
+            m.set(ts, p.y);
+        });
+        allMaps.push(m);
+    });
+
+    vwcDepths.forEach(depth => {
+        const m = new Map<number, number>();
+        vwcByDepth[depth].forEach((p: any) => {
+            const ts = Math.round(new Date(p.time_utc).getTime() / 1000);
+            tsSet.add(ts);
+            m.set(ts, p.y);
+        });
+        allMaps.push(m);
+    });
+
+    const timestamps = Array.from(tsSet).sort((a, b) => a - b);
+    const aligned: (number | null)[][] = [timestamps];
+    allMaps.forEach(m => {
+        aligned.push(timestamps.map(ts => m.get(ts) ?? null));
+    });
+
+    return { aligned, tempDepths, vwcDepths };
+}
+
+// --- SensorPlot ---
+
+export const SensorPlot = () => {
+    const [themeMode] = useTheme();
     const record = useRecordContext();
     const [showShapes, setShowShapes] = useState(true);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<uPlot | null>(null);
+    const tooltipRef = useRef<HTMLDivElement | null>(null);
+    const dataProvider = useDataProvider();
+    const [loading, setLoading] = useState(false);
+    const [resolution, setResolution] = useState<string | undefined>(undefined);
 
-    // Function to toggle resolution
-    const handleToggle = () => {
-        setHighResolution(!highResolution);
-    };
-
-    const handleToggleShapes = () => {
-        setShowShapes(!showShapes);
-    };
+    // Refs for draw hook closures
+    const showShapesRef = useRef(showShapes);
+    showShapesRef.current = showShapes;
+    const assignmentsRef = useRef<any[]>([]);
+    const initialAlignedRef = useRef<(number | null)[][] | null>(null);
+    const prevThemeRef = useRef<string>('');
+    const handleZoomRef = useRef<(start: string, end: string) => void>();
 
     if (!record) return null;
-
 
     const {
         data: sensorProfileAssignments,
         isPending: isPendingProfileAssignment,
-        error
     } = useGetManyReference(
         'sensor_profile_assignments',
         {
@@ -44,115 +159,237 @@ export const SensorPlot = ({ highResolution, setHighResolution }: (any)) => {
             pagination: { page: 1, perPage: 10 },
         }
     );
-    if (isPendingProfileAssignment) return <p>Loading...</p>;
 
+    // Update assignments ref
+    useEffect(() => {
+        assignmentsRef.current = sensorProfileAssignments || [];
+    }, [sensorProfileAssignments]);
 
+    // Initialize resolution from record
+    useEffect(() => {
+        setResolution(record.resolution);
+    }, [record.resolution]);
 
-    const x = record.data.map((d) => d.time_utc);
-    const traces = [
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_1),
-            name: 'Temperature 1',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_2),
-            name: 'Temperature 2',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_3),
-            name: 'Temperature 3',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.temperature_average),
-            name: 'Temperature Average',
-        },
-        {
-            x: x,
-            y: record.data.map((d) => d.soil_moisture_count),
-            yaxis: 'y2',
-            name: 'Soil Moisture'
-        },
-    ];
+    const isDark = themeMode === 'dark';
 
-    const assignmentShapes = sensorProfileAssignments?.map((assignment) => ({
-        type: 'rect',
-        xref: 'x',
-        yref: 'paper',
-        x0: assignment.date_from,
-        x1: assignment.date_to,
-        y0: 0,
-        y1: 1,
-        fillcolor: 'rgba(255,0,0,0.2)',
-        line: {
-            width: 0
-        },
-    }));
+    // Self-contained zoom handler (via ref to avoid stale closure)
+    handleZoomRef.current = async (start: string, end: string) => {
+        setLoading(true);
+        try {
+            const { data } = await dataProvider.getOne('sensors', {
+                id: record.id,
+                meta: { start, end },
+            });
+            setResolution(data.resolution);
+            const aligned = sensorToAligned(data.data);
+            if (chartRef.current && aligned) {
+                chartRef.current.setData(aligned);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    // Create tooltip element once
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const tt = document.createElement('div');
+        Object.assign(tt.style, TOOLTIP_STYLE);
+        el.appendChild(tt);
+        tooltipRef.current = tt;
+        return () => { tt.remove(); };
+    }, []);
 
-    const assignmentAnnotations = sensorProfileAssignments?.map((assignment) => {
-        // Calculate a midpoint for the x position (assuming date_from and date_to are numbers or convertible to Date objects)
-        const midX = new Date((new Date(assignment.date_from).getTime() + new Date(assignment.date_to).getTime()) / 2);
-        return {
-            x: midX,
-            y: 0.5, // Position near the top of the plot (using paper coordinates)
-            xref: 'x',
-            yref: 'paper',
-            text: `Assignment: ${assignment.sensor_profile.name}`,
-            showarrow: false,
-            font: {
-                color: theme === 'dark' ? 'white' : 'black',
-                size: 10,
+    // Create or update chart
+    useEffect(() => {
+        if (!record?.data?.length || !containerRef.current) return;
+
+        const aligned = sensorToAligned(record.data);
+        if (!aligned) return;
+        initialAlignedRef.current = aligned;
+
+        const currentTheme = isDark ? 'dark' : 'light';
+
+        // Same theme — in-place update
+        if (chartRef.current && prevThemeRef.current === currentTheme) {
+            chartRef.current.setData(aligned);
+            return;
+        }
+
+        // Theme changed or first render — (re)create
+        if (chartRef.current) {
+            chartRef.current.destroy();
+            chartRef.current = null;
+        }
+        prevThemeRef.current = currentTheme;
+
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const fontColor = isDark ? '#fff' : '#000';
+        const cursorHook = makeCursorHook(tooltipRef, containerRef);
+
+        const opts: uPlot.Options = {
+            width: containerRef.current.clientWidth,
+            height: 400,
+            cursor: {
+                drag: { x: true, y: false },
+                points: {
+                    fill: (u, si) => u.series[si].stroke(u, si),
+                    stroke: (u, si) => '#fff',
+                    size: (u, si) => 7,
+                    width: (u, si, size) => 2,
+                },
+            },
+            scales: {
+                x: { time: true },
+                temperature: { auto: true },
+                moisture: { auto: true },
+            },
+            series: [
+                { label: 'Time' },
+                { label: 'Temperature 1', stroke: 'rgb(31, 119, 180)', width: 1.5, scale: 'temperature', spanGaps: false },
+                { label: 'Temperature 2', stroke: 'rgb(255, 127, 14)', width: 1.5, scale: 'temperature', spanGaps: false },
+                { label: 'Temperature 3', stroke: 'rgb(44, 160, 44)', width: 1.5, scale: 'temperature', spanGaps: false },
+                { label: 'Temperature Average', stroke: 'rgb(214, 39, 40)', width: 1.5, scale: 'temperature', spanGaps: false },
+                { label: 'Soil Moisture', stroke: 'rgb(148, 103, 189)', width: 1.5, scale: 'moisture', spanGaps: false },
+            ],
+            axes: [
+                { stroke: fontColor, grid: { stroke: gridColor } },
+                {
+                    scale: 'temperature',
+                    label: 'Temperature (\u00B0C)',
+                    labelFont: '12px system-ui',
+                    stroke: 'rgb(31, 119, 180)',
+                    ticks: { stroke: 'rgb(31, 119, 180)' },
+                    grid: { stroke: gridColor },
+                    side: 3,
+                    size: 60,
+                },
+                {
+                    scale: 'moisture',
+                    label: 'Soil Moisture',
+                    labelFont: '12px system-ui',
+                    stroke: 'rgb(148, 103, 189)',
+                    ticks: { stroke: 'rgb(148, 103, 189)' },
+                    grid: { show: false },
+                    side: 1,
+                    size: 60,
+                },
+            ],
+            legend: {
+                show: true,
+                live: false,
+                markers: {
+                    width: 0,
+                    fill: (u: uPlot, si: number) => u.series[si].stroke(u, si),
+                },
+            },
+            hooks: {
+                setSelect: [(u: uPlot) => {
+                    if (u.select.width < 1) return;
+                    const min = u.posToVal(u.select.left, 'x');
+                    const max = u.posToVal(u.select.left + u.select.width, 'x');
+                    if (handleZoomRef.current) {
+                        handleZoomRef.current(
+                            new Date(min * 1000).toISOString(),
+                            new Date(max * 1000).toISOString(),
+                        );
+                    }
+                    u.setSelect({ left: 0, width: 0, top: 0, height: 0 }, false);
+                }],
+                setCursor: [cursorHook],
+                draw: [(u: uPlot) => {
+                    if (!showShapesRef.current || !assignmentsRef.current.length) return;
+                    const ctx = u.ctx;
+                    const { left, top, width, height } = u.bbox;
+                    ctx.save();
+                    assignmentsRef.current.forEach((a: any) => {
+                        const ts0 = new Date(a.date_from).getTime() / 1000;
+                        const ts1 = new Date(a.date_to).getTime() / 1000;
+                        const x0 = Math.max(u.valToPos(ts0, 'x', true), left);
+                        const x1 = Math.min(u.valToPos(ts1, 'x', true), left + width);
+                        if (x1 <= x0) return;
+                        ctx.fillStyle = 'rgba(255,0,0,0.2)';
+                        ctx.fillRect(x0, top, x1 - x0, height);
+                        // Label
+                        const labelX = (x0 + x1) / 2;
+                        const labelY = top + height / 2;
+                        ctx.fillStyle = isDark ? '#fff' : '#000';
+                        ctx.font = '10px system-ui';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(`Assignment: ${a.sensor_profile?.name || ''}`, labelX, labelY);
+                    });
+                    ctx.restore();
+                }],
             },
         };
-    });
+
+        chartRef.current = new uPlot(opts, aligned, containerRef.current);
+    }, [record?.data, isDark]);
+
+    // Double-click to reset
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const handler = () => {
+            if (chartRef.current && initialAlignedRef.current) {
+                chartRef.current.setData(initialAlignedRef.current);
+                setResolution(record.resolution);
+            }
+        };
+        el.addEventListener('dblclick', handler);
+        return () => el.removeEventListener('dblclick', handler);
+    }, [record?.resolution]);
+
+    // Redraw when showShapes toggles
+    useEffect(() => {
+        if (chartRef.current) chartRef.current.redraw();
+    }, [showShapes]);
+
+    // Redraw when assignments load
+    useEffect(() => {
+        if (chartRef.current) chartRef.current.redraw();
+    }, [sensorProfileAssignments]);
+
+    // Cleanup on unmount
+    useEffect(() => () => {
+        if (chartRef.current) {
+            chartRef.current.destroy();
+            chartRef.current = null;
+        }
+    }, []);
+
+    // Resize handling
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const observer = new ResizeObserver(() => {
+            if (chartRef.current) chartRef.current.setSize({ width: el.clientWidth, height: 400 });
+        });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    if (isPendingProfileAssignment) return <p>Loading...</p>;
 
     return (
         <>
-            <Plot
-                data={traces}
-                useResizeHandler={true}
-                layout={{
-                    paper_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
-                    plot_bgcolor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
-                    font: {
-                        color: theme === 'dark' ? 'white' : 'black',
-                        size: 12,
-                    },
-                    margin: {
-                        l: 50,
-                        r: 50,
-                        t: 50,
-                        b: 50,
-                    },
-                    yaxis: {
-                        title: 'Temperature (°C)',
-                        titlefont: { color: 'rgb(31, 119, 180)' },
-                        tickfont: { color: 'rgb(31, 119, 180)' },
-                        gridcolor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                        // range: [null, 45],
-                    },
-                    yaxis2: {
-                        title: 'Soil Moisture',
-                        titlefont: { color: 'rgb(148, 103, 189)' },
-                        tickfont: { color: 'rgb(148, 103, 189)' },
-                        overlaying: 'y',
-                        side: 'right',
-                    },
-                    shapes: showShapes ? assignmentShapes : [],
-                    annotations: showShapes ? assignmentAnnotations : [],
-                }}
-                style={{ width: '100%' }}
-            />
+            <style>{`.sensor-chart .u-marker { height: 2px !important; width: 20px !important; border-radius: 1px !important; }`}</style>
+            <div className="sensor-chart" style={{ position: 'relative' }}>
+                {loading && (
+                    <CircularProgress
+                        size={24}
+                        style={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }}
+                    />
+                )}
+                <div ref={containerRef} style={{ position: 'relative' }} />
+            </div>
             <Grid container justifyContent="flex-start" alignItems="center" spacing={2} mt={2}>
                 <FormControlLabel
                     control={
                         <Switch
                             checked={showShapes}
-                            onChange={handleToggleShapes}
+                            onChange={() => setShowShapes(!showShapes)}
                             name="showShapes"
                             color="primary"
                         />
@@ -163,208 +400,282 @@ export const SensorPlot = ({ highResolution, setHighResolution }: (any)) => {
                         </Typography>
                     }
                 />
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={highResolution}
-                            onChange={handleToggle}
-                            name="highResolution"
-                            color="primary"
-                        />
-                    }
-                    label={
-                        <Typography variant="body2">
-                            High resolution
+                {resolution && (
+                    <Grid item>
+                        <Typography variant="body2" color="textSecondary">
+                            Resolution: {resolution}
                         </Typography>
-                    }
-                />
+                    </Grid>
+                )}
             </Grid>
         </>
     );
 }
 
 
-export const SensorProfilePlot = ({ highResolution, setHighResolution, visibleAssignments }) => {
+// --- SensorProfilePlot ---
+
+export const SensorProfilePlot = ({ visibleAssignments }: { visibleAssignments: any }) => {
     const record = useRecordContext();
-    const theme = useTheme();
-    const mode = theme?.palette?.mode || 'light';
+    const [themeMode] = useTheme();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<uPlot | null>(null);
+    const tooltipRef = useRef<HTMLDivElement | null>(null);
+    const dataProvider = useDataProvider();
+    const [loading, setLoading] = useState(false);
+    const [resolution, setResolution] = useState<string | undefined>(undefined);
+
+    // Refs for draw hook closures
+    const visibleAssignmentsRef = useRef(visibleAssignments);
+    visibleAssignmentsRef.current = visibleAssignments;
+    const initialAlignedRef = useRef<(number | null)[][] | null>(null);
+    const prevStructureRef = useRef<string>('');
+    const prevThemeRef = useRef<string>('');
+    const handleZoomRef = useRef<(start: string, end: string) => void>();
+
     if (!record) return null;
     const assignments = record.assignments || [];
 
-    // Keep local state for highlighted assignment (optional hover effect)
-    const [highlightedAssignment, setHighlightedAssignment] = useState(null);
+    const isDark = themeMode === 'dark';
 
-    // Only include shapes for assignments that are visible
-    const assignmentShapes = assignments
-        .filter(assignment => visibleAssignments[assignment.id])
-        .map(assignment => ({
-            type: 'rect',
-            xref: 'x',
-            yref: 'paper',
-            x0: assignment.date_from,
-            x1: assignment.date_to,
-            y0: 0,
-            y1: 1,
-            fillcolor: 'rgba(204, 179, 179, 0.2)',
-            line: { width: 0 },
-        }));
+    // Initialize resolution from record
+    useEffect(() => {
+        setResolution(record.resolution);
+    }, [record.resolution]);
 
-    // Build Plotly traces from the new data structure
-    const traces = [];
-    
-    // Temperature traces grouped by depth from temperature_by_depth_cm
-    if (record.temperature_by_depth_cm && Object.keys(record.temperature_by_depth_cm).length > 0) {
-        Object.entries(record.temperature_by_depth_cm).forEach(([depth, dataPoints]) => {
-            traces.push({
-                x: dataPoints.map(d => d.time_utc),
-                y: dataPoints.map(d => d.y),
-                name: `Temperature at ${depth}cm depth`,
-                line: { color: `hsl(${(parseInt(depth) * 30) % 360}, 70%, 50%)` },
-                type: 'scatter',
-                mode: 'lines',
+    // Self-contained zoom handler (via ref to avoid stale closure)
+    handleZoomRef.current = async (start: string, end: string) => {
+        setLoading(true);
+        try {
+            const { data } = await dataProvider.getOne('sensor_profiles', {
+                id: record.id,
+                meta: { start, end },
             });
-        });
-    }
-
-    // VWC moisture traces grouped by depth from moisture_vwc_by_depth_cm
-    if (record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0) {
-        Object.entries(record.moisture_vwc_by_depth_cm).forEach(([depth, dataPoints]) => {
-            traces.push({
-                x: dataPoints.map(d => d.time_utc),
-                y: dataPoints.map(d => d.y),
-                name: `VWC at ${depth}cm depth`,
-                line: { color: `hsl(${(parseInt(depth) * 30 + 180) % 360}, 70%, 50%)` },
-                type: 'scatter',
-                mode: 'lines',
-                yaxis: 'y2', // Use secondary y-axis for moisture
-            });
-        });
-    }
-
-    // Fallback: If no new data structure, show legacy assignment data or data_by_depth_cm
-    const hasNewData = (record.temperature_by_depth_cm && Object.keys(record.temperature_by_depth_cm).length > 0) ||
-                       (record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0);
-
-    if (!hasNewData) {
-        // Try legacy data_by_depth_cm first
-        if (record.data_by_depth_cm && Object.keys(record.data_by_depth_cm).length > 0) {
-            Object.entries(record.data_by_depth_cm).forEach(([depth, dataPoints]) => {
-                traces.push({
-                    x: dataPoints.map(d => d.time_utc),
-                    y: dataPoints.map(d => d.y),
-                    name: `Temperature at ${depth}cm depth (legacy)`,
-                    line: { color: `hsl(${(parseInt(depth) * 30) % 360}, 70%, 50%)` },
-                    type: 'scatter',
-                    mode: 'lines',
-                });
-            });
-        } else {
-            // Fallback to assignment-based data
-            const metrics = [
-                { key: 'temperature_1', name: 'Temperature 1', color: 'blue' },
-                { key: 'temperature_2', name: 'Temperature 2', color: 'red' },
-                { key: 'temperature_3', name: 'Temperature 3', color: 'green' },
-                { key: 'temperature_average', name: 'Temperature Average', color: 'orange' },
-            ];
-            const soilMetric = {
-                key: 'soil_moisture_count',
-                name: 'Soil Moisture (Raw)',
-                color: 'purple',
-            };
-
-            assignments.forEach(assignment => {
-                if (visibleAssignments[assignment.id]) {
-                    const data = assignment.data || [];
-                    metrics.forEach(metric => {
-                        traces.push({
-                            x: data.map(d => d.time_utc),
-                            y: data.map(d => d[metric.key]),
-                            name: `${assignment.sensor?.name || assignment.sensor_id} - ${metric.name}`,
-                            line: {
-                                color: metric.color,
-                                width: highlightedAssignment === assignment.id ? 4 : 2,
-                            },
-                        });
-                    });
-                    // Soil moisture on secondary y-axis (raw counts)
-                    traces.push({
-                        x: data.map(d => d.time_utc),
-                        y: data.map(d => d[soilMetric.key]),
-                        name: `${assignment.sensor?.name || assignment.sensor_id} - ${soilMetric.name}`,
-                        line: {
-                            color: soilMetric.color,
-                            width: highlightedAssignment === assignment.id ? 4 : 2,
-                        },
-                        yaxis: 'y2',
-                    });
-                }
-            });
+            setResolution(data.resolution);
+            const { aligned } = profileToAligned(data);
+            if (chartRef.current && aligned) {
+                chartRef.current.setData(aligned);
+            }
+        } finally {
+            setLoading(false);
         }
-    }
+    };
+
+    // Create tooltip element once
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const tt = document.createElement('div');
+        Object.assign(tt.style, TOOLTIP_STYLE);
+        el.appendChild(tt);
+        tooltipRef.current = tt;
+        return () => { tt.remove(); };
+    }, []);
+
+    // Create or update chart
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const { aligned, tempDepths, vwcDepths } = profileToAligned(record);
+        if (!aligned) return;
+        initialAlignedRef.current = aligned;
+
+        const structureKey = `${tempDepths.join(',')}_${vwcDepths.join(',')}`;
+        const currentTheme = isDark ? 'dark' : 'light';
+
+        // Same structure & theme — in-place update
+        if (chartRef.current && prevStructureRef.current === structureKey && prevThemeRef.current === currentTheme) {
+            chartRef.current.setData(aligned);
+            return;
+        }
+
+        // Structure or theme changed — (re)create
+        if (chartRef.current) {
+            chartRef.current.destroy();
+            chartRef.current = null;
+        }
+        prevStructureRef.current = structureKey;
+        prevThemeRef.current = currentTheme;
+
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const fontColor = isDark ? '#fff' : '#000';
+        const hasMoistureData = vwcDepths.length > 0;
+        const cursorHook = makeCursorHook(tooltipRef, containerRef);
+
+        const seriesDefs: uPlot.Series[] = [
+            { label: 'Time' },
+            ...tempDepths.map((depth) => ({
+                label: `Temp ${depth}cm`,
+                stroke: `hsl(${(parseInt(depth) * 30) % 360}, 70%, 50%)`,
+                width: 1.5,
+                scale: 'temperature',
+                spanGaps: false,
+            })),
+            ...vwcDepths.map((depth) => ({
+                label: `VWC ${depth}cm`,
+                stroke: `hsl(${(parseInt(depth) * 30 + 180) % 360}, 70%, 50%)`,
+                width: 1.5,
+                scale: 'vwc',
+                spanGaps: false,
+            })),
+        ];
+
+        const opts: uPlot.Options = {
+            width: containerRef.current.clientWidth,
+            height: 400,
+            title: 'Sensor Data Grouped by Depth',
+            cursor: {
+                drag: { x: true, y: false },
+                points: {
+                    fill: (u, si) => u.series[si].stroke(u, si),
+                    stroke: (u, si) => '#fff',
+                    size: (u, si) => 7,
+                    width: (u, si, size) => 2,
+                },
+            },
+            scales: {
+                x: { time: true },
+                temperature: { auto: true },
+                vwc: hasMoistureData ? { auto: false, range: [0, 1] } : { auto: true },
+            },
+            series: seriesDefs,
+            axes: [
+                { stroke: fontColor, grid: { stroke: gridColor } },
+                {
+                    scale: 'temperature',
+                    label: 'Temperature (\u00B0C)',
+                    labelFont: '12px system-ui',
+                    stroke: 'rgb(31, 119, 180)',
+                    ticks: { stroke: 'rgb(31, 119, 180)' },
+                    grid: { stroke: gridColor },
+                    side: 3,
+                    size: 60,
+                },
+                ...(hasMoistureData ? [{
+                    scale: 'vwc' as const,
+                    label: 'Volumetric Water Content (VWC)',
+                    labelFont: '12px system-ui',
+                    stroke: 'rgb(148, 103, 189)',
+                    ticks: { stroke: 'rgb(148, 103, 189)' },
+                    grid: { show: false },
+                    side: 1 as const,
+                    size: 60,
+                }] : []),
+            ],
+            legend: {
+                show: true,
+                live: false,
+                markers: {
+                    width: 0,
+                    fill: (u: uPlot, si: number) => u.series[si].stroke(u, si),
+                },
+            },
+            hooks: {
+                setSelect: [(u: uPlot) => {
+                    if (u.select.width < 1) return;
+                    const min = u.posToVal(u.select.left, 'x');
+                    const max = u.posToVal(u.select.left + u.select.width, 'x');
+                    if (handleZoomRef.current) {
+                        handleZoomRef.current(
+                            new Date(min * 1000).toISOString(),
+                            new Date(max * 1000).toISOString(),
+                        );
+                    }
+                    u.setSelect({ left: 0, width: 0, top: 0, height: 0 }, false);
+                }],
+                setCursor: [cursorHook],
+                draw: [(u: uPlot) => {
+                    if (!assignments.length) return;
+                    const ctx = u.ctx;
+                    const { left, top, width, height } = u.bbox;
+                    ctx.save();
+                    assignments
+                        .filter((a: any) => visibleAssignmentsRef.current[a.id])
+                        .forEach((a: any) => {
+                            const ts0 = new Date(a.date_from).getTime() / 1000;
+                            const ts1 = new Date(a.date_to).getTime() / 1000;
+                            const x0 = Math.max(u.valToPos(ts0, 'x', true), left);
+                            const x1 = Math.min(u.valToPos(ts1, 'x', true), left + width);
+                            if (x1 <= x0) return;
+                            ctx.fillStyle = 'rgba(204, 179, 179, 0.2)';
+                            ctx.fillRect(x0, top, x1 - x0, height);
+                        });
+                    ctx.restore();
+                }],
+            },
+        };
+
+        chartRef.current = new uPlot(opts, aligned, containerRef.current);
+    }, [record?.temperature_by_depth_cm, record?.moisture_vwc_by_depth_cm, isDark]);
+
+    // Double-click to reset
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const handler = () => {
+            if (chartRef.current && initialAlignedRef.current) {
+                chartRef.current.setData(initialAlignedRef.current);
+                setResolution(record.resolution);
+            }
+        };
+        el.addEventListener('dblclick', handler);
+        return () => el.removeEventListener('dblclick', handler);
+    }, [record?.resolution]);
+
+    // Redraw when visibleAssignments changes
+    useEffect(() => {
+        if (chartRef.current) chartRef.current.redraw();
+    }, [visibleAssignments]);
+
+    // Cleanup on unmount
+    useEffect(() => () => {
+        if (chartRef.current) {
+            chartRef.current.destroy();
+            chartRef.current = null;
+        }
+    }, []);
+
+    // Resize handling
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const observer = new ResizeObserver(() => {
+            if (chartRef.current) chartRef.current.setSize({ width: el.clientWidth, height: 400 });
+        });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     const hasMoistureData = record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0;
 
-    const layout = {
-        paper_bgcolor: mode === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
-        plot_bgcolor: mode === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)',
-        font: { color: mode === 'dark' ? 'white' : 'black', size: 12 },
-        margin: { l: 50, r: 50, t: 50, b: 50 },
-        xaxis: { title: 'Time' },
-        yaxis: {
-            title: 'Temperature (°C)',
-            titlefont: { color: 'rgb(31, 119, 180)' },
-            tickfont: { color: 'rgb(31, 119, 180)' },
-            gridcolor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-        },
-        yaxis2: {
-            title: hasMoistureData ? 'Volumetric Water Content (VWC)' : 'Soil Moisture (Raw Counts)',
-            titlefont: { color: 'rgb(148, 103, 189)' },
-            tickfont: { color: 'rgb(148, 103, 189)' },
-            overlaying: 'y',
-            side: 'right',
-            range: hasMoistureData ? [0, 1] : undefined, // VWC is between 0 and 1
-        },
-        shapes: assignmentShapes,
-        title: hasNewData 
-            ? 'Sensor Data Grouped by Depth' 
-            : 'Legacy Sensor Data View',
-    };
-
-    const handleToggleHighResolution = () => {
-        setHighResolution(!highResolution);
-    };
-
     return (
         <>
-            <Plot
-                data={traces}
-                layout={layout}
-                style={{ width: '100%', height: '400px' }}
-                useResizeHandler
-            />
-            <Grid container justifyContent="flex-start" alignItems="center" spacing={2} mt={2}>
-                <Grid item>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={highResolution}
-                                onChange={handleToggleHighResolution}
-                                color="primary"
-                            />
-                        }
-                        label={<Typography variant="body2">High resolution</Typography>}
+            <style>{`.sensor-chart .u-marker { height: 2px !important; width: 20px !important; border-radius: 1px !important; }`}</style>
+            <div className="sensor-chart" style={{ position: 'relative' }}>
+                {loading && (
+                    <CircularProgress
+                        size={24}
+                        style={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }}
                     />
-                </Grid>
-                {hasNewData && (
+                )}
+                <div ref={containerRef} style={{ position: 'relative' }} />
+            </div>
+            <Grid container justifyContent="flex-start" alignItems="center" spacing={2} mt={2}>
+                {resolution && (
                     <Grid item>
                         <Typography variant="body2" color="textSecondary">
-                            {hasMoistureData ? 
-                                'Showing temperature and VWC data grouped by depth' : 
-                                'Showing temperature data grouped by depth'
-                            }
+                            Resolution: {resolution}
                         </Typography>
                     </Grid>
                 )}
+                <Grid item>
+                    <Typography variant="body2" color="textSecondary">
+                        {hasMoistureData ?
+                            'Showing temperature and VWC data grouped by depth' :
+                            'Showing temperature data grouped by depth'
+                        }
+                    </Typography>
+                </Grid>
             </Grid>
         </>
     );

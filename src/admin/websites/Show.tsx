@@ -2,18 +2,21 @@ import {
     Show,
     SimpleShowLayout,
     TextField,
+    UrlField,
     TopToolbar,
     EditButton,
     DeleteButton,
     usePermissions,
-    Labeled,
     ReferenceManyField,
     Datagrid,
     ReferenceField,
     DateField,
     DeleteWithConfirmButton,
     CreateButton,
+    ShowButton,
     useRecordContext,
+    useGetOne,
+    useGetList,
 } from "react-admin";
 import { Typography, Box } from '@mui/material';
 
@@ -43,28 +46,34 @@ const AddAreaWebsiteButton = () => {
     );
 };
 
-const AddPlotExclusionButton = () => {
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <CreateButton
-            resource="website_plot_exclusions"
-            label="Add Exclusion"
-            state={{ record: { website_id: record.id } }}
-        />
-    );
-};
+const ExclusionCounts = (_props: { label?: string }) => {
+    const record = useRecordContext(); // area_website record
+    const { data: area } = useGetOne('areas', { id: record?.area_id || '' });
+    const { data: plotExclusions } = useGetList('website_plot_exclusions', {
+        filter: { website_id: record?.website_id },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: 'id', order: 'ASC' },
+    });
+    const { data: sensorExclusions } = useGetList('website_sensor_exclusions', {
+        filter: { website_id: record?.website_id },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: 'id', order: 'ASC' },
+    });
 
-const AddSensorExclusionButton = () => {
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <CreateButton
-            resource="website_sensor_exclusions"
-            label="Add Exclusion"
-            state={{ record: { website_id: record.id } }}
-        />
-    );
+    if (!record || !area || !plotExclusions || !sensorExclusions) return null;
+
+    const areaPlotIds = new Set((area.plots || []).map((p: any) => p.id));
+    const areaSensorIds = new Set((area.sensor_profiles || []).map((s: any) => s.id));
+
+    const excludedPlots = plotExclusions.filter(ex => areaPlotIds.has(ex.plot_id)).length;
+    const excludedSensors = sensorExclusions.filter(ex => areaSensorIds.has(ex.sensorprofile_id)).length;
+
+    if (excludedPlots === 0 && excludedSensors === 0) return <span>None</span>;
+
+    const parts = [];
+    if (excludedPlots > 0) parts.push(`${excludedPlots} plot${excludedPlots !== 1 ? 's' : ''}`);
+    if (excludedSensors > 0) parts.push(`${excludedSensors} sensor${excludedSensors !== 1 ? 's' : ''}`);
+    return <span>{parts.join(', ')}</span>;
 };
 
 const WebsiteShow = () => {
@@ -74,7 +83,7 @@ const WebsiteShow = () => {
                 <TextField source="id" />
                 <TextField source="name" />
                 <TextField source="slug" />
-                <TextField source="url" />
+                <UrlField source="url" target="_blank" />
                 <TextField source="description" />
 
                 <Box mt={3}>
@@ -93,51 +102,13 @@ const WebsiteShow = () => {
                             </ReferenceField>
                             <DateField source="date_from" label="Date From" showTime />
                             <DateField source="date_to" label="Date To" showTime />
+                            <ExclusionCounts label="Exclusions" />
+                            <ShowButton />
                             <EditButton />
                             <DeleteWithConfirmButton redirect={false} />
                         </Datagrid>
                     </ReferenceManyField>
                     <AddAreaWebsiteButton />
-                </Box>
-
-                <Box mt={3}>
-                    <Typography variant="h6" gutterBottom>Plot Exclusions</Typography>
-                    <Typography variant="body2" color="textSecondary" gutterBottom>
-                        By default, all plots within assigned areas are visible. To hide a specific plot from this website, add an exclusion. To make a hidden plot visible again, delete its exclusion.
-                    </Typography>
-                    <ReferenceManyField
-                        reference="website_plot_exclusions"
-                        target="website_id"
-                        label={false}
-                    >
-                        <Datagrid bulkActionButtons={false}>
-                            <ReferenceField source="plot_id" reference="plots" link="show">
-                                <TextField source="name" />
-                            </ReferenceField>
-                            <DeleteWithConfirmButton redirect={false} />
-                        </Datagrid>
-                    </ReferenceManyField>
-                    <AddPlotExclusionButton />
-                </Box>
-
-                <Box mt={3}>
-                    <Typography variant="h6" gutterBottom>Sensor Exclusions</Typography>
-                    <Typography variant="body2" color="textSecondary" gutterBottom>
-                        By default, all sensor profiles within assigned areas are visible. To hide a specific sensor from this website, add an exclusion. To make a hidden sensor visible again, delete its exclusion.
-                    </Typography>
-                    <ReferenceManyField
-                        reference="website_sensor_exclusions"
-                        target="website_id"
-                        label={false}
-                    >
-                        <Datagrid bulkActionButtons={false}>
-                            <ReferenceField source="sensorprofile_id" reference="sensor_profiles" link="show">
-                                <TextField source="name" />
-                            </ReferenceField>
-                            <DeleteWithConfirmButton redirect={false} />
-                        </Datagrid>
-                    </ReferenceManyField>
-                    <AddSensorExclusionButton />
                 </Box>
             </SimpleShowLayout>
         </Show>

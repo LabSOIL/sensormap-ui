@@ -2,6 +2,7 @@ import {
     List,
     Datagrid,
     TextField,
+    UrlField,
     usePermissions,
     TopToolbar,
     CreateButton,
@@ -25,7 +26,7 @@ const WebsiteList = () => {
             <Datagrid rowClick="show">
                 <TextField source="name" />
                 <TextField source="slug" />
-                <TextField source="url" />
+                <UrlField source="url" target="_blank" />
                 <ReferenceManyCount
                     label="Areas"
                     reference="area_websites"

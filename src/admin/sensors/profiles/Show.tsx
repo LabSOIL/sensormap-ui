@@ -63,15 +63,13 @@ export const SoilTypeOutput = ({ soilTypeId }) => {
 // This component uses useRecordContext so it can initialize and render profile details.
 const SensorProfileShowContent = ({
     createPath,
-    highResolution,
-    setHighResolution,
     visibleAssignments,
     setVisibleAssignments,
 }) => {
     const record = useRecordContext();
 
     if (!record) {
-        return null; // Return null if no record is available
+        return null;
     }
     // On first render, initialize visibleAssignments for each assignment to true.
     useEffect(() => {
@@ -84,43 +82,34 @@ const SensorProfileShowContent = ({
         }
     }, [record, setVisibleAssignments, visibleAssignments]);
 
-    // Calculate data summary for the new format
+    // Calculate data summary
     const dataSummary = (() => {
         const hasTemperatureData = record.temperature_by_depth_cm && Object.keys(record.temperature_by_depth_cm).length > 0;
         const hasMoistureData = record.moisture_vwc_by_depth_cm && Object.keys(record.moisture_vwc_by_depth_cm).length > 0;
-        const hasLegacyData = record.data_by_depth_cm && Object.keys(record.data_by_depth_cm).length > 0;
-        
+
         if (hasTemperatureData || hasMoistureData) {
             const tempDepths = hasTemperatureData ? Object.keys(record.temperature_by_depth_cm).map(d => parseInt(d)) : [];
             const moistureDepths = hasMoistureData ? Object.keys(record.moisture_vwc_by_depth_cm).map(d => parseInt(d)) : [];
             const allDepths = [...new Set([...tempDepths, ...moistureDepths])].sort((a, b) => a - b);
-            
-            const tempDataPoints = hasTemperatureData ? 
-                Object.values(record.temperature_by_depth_cm).reduce((sum, points) => sum + points.length, 0) : 0;
-            const moistureDataPoints = hasMoistureData ? 
-                Object.values(record.moisture_vwc_by_depth_cm).reduce((sum, points) => sum + points.length, 0) : 0;
-            
+
+            const tempDataPoints = hasTemperatureData ?
+                Object.values(record.temperature_by_depth_cm).reduce((sum: number, points: any) => sum + points.length, 0) : 0;
+            const moistureDataPoints = hasMoistureData ?
+                Object.values(record.moisture_vwc_by_depth_cm).reduce((sum: number, points: any) => sum + points.length, 0) : 0;
+
             return {
-                hasNewFormat: true,
                 hasTemperatureData,
                 hasMoistureData,
                 depths: allDepths,
-                totalDataPoints: tempDataPoints + moistureDataPoints
-            };
-        } else if (hasLegacyData) {
-            return {
-                hasNewFormat: false,
-                isLegacyDepthGrouped: true,
-                depths: Object.keys(record.data_by_depth_cm).map(d => parseInt(d)).sort((a, b) => a - b),
-                totalDataPoints: Object.values(record.data_by_depth_cm).reduce((sum, points) => sum + points.length, 0)
-            };
-        } else {
-            return {
-                hasNewFormat: false,
-                isLegacyDepthGrouped: false,
-                legacyDataCount: record.assignments?.reduce((sum, assignment) => sum + (assignment.data?.length || 0), 0) || 0
+                totalDataPoints: (tempDataPoints as number) + (moistureDataPoints as number)
             };
         }
+        return {
+            hasTemperatureData: false,
+            hasMoistureData: false,
+            depths: [],
+            totalDataPoints: 0
+        };
     })();
 
     return (
@@ -204,62 +193,40 @@ const SensorProfileShowContent = ({
                         </Grid>
                     )}
 
-                    {/* Data format summary */}
+                    {/* Data summary */}
                     <Grid item xs={12}>
                         <Typography variant="h6" style={{ marginTop: '16px', marginBottom: '8px' }}>
                             Data Summary
                         </Typography>
-                        {dataSummary.hasNewFormat ? (
+                        {(dataSummary.hasTemperatureData || dataSummary.hasMoistureData) ? (
                             <>
                                 <Typography variant="body2">
                                     Depths monitored: {dataSummary.depths.join(', ')}cm
                                 </Typography>
                                 <Typography variant="body2">
-                                    {dataSummary.hasTemperatureData && dataSummary.hasMoistureData && 
+                                    {dataSummary.hasTemperatureData && dataSummary.hasMoistureData &&
                                         `Temperature & VWC data: ${dataSummary.totalDataPoints.toLocaleString()} points`}
-                                    {dataSummary.hasTemperatureData && !dataSummary.hasMoistureData && 
+                                    {dataSummary.hasTemperatureData && !dataSummary.hasMoistureData &&
                                         `Temperature data: ${dataSummary.totalDataPoints.toLocaleString()} points`}
-                                    {!dataSummary.hasTemperatureData && dataSummary.hasMoistureData && 
+                                    {!dataSummary.hasTemperatureData && dataSummary.hasMoistureData &&
                                         `VWC data: ${dataSummary.totalDataPoints.toLocaleString()} points`}
                                 </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    {dataSummary.hasMoistureData ? 
-                                        'VWC calculations applied to moisture data.' : 
-                                        'Temperature data grouped by depth.'}
-                                </Typography>
-                            </>
-                        ) : dataSummary.isLegacyDepthGrouped ? (
-                            <>
-                                <Typography variant="body2" color="info.main">
-                                    Using legacy depth-grouped format
-                                </Typography>
-                                <Typography variant="body2">
-                                    Depths: {dataSummary.depths.join(', ')}cm
-                                </Typography>
-                                <Typography variant="body2">
-                                    Data points: {dataSummary.totalDataPoints.toLocaleString()}
-                                </Typography>
+                                {record.resolution && (
+                                    <Typography variant="body2" color="textSecondary">
+                                        Resolution: {record.resolution}
+                                    </Typography>
+                                )}
                             </>
                         ) : (
-                            <>
-                                <Typography variant="body2" color="warning.main">
-                                    ⚠ Using raw sensor data format
-                                </Typography>
-                                <Typography variant="body2">
-                                    Raw data points: {dataSummary.legacyDataCount.toLocaleString()}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    Individual sensor readings. Consider updating to depth-grouped format.
-                                </Typography>
-                            </>
+                            <Typography variant="body2" color="warning.main">
+                                No data available.
+                            </Typography>
                         )}
                     </Grid>
                 </Grid>
 
                 <Grid item xs={10}>
                     <SensorProfilePlot
-                        highResolution={highResolution}
-                        setHighResolution={setHighResolution}
                         visibleAssignments={visibleAssignments}
                     />
                 </Grid>
@@ -321,21 +288,13 @@ const SensorProfileShowContent = ({
 
 const SensorProfileShow = () => {
     const createPath = useCreatePath();
-    const [highResolution, setHighResolution] = useState(false);
     const [visibleAssignments, setVisibleAssignments] = useState({});
 
     return (
-        <Show
-            actions={<SensorProfileShowActions />}
-            queryOptions={{
-                meta: { high_resolution: highResolution },
-            }}
-        >
+        <Show actions={<SensorProfileShowActions />}>
             <SimpleShowLayout>
                 <SensorProfileShowContent
                     createPath={createPath}
-                    highResolution={highResolution}
-                    setHighResolution={setHighResolution}
                     visibleAssignments={visibleAssignments}
                     setVisibleAssignments={setVisibleAssignments}
                 />

@@ -20,12 +20,8 @@ import {
     useDataProvider,
     useCreatePath,
 } from 'react-admin';
-import { Grid } from '@mui/material';
-import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
-import { IconButton } from '@mui/material';
+import { Grid, Box, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import plots from '../plots';
 import { SensorPlot } from './Plots';
 
 const SensorShowActions = () => {
@@ -35,8 +31,6 @@ const SensorShowActions = () => {
     const refresh = useRefresh();
     const dataProvider = useDataProvider();
     const handleDeleteData = async () => {
-
-
         if (!record) return;
         try {
             await dataProvider.deleteData("sensors", { id: record.id }).then(() => {
@@ -71,22 +65,6 @@ const SensorShowActions = () => {
     );
 };
 
-
-export const CreatePlotRelationship = () => {
-    const record = useRecordContext();
-    if (!record) return null;
-
-    // Only show button if plot as we can only create sensor:plot relationships
-    if (record.type !== 'plot') return null;
-
-    return <IconButton
-        color="success"
-        title="Create sensor"
-    >
-        <plots.plot.icon />
-    </IconButton>;
-};
-
 const AssignSensorButton = () => {
     const record = useRecordContext();
     if (!record) return null;
@@ -101,21 +79,11 @@ const AssignSensorButton = () => {
     );
 };
 
-const SensorShow = (record: any) => {
-    const [highResolution, setHighResolution] = useState(false);
+const SensorShow = () => {
     const createPath = useCreatePath();
-    // Rerender data when resolution state changes
-    useEffect(() => { }, [highResolution]);
 
     return (
-        <Show
-            actions={<SensorShowActions />}
-            queryOptions={{
-                meta: {
-                    high_resolution: highResolution
-                }
-            }}
-        >
+        <Show actions={<SensorShowActions />}>
             <SimpleShowLayout>
                 <Grid container spacing={2}>
                     <Grid item xs={2}>
@@ -162,11 +130,7 @@ const SensorShow = (record: any) => {
                     </Grid>
 
                     <Grid item xs={10}>
-                        <SensorPlot
-                            source="temperature_plot"
-                            highResolution={highResolution}
-                            setHighResolution={setHighResolution}
-                        />
+                        <SensorPlot />
                     </Grid>
                 </Grid>
                 <Typography variant="h6">Assignments</Typography>
