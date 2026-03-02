@@ -20,10 +20,12 @@ import FluxDataCreate from './flux_data/Create';
 import FluxDataEdit from './flux_data/Edit';
 import FluxDataList from './flux_data/List';
 import FluxDataShow from './flux_data/Show';
+import FluxDataImport from './flux_data/Import';
 import RedoxDataCreate from './redox_data/Create';
 import RedoxDataEdit from './redox_data/Edit';
 import RedoxDataList from './redox_data/List';
 import RedoxDataShow from './redox_data/Show';
+import RedoxDataImport from './redox_data/Import';
 import Co2Icon from '@mui/icons-material/Co2';
 import ScienceIcon from '@mui/icons-material/Science';
 const assignments = {
@@ -73,6 +75,7 @@ const flux_data = {
     show: FluxDataShow,
     icon: Co2Icon,
     options: { label: 'Flux Data' },
+    import: FluxDataImport,
 };
 
 const redox_data = {
@@ -82,6 +85,7 @@ const redox_data = {
     show: RedoxDataShow,
     icon: ScienceIcon,
     options: { label: 'Redox Data' },
+    import: RedoxDataImport,
 };
 
 export default {

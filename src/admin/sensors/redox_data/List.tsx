@@ -9,13 +9,20 @@ import {
     TopToolbar,
     CreateButton,
     ExportButton,
+    Button,
 } from "react-admin";
+import { useNavigate } from 'react-router-dom';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 const RedoxDataListActions = () => {
     const { permissions } = usePermissions();
+    const navigate = useNavigate();
     return (
         <TopToolbar>
             {permissions === 'admin' && <CreateButton />}
+            {permissions === 'admin' && (
+                <Button label="Import" startIcon={<UploadFileIcon />} onClick={() => navigate('/redox_data/import')} />
+            )}
             <ExportButton />
         </TopToolbar>
     );

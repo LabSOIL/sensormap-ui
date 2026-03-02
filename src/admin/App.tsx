@@ -112,8 +112,12 @@ const App = () => {
                             <Resource name="sensor_profiles" {...sensors.profile} />
                             <Resource name="sensor_profile_assignments" {...sensors.assignments} />
                             <Resource name="sensordata" {...sensors.sensordata} />
-                            <Resource name="flux_data" {...sensors.flux_data} />
-                            <Resource name="redox_data" {...sensors.redox_data} />
+                            <Resource name="flux_data" {...sensors.flux_data}>
+                                <Route path="import" element={<sensors.flux_data.import />} />
+                            </Resource>
+                            <Resource name="redox_data" {...sensors.redox_data}>
+                                <Route path="import" element={<sensors.redox_data.import />} />
+                            </Resource>
                             <Resource name="soil_profiles" {...soil.profile} />
                             <Resource name="soil_types" {...soil.type} />
                             <Resource name="soil_classifications" {...soil.classification} />

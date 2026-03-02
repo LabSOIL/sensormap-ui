@@ -15,7 +15,7 @@ const AreaEdit = () => {
                 <TextInput disabled label="Id" source="id" />
                 <TextInput source="name" validate={required()} />
                 <TextInput source="description" />
-                <ReferenceInput
+<ReferenceInput
                     source="project_id"
                     reference="projects"
                     sort={{ field: 'name', order: 'ASC' }}
